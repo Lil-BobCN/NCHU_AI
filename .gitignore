@@ -1,0 +1,42 @@
+# Environment secrets
+.env
+backend/.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+
+# Logs
+logs/
+*.log
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Claude Code
+.claude/
+
+# Generated files
+*.md.backup
+graphify-out/
+
+# Local dev
+.venv/
+.vscode/
+logs/
+
+# Docker
+postgres-data/
+qdrant-data/
+redis-data/

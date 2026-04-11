@@ -1,0 +1,12 @@
+﻿(function () {
+    'use strict';
+
+    window.POWER_GRAYSCALE_CONFIG = {
+        "Enabled": false,
+        "StartDateTime": "2020-03-01T06:25:03",
+        "EndDateTime": "2020-04-14T15:45:02"
+    };
+    window.POWER_LEAVESITEPROMPTS_CONFIG = {"LeaveSitePrompts":{"0":"OnShow","1":"OnShow","35":"PlatformConfig","41":"PlatformConfig","38":"PlatformConfig","84":"PlatformConfig","34":"PlatformConfig","62":"PlatformConfig","73":"PlatformConfig","49":"PlatformConfig","37":"PlatformConfig","99":"PlatformConfig","102":"PlatformConfig"},"DomainWhitelist":["www.nchu.edu.cn","nic.nchu.edu.cn","rsc.nchu.edu.cn","dag.nchu.edu.cn","xswyh.nchu.edu.cn","tiyu.nchu.edu.cn","hk.nchu.edu.cn","tzb.nchu.edu.cn","zzb.nchu.edu.cn","sx.nchu.edu.cn","jxjy.nchu.edu.cn","zcgs.nchu.edu.cn","fxcs.nchu.edu.cn","pinggu.nchu.edu.cn","zbcg.nchu.edu.cn","dzb.nchu.edu.cn","zhzy.nchu.edu.cn","mkszyxy.nchu.edu.cn","hkzzcy.nchu.edu.cn","jgdw.nchu.edu.cn","ssc.nchu.edu.cn","fuxiao.nchu.edu.cn","xlzx.nchu.edu.cn","csc.nchu.edu.cn","jiwei.nchu.edu.cn","ltxc.nchu.edu.cn","tuanwei.nchu.edu.cn","fxq.nchu.edu.cn","ss.nchu.edu.cn","intl.nchu.edu.cn","art.nchu.edu.cn","pec.nchu.edu.cn","gc.nchu.edu.cn","zsjy.nchu.edu.cn","gjxy.nchu.edu.cn","yiyuan.nchu.edu.cn","music.nchu.edu.cn","kjc.nchu.edu.cn","lib.nchu.edu.cn","xgc.nchu.edu.cn","tujian.nchu.edu.cn","waiyu.nchu.edu.cn","jcc.nchu.edu.cn","yjs.nchu.edu.cn","xyh.nchu.edu.cn","mse.nchu.edu.cn","jjc.nchu.edu.cn","huanhua.nchu.edu.cn","hq.nchu.edu.cn","hkzzgc.nchu.edu.cn","em.nchu.edu.cn","fzgh.nchu.edu.cn","sjc.nchu.edu.cn","sie.nchu.edu.cn","wenfa.nchu.edu.cn","jwc.nchu.edu.cn","cgxy.nchu.edu.cn","jsaa.nchu.edu.cn","xcb.nchu.edu.cn","ndt.nchu.edu.cn","iciri.nchu.edu.cn","zhjz.nchu.edu.cn","ligroup.nchu.edu.cn","cxff.nchu.edu.cn","dlny.nchu.edu.cn","edrpclab.nchu.edu.cn","dgdz.sie.nchu.edu.cn","dpj.sie.nchu.edu.cn","lxsyzx.fxq.nchu.edu.cn","clhxsyzx.huanhua.nchu.edu.cn","hfsyzx.fxq.nchu.edu.cn","jhsyzx.huanhua.nchu.edu.cn","ameec.hkzzgc.nchu.edu.cn","icoilab.cgxy.nchu.edu.cn","hjsyzx.huanhua.nchu.edu.cn","avndtlab.cgxy.nchu.edu.cn","szjyzx.nchu.edu.cn","chgh.nchu.edu.cn","hm.nchu.edu.cn","kjxy.nchu.edu.cn","xp.nchu.edu.cn","fxqztlab.sie.nchu.edu.cn","*.nchu.edu.cn"]};
+    window.POWER_CAPTCHA_CONFIG = {"EnableAudio":false};
+    window.POWER_WEIXINSHARE_CONFIG = {"WeixinShareItems":{"35":false,"41":false,"38":false,"1":false,"84":false,"34":false,"62":false,"73":false,"49":false,"37":false,"99":false,"102":false}};
+}());

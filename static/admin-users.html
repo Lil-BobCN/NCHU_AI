@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户管理 - NCHU AI 助手</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 16px 16px 0 0;
+            padding: 24px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 22px;
+            color: #1a1a2e;
+        }
+
+        .header .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header .username {
+            color: #555;
+            font-size: 14px;
+        }
+
+        .header .back-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            text-decoration: none;
+        }
+
+        .header .back-btn:hover {
+            background: #5a6fd6;
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 0 0 16px 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+        }
+
+        .stats-bar {
+            padding: 16px 32px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+            color: #666;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #f8f9fa;
+            padding: 12px 16px;
+            text-align: left;
+            font-size: 13px;
+            color: #555;
+            font-weight: 600;
+            border-bottom: 2px solid #eee;
+        }
+
+        td {
+            padding: 12px 16px;
+            font-size: 13px;
+            border-bottom: 1px solid #f0f0f0;
+            color: #333;
+        }
+
+        tr:hover td {
+            background: #f8f9ff;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .pagination {
+            padding: 16px 32px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            border-top: 1px solid #eee;
+        }
+
+        .pagination button {
+            padding: 6px 14px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .pagination button:hover:not(:disabled) {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .pagination .page-info {
+            font-size: 13px;
+            color: #666;
+            margin: 0 8px;
+        }
+
+        .empty-state svg {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 16px;
+            opacity: 0.3;
+        }
+
+        .error-state {
+            text-align: center;
+            padding: 40px;
+            color: #e74c3c;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border: 3px solid #eee;
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-left: 12px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>注册用户管理</h1>
+            <div class="user-info">
+                <span class="username" id="current-user"></span>
+                <a href="/" class="back-btn">返回主页</a>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <div class="stats-bar" id="stats"></div>
+
+            <div id="content">
+                <div class="loading">加载中</div>
+            </div>
+
+            <div class="pagination" id="pagination"></div>
+        </div>
+    </div>
+
+    <script>
+        const BASE_URL = window.location.protocol === 'file:'
+            ? 'http://localhost'
+            : window.location.origin;
+        let currentPage = 1;
+        let perPage = 20;
+
+        async function checkAuth() {
+            try {
+                const res = await fetch(BASE_URL + '/api/auth/me', {
+                    credentials: 'include'
+                });
+                if (!res.ok) {
+                    window.location.href = '/login?redirect=/admin/users';
+                    return false;
+                }
+                const user = await res.json();
+                document.getElementById('current-user').textContent = '欢迎，' + user.username;
+                return true;
+            } catch (err) {
+                window.location.href = '/login?redirect=/admin/users';
+                return false;
+            }
+        }
+
+        async function fetchUsers(page) {
+            const contentEl = document.getElementById('content');
+            contentEl.innerHTML = '<div class="loading">加载中</div>';
+
+            try {
+                const res = await fetch(
+                    BASE_URL + '/api/admin/users?page=' + page + '&per_page=' + perPage,
+                    { credentials: 'include' }
+                );
+
+                if (res.status === 401) {
+                    window.location.href = '/login?redirect=/admin/users';
+                    return;
+                }
+                if (res.status === 503) {
+                    contentEl.innerHTML = '<div class="error-state">管理员未配置，请联系管理员设置 ADMIN_USERS 环境变量</div>';
+                    return;
+                }
+                if (res.status === 403) {
+                    contentEl.innerHTML = '<div class="error-state">权限不足，需要管理员权限</div>';
+                    return;
+                }
+                if (!res.ok) {
+                    contentEl.innerHTML = '<div class="error-state">加载失败，请稍后重试</div>';
+                    return;
+                }
+
+                const data = await res.json();
+                renderTable(data);
+                renderPagination(data);
+            } catch (err) {
+                contentEl.innerHTML = '<div class="error-state">网络错误，请检查连接</div>';
+            }
+        }
+
+        function renderTable(data) {
+            const contentEl = document.getElementById('content');
+            const statsEl = document.getElementById('stats');
+
+            statsEl.textContent = '共 ' + data.total + ' 位注册用户 | 第 ' + data.page + ' 页';
+
+            if (!data.users || data.users.length === 0) {
+                contentEl.innerHTML = '<div class="empty-state"><p>暂无注册用户</p></div>';
+                return;
+            }
+
+            let html = '<table><thead><tr>';
+            html += '<th>用户名</th><th>邮箱</th><th>学号</th><th>注册时间</th>';
+            html += '</tr></thead><tbody>';
+
+            data.users.forEach(function(user) {
+                const time = user.created_at_formatted || new Date(user.created_at * 1000).toLocaleString('zh-CN');
+
+                html += '<tr>';
+                html += '<td>' + escapeHtml(user.username) + '</td>';
+                html += '<td>' + escapeHtml(user.email || '-') + '</td>';
+                html += '<td>' + escapeHtml(user.student_id || '-') + '</td>';
+                html += '<td>' + time + '</td>';
+                html += '</tr>';
+            });
+
+            html += '</tbody></table>';
+            contentEl.innerHTML = html;
+        }
+
+        function renderPagination(data) {
+            const pagEl = document.getElementById('pagination');
+            const totalPages = Math.ceil(data.total / data.per_page);
+
+            if (totalPages <= 1) {
+                pagEl.innerHTML = '';
+                return;
+            }
+
+            let html = '';
+            html += '<button ' + (data.page <= 1 ? 'disabled' : '') + ' onclick="fetchUsers(1)">首页</button>';
+            html += '<button ' + (data.page <= 1 ? 'disabled' : '') + ' onclick="fetchUsers(' + (data.page - 1) + ')">上一页</button>';
+            html += '<span class="page-info">' + data.page + ' / ' + totalPages + '</span>';
+            html += '<button ' + (data.page >= totalPages ? 'disabled' : '') + ' onclick="fetchUsers(' + (data.page + 1) + ')">下一页</button>';
+
+            pagEl.innerHTML = html;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // 初始化
+        checkAuth().then(function(loggedIn) {
+            if (loggedIn) {
+                fetchUsers(currentPage);
+            }
+        });
+    </script>
+</body>
+</html>

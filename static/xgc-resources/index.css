@@ -1,0 +1,26 @@
+﻿@charset "utf-8";
+
+#columnA {height: 322px; overflow: hidden; margin-bottom: 20px;}
+.mainContent {float: left; width: 860px;}
+/*学院公告*/
+#indXygg {float: right; width: 320px;}
+
+
+/*综合新闻*/
+#indZhxw {width: 480px;}
+#indZhxw .hd {background: #fff url(../../base/img/newshd.png) left center repeat-x ;}
+#indZhxw .hd h3 {background:#fff url(../../base/img/icons.png) 10px -280px no-repeat;}
+#indZhxw .hd h3 a {color: #8cb811; font-weight: bold;}
+#indZhxw .hd .more{	background:#fff url(../../base/img/icons.png) 10px -367px no-repeat;margin-right:0; padding-left: 10px; padding-right: 10px; }
+
+
+#columnB {border:2px solid #8cb811; padding: 20px; height: 312px; }
+
+/*师资力量*/
+#indSzll {width: 320px; height: 312px; border-right: 1px solid #e6e6e6;margin-right: 20px; padding-right: 20px;}
+
+/*学生培养*/
+#indXspy {width:459px; height: 312px; border-right: 1px solid #e6e6e6;margin-right: 20px;padding-right: 20px; }
+
+/*科研管理*/
+#indKygl {width: 295px; height: 312px;}

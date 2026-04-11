@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录 - NCHU AI 助手</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .auth-container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .auth-header h1 {
+            font-size: 24px;
+            color: #1a1a2e;
+            margin-bottom: 8px;
+        }
+
+        .auth-header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 24px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 15px;
+            color: #666;
+            transition: all 0.2s;
+        }
+
+        .tab.active {
+            color: #667eea;
+            border-bottom: 2px solid #667eea;
+            margin-bottom: -2px;
+            font-weight: 600;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 14px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .submit-btn:hover {
+            opacity: 0.9;
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .error-msg {
+            background: #fff0f0;
+            color: #e53e3e;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-bottom: 16px;
+            display: none;
+        }
+
+        .error-msg.visible {
+            display: block;
+        }
+
+        .success-msg {
+            background: #f0fff4;
+            color: #38a169;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-bottom: 16px;
+            display: none;
+        }
+
+        .success-msg.visible {
+            display: block;
+        }
+
+        .form-panel {
+            display: none;
+        }
+
+        .form-panel.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-header">
+            <h1>NCHU AI 助手</h1>
+            <p>南昌航空大学智能辅导助手</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" data-tab="login">登录</button>
+            <button class="tab" data-tab="register">注册</button>
+        </div>
+
+        <div id="error-msg" class="error-msg"></div>
+        <div id="success-msg" class="success-msg"></div>
+
+        <!-- 登录表单 -->
+        <form id="login-form" class="form-panel active">
+            <div class="form-group">
+                <label for="login-username">用户名</label>
+                <input type="text" id="login-username" name="username" required autocomplete="username" placeholder="请输入用户名">
+            </div>
+            <div class="form-group">
+                <label for="login-password">密码</label>
+                <input type="password" id="login-password" name="password" required autocomplete="current-password" placeholder="请输入密码">
+            </div>
+            <button type="submit" class="submit-btn">登录</button>
+        </form>
+
+        <!-- 注册表单 -->
+        <form id="register-form" class="form-panel">
+            <div class="form-group">
+                <label for="reg-username">用户名</label>
+                <input type="text" id="reg-username" name="username" required minlength="2" maxlength="30" placeholder="2-30个字符">
+            </div>
+            <div class="form-group">
+                <label for="reg-email">邮箱（可选）</label>
+                <input type="email" id="reg-email" name="email" placeholder="example@email.com">
+            </div>
+            <div class="form-group">
+                <label for="reg-password">密码</label>
+                <input type="password" id="reg-password" name="password" required minlength="8" placeholder="至少8个字符">
+            </div>
+            <div class="form-group">
+                <label for="reg-password-confirm">确认密码</label>
+                <input type="password" id="reg-password-confirm" name="password_confirm" required minlength="8" placeholder="再次输入密码">
+            </div>
+            <button type="submit" class="submit-btn">注册</button>
+        </form>
+    </div>
+
+    <script>
+        // 动态获取 API 基础地址（兼容 file:// 协议）
+        const API_BASE = window.location.protocol === 'file:'
+            ? 'http://localhost'
+            : window.location.origin;
+
+        // 从 URL 参数获取重定向地址（file:// 下默认到 http://localhost）
+        const urlParams = new URLSearchParams(window.location.search);
+        const defaultRedirect = window.location.protocol === 'file:'
+            ? 'http://localhost/'
+            : '/';
+        const redirectUrl = urlParams.get('redirect') || defaultRedirect;
+
+        function showError(msg) {
+            const el = document.getElementById('error-msg');
+            el.textContent = msg;
+            el.classList.add('visible');
+            document.getElementById('success-msg').classList.remove('visible');
+        }
+
+        function showSuccess(msg) {
+            const el = document.getElementById('success-msg');
+            el.textContent = msg;
+            el.classList.add('visible');
+            document.getElementById('error-msg').classList.remove('visible');
+        }
+
+        function clearMessages() {
+            document.getElementById('error-msg').classList.remove('visible');
+            document.getElementById('success-msg').classList.remove('visible');
+        }
+
+        // Tab 切换
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                clearMessages();
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.form-panel').forEach(p => p.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById(tab.dataset.tab + '-form').classList.add('active');
+            });
+        });
+
+        // 登录
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            clearMessages();
+            const btn = e.target.querySelector('.submit-btn');
+            btn.disabled = true;
+            btn.textContent = '登录中...';
+
+            try {
+                const res = await fetch(`${API_BASE}/api/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        username: document.getElementById('login-username').value,
+                        password: document.getElementById('login-password').value,
+                    }),
+                });
+                let data;
+                try {
+                    data = await res.json();
+                } catch (_) {
+                    showError('服务器响应异常，请稍后再试');
+                    return;
+                }
+                if (res.ok && data.success) {
+                    showSuccess('登录成功，正在跳转...');
+                    setTimeout(() => { window.location.href = redirectUrl; }, 500);
+                } else {
+                    showError(data.error || '登录失败');
+                }
+            } catch (err) {
+                console.error('[Login] 请求失败:', err);
+                // 提供更详细的错误信息帮助诊断
+                let errMsg = '网络错误';
+                if (err.message && err.message.includes('Failed to fetch')) {
+                    errMsg = '无法连接到服务器，请确认：1) 后端服务正在运行 2) 浏览器地址为 http://localhost';
+                } else {
+                    errMsg = '网络错误: ' + (err.message || '未知错误');
+                }
+                showError(errMsg);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '登录';
+            }
+        });
+
+        // 注册
+        document.getElementById('register-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            clearMessages();
+
+            const username = document.getElementById('reg-username').value;
+            const password = document.getElementById('reg-password').value;
+            const confirm = document.getElementById('reg-password-confirm').value;
+            if (password !== confirm) {
+                showError('两次输入的密码不一致');
+                return;
+            }
+            if (password === username) {
+                showError('密码不能与用户名相同');
+                return;
+            }
+
+            const btn = e.target.querySelector('.submit-btn');
+            btn.disabled = true;
+            btn.textContent = '注册中...';
+
+            try {
+                const body = {
+                    username: username,
+                    password: password,
+                };
+                const email = document.getElementById('reg-email').value;
+                if (email) body.email = email;
+
+                const res = await fetch(`${API_BASE}/api/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify(body),
+                });
+                let data;
+                try {
+                    data = await res.json();
+                } catch (_) {
+                    showError('服务器响应异常，请稍后再试');
+                    return;
+                }
+                if (res.ok && data.success) {
+                    // 后端已自动登录，直接跳转到目标页面
+                    showSuccess('注册成功，正在跳转...');
+                    setTimeout(() => { window.location.href = redirectUrl; }, 500);
+                } else {
+                    showError(data.error || '注册失败');
+                }
+            } catch (err) {
+                console.error('[Register] 请求失败:', err);
+                showError('网络错误，请检查连接后重试 (' + err.message + ')');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '注册';
+            }
+        });
+    </script>
+</body>
+</html>
