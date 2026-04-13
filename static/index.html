@@ -2201,9 +2201,9 @@
     </div>
 
     <!-- AI智能问答助手插件 -->
-    <link rel="stylesheet" href="static/ai-assistant-widget.css?v=2026041201">
-    <script src="config.js?v=2026041201"></script>
-    <script src="static/ai-assistant-widget.js?v=2026041201"></script>
+    <link rel="stylesheet" href="/static/ai-assistant-widget.css?v=2026041302">
+    <script src="/static/config.js?v=2026041302"></script>
+    <script src="/static/ai-assistant-widget.js?v=2026041302"></script>
     <script>
         // 初始化AI助手插件（使用相对路径，由nginx代理转发）
         AIAssistant.init({
@@ -2275,7 +2275,6 @@
 
             // 回调函数
             onInit: function () {
-                console.log('AI助手插件初始化成功（代理模式）');
             }
         });
     </script>

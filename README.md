@@ -30,6 +30,26 @@
 
 ---
 
+## 核心功能
+
+### Flask AI 助手（系统A）- 悬浮球
+- **Kimi 风格流式输出**：搜索关键词栏 → 思考卡片 → 流式正文 → 引用标注 → 来源卡片
+- **丰富 Markdown 渲染**：表格（深色主题）、粗体、列表、引用块、代码块
+- **实时引用系统**：
+  - 正文引用显示为灰色 Pill（带域名名称）
+  - 悬停预览卡片（favicon + 标题 + URL）
+  - 底部来源卡片列表（可折叠/展开）
+- **消息操作栏**：复制、重新生成、分享、点赞/点踩
+- **表格操作**：一键复制 CSV、下载 CSV
+- **Session Cookie 认证**：登录后自动保持状态
+
+### FastAPI RAG 系统（系统B）- 独立页面
+- **向量检索增强对话**：基于 Qdrant 向量库检索学校文档
+- **JWT Bearer Token 认证**：独立用户体系
+- **对话历史管理**：多会话、消息持久化
+
+---
+
 ## 快速启动
 
 ### 前置条件
@@ -111,6 +131,12 @@ agentproject/
 │   ├── ai-assistant-widget.js  # AI 悬浮球 + 对话框逻辑
 │   ├── ai-assistant-widget.css # AI 悬浮球样式
 │   └── xgc-resources/          # 学工处网站静态资源
+│
+├── docs/                       # 架构与规划文档
+│   ├── ARCHITECTURE.md         # 系统架构图
+│   ├── FLASK-SYSTEM.md         # Flask 系统详解
+│   ├── FASTAPI-SYSTEM.md       # FastAPI 系统详解
+│   └── KIMI_STYLE_REFACTOR_PLAN.md  # Kimi 风格改造计划
 │
 ├── NCHU_XGC.html               # 原版学工处 HTML（file:// 协议访问用）
 │

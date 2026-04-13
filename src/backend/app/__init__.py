@@ -26,7 +26,10 @@ def create_app(config=None):
     Returns:
         Flask 应用实例
     """
-    app = Flask(__name__)
+    # 计算项目根目录，用于配置静态文件服务
+    project_root = os.path.dirname(os.path.dirname(os.path.dirname(current_dir)))
+    static_path = os.path.join(project_root, 'static')
+    app = Flask(__name__, static_folder=static_path, static_url_path='/static')
 
     # Session 配置
     secret_key = os.getenv('SESSION_SECRET_KEY')
@@ -36,7 +39,7 @@ def create_app(config=None):
         )
     app.secret_key = secret_key
     app.config['SESSION_COOKIE_HTTPONLY'] = True
-    app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+    app.config['SESSION_COOKIE_SAMESITE'] = None
     app.config['SESSION_COOKIE_PATH'] = '/'
     try:
         session_hours = int(os.getenv('SESSION_LIFETIME_HOURS', '24'))

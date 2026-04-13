@@ -1,6 +1,6 @@
 # NCHU AI 助手 - 项目状态文档
 
-> 最后更新: 2026-04-12
+> 最后更新: 2026-04-13
 > 项目路径: C:\Users\liuqi\Desktop\agentproject\
 
 ---
@@ -192,6 +192,19 @@ Qdrant (端口 6333) - 向量数据库
 - **根因**: Gunicorn 默认 30s 超时，长对话超过后被强制中止
 - **修复**: Dockerfile 添加 `--timeout 300 --graceful-timeout 300`
 
+### 6.12 登录页面跳转后无法更新登录状态
+- **修复**: `__init__.py` 中 Session Cookie 配置优化（SameSite=None + 路径修正）
+
+### 6.13 Kimi 风格流式输出改造（Phase 1-6）
+- **Phase 1**: 系统 Prompt 增强（Markdown 表格/粗体/列表/引用格式）
+- **Phase 2**: 后端 SSE 事件增强（搜索关键词 + 思考阶段事件）
+- **Phase 3**: 前端搜索关键词栏 + 思考卡片（呼吸动画）
+- **Phase 4**: 引用药丸（Pill）+ 悬浮预览卡片
+- **Phase 5**: 底部来源卡片（favicon + 折叠/展开）
+- **Phase 6**: 操作栏增强（重新生成/分享/点赞/点踩）+ 表格深色主题 + CSV 复制/下载
+- **安全修复**: 修复 5 处 XSS 漏洞（URL 转义、事件委托替换 inline onclick）
+- **代码清理**: 移除调试 console.log、删除临时测试/调试文件
+
 ---
 
 ## 七、环境变量
@@ -278,6 +291,8 @@ docker compose -f docker-compose.rag.yml up -d
 2. **RAG 向量库**: Qdrant 已运行但文档数据待填充
 3. **HTTPS**: 当前仅 HTTP，生产环境需要 HTTPS
 4. **速率限制**: Flask 有基础 brute-force 保护，FastAPI 无速率限制
+5. **技术债务**: `ai-assistant-widget.js` (~5000 行) 建议后续拆分为模块（state/sse-handler/renderer/event-delegation）
+6. **已知 Bug**: `qwen_api.py` 中 `iter_lines()` 可能在 UTF-8 多字节字符边界截断（浏览器端 TextDecoder 可正确处理，不影响用户体验）
 
 ---
 

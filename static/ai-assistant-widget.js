@@ -33,14 +33,12 @@
     // 1. 检测是否已经加载了官方marked库
     if (typeof window.marked !== 'undefined') {
       marked = window.marked;
-      console.log('✅ 使用已加载的官方marked.js库');
       markedReady = true;
       resolve(marked);
       return;
     }
 
     // 2. 尝试动态加载CDN版本
-    console.log('🔄 未检测到marked.js，尝试从 CDN 加载...');
     const script = document.createElement('script');
     script.src = 'https://cdn.jsdelivr.net/npm/marked/lib/marked.umd.js';
     script.async = true;
@@ -48,7 +46,6 @@
     script.onload = () => {
       if (typeof window.marked !== 'undefined') {
         marked = window.marked;
-        console.log('✅ 从 CDN 加载 marked.js 成功');
         
         // 配置marked选项：链接在新窗口打开
         if (marked.setOptions) {
@@ -697,7 +694,6 @@
           timestamp: Date.now()
         };
         sessionStorage.setItem('ai_scrollPosition', JSON.stringify(scrollPosition));
-        console.log('[滚动位置] 已保存 - 百分比:', scrollPercentage.toFixed(4), 'scrollTop:', messagesContainer.scrollTop);
       }
     } catch (error) {
       console.error('保存滚动位置失败:', error);
@@ -756,7 +752,6 @@
             ));
 
             messagesContainer.scrollTop = targetScrollTop;
-            console.log('[滚动位置] 已恢复 - 百分比:', state.savedScrollPercentageBeforeResize.toFixed(4), 'scrollTop:', targetScrollTop);
 
             // 重置保存的百分比
             state.savedScrollPercentageBeforeResize = null;
@@ -782,7 +777,6 @@
               ));
 
               messagesContainer.scrollTop = targetScrollTop;
-              console.log('[滚动位置] 已恢复 - 百分比:', parsedPosition.scrollPercentage.toFixed(4), 'scrollTop:', targetScrollTop);
             }
           });
           return true;
@@ -824,7 +818,6 @@
             // 注意：出于安全原因，浏览器不允许通过JavaScript设置file input的值
             // 所以我们只能保存文件信息用于显示，但用户需要重新选择文件才能真正上传
             // 这里我们可以显示一个提示
-            console.log('上次选择的文件：', parsedState.file.name);
           }
 
           return true;
@@ -904,13 +897,11 @@
       // 用户滚动到底部，重新启用自动滚动
       if (!state.autoScrollEnabled) {
         state.autoScrollEnabled = true;
-        console.log('[自动滚动] 已启用 - 用户滚动到底部');
       }
     } else {
       // 用户手动向上滚动，禁用自动滚动
       if (state.autoScrollEnabled) {
         state.autoScrollEnabled = false;
-        console.log('[自动滚动] 已禁用 - 用户手动滚动');
       }
     }
 
@@ -1113,7 +1104,6 @@
       
       if (num && url) {
         citationUrls[num] = { url, title };
-        console.log('[Citation] 提取到脚注映射:', num, '->', url.substring(0, 50), '标题:', title || '无');
       }
     }
     
@@ -1129,11 +1119,9 @@
       // 只有当这个编号还没有被提取过时才添加
       if (num && url && !citationUrls[num]) {
         citationUrls[num] = { url, title };
-        console.log('[Citation] 提取到备选格式映射:', num, '->', url.substring(0, 50));
       }
     }
     
-    console.log('[Citation] 总共提取到', Object.keys(citationUrls).length, '个引用映射');
     return citationUrls;
   }
   
@@ -1195,7 +1183,6 @@
   function processSourceSection(htmlContent, citationUrls) {
     if (!htmlContent) return htmlContent;
     
-    console.log('[processSourceSection] 处理来源区块, citationUrls:', Object.keys(citationUrls));
     
     // 检测信息来源/参考资料区块 - 改进正则，更灵活匹配
     const sourceSectionRegex = /(<h[1-6][^>]*>\s*(?:信息来源|参考资料|参考链接|相关链接|引用来源|参考)[：:\s]*<\/h[1-6]>|<p>\s*<strong>\s*(?:信息来源|参考资料|参考链接|相关链接|引用来源|参考)[：:\s]*<\/strong>\s*<\/p>|<p>\s*(?:信息来源|参考资料|参考链接|相关链接|引用来源|参考)[：:\s]*<\/p>|<h[1-6][^>]*>\s*##\s*(?:信息来源|参考资料|参考链接|相关链接|引用来源|参考)[：:\s]*<\/h[1-6]>)([\s\S]*?)(?=<(?:h[1-6]|p><strong|div)|<\/div>|<div class="|$)/i;
@@ -1267,7 +1254,6 @@
       }
     }
     
-    console.log('[generateSourceSection] 提取到链接数:', links.length);
     
     // 如果没有有效链接，返回空字符串（不显示该部分）
     if (links.length === 0) {
@@ -1317,7 +1303,7 @@
     
     let content = message.type === 'ai'
       ? (marked.parse ? marked.parse(processedContent) : marked(processedContent))
-      : processedContent.replace(/\n/g, '<br>');
+      : escapeHtml(processedContent).replace(/\n/g, '<br>');
     
     // 转换引用链接 [数字] 为可点击链接
     if (message.type === 'ai' && content) {
@@ -1747,7 +1733,6 @@
 
         // 恢复 tooltip 的禁用状态
         if (tooltipDisabled) {
-          console.log('[Tooltip] Render: Restoring tooltip disabled state');
           ballWrapper.classList.add('tooltip-disabled');
           const tooltip = container.querySelector('.floating-ball-tooltip');
           if (tooltip) {
@@ -2069,7 +2054,6 @@
               ));
 
               messagesContainer.scrollTop = targetScrollTop;
-              console.log('[全屏切换] 滚动位置已恢复 - 百分比:', state.savedScrollPercentageBeforeResize.toFixed(4), 'scrollTop:', targetScrollTop);
 
               // 重置保存的百分比
               state.savedScrollPercentageBeforeResize = null;
@@ -3592,7 +3576,6 @@
             if (aiMessageIndex !== -1) {
               const message = state.messages[aiMessageIndex];
               if (message && message.type === 'ai') {
-                console.log('[Stream Complete] 最终渲染');
                 // 确保引用完整
                 if (!message.citationUrls || Object.keys(message.citationUrls).length === 0) {
                   message.citationUrls = extractCitationUrlsFromContent(message.content);
@@ -3653,12 +3636,10 @@
             // ========== 处理后端返回的引用数据（方案A核心）==========
             if (parsed.citations) {
               // 后端返回的引用映射（优先使用）
-              console.log('[Citations] 收到后端返回的引用:', Object.keys(parsed.citations).length, '个');
               if (aiMessageIndex !== -1) {
                 const message = state.messages[aiMessageIndex];
                 if (message) {
                   message.citationUrls = { ...message.citationUrls, ...parsed.citations };
-                  console.log('[Citations] 已更新消息引用映射');
                   // 立即重新渲染，使新引用链接可见（不等下一个 content chunk）
                   updateMessageDisplay(aiMessageIndex);
                 }
@@ -3669,7 +3650,6 @@
             if (parsed.type === 'search_keywords') {
               const keywords = parsed.keywords || [];
               const count = parsed.count || 0;
-              console.log('[Phase3] 搜索关键词:', keywords, '结果数:', count);
               if (aiMessageIndex !== -1) {
                 const message = state.messages[aiMessageIndex];
                 if (message) {
@@ -3685,7 +3665,6 @@
 
             // ========== Phase 3: 处理 thinking_start 事件 ==========
             if (parsed.type === 'thinking_start') {
-              console.log('[Phase3] 思考开始');
               if (aiMessageIndex !== -1) {
                 const message = state.messages[aiMessageIndex];
                 if (message) {
@@ -3698,7 +3677,6 @@
 
             // ========== Phase 3: 处理 thinking_end 事件 ==========
             if (parsed.type === 'thinking_end') {
-              console.log('[Phase3] 思考结束，正文开始');
               if (aiMessageIndex !== -1) {
                 const message = state.messages[aiMessageIndex];
                 if (message) {
@@ -3725,7 +3703,6 @@
                     state.citationUrls[idx + 1] = result.url;
                   }
                 });
-                console.log('[Search] 捕获搜索结果:', state.searchResults.length, '条');
               }
             }
             
@@ -3817,7 +3794,6 @@
             if (aiMessageIndex !== -1) {
               const message = state.messages[aiMessageIndex];
               if (message && message.type === 'ai') {
-                console.log('[Stream Close] 最终渲染');
                 // 重新提取引用映射（此时内容已完整）
                 const contentCitations = extractCitationUrlsFromContent(message.content);
                 message.citationUrls = { ...contentCitations, ...(message.citationUrls || {}) };
@@ -3993,13 +3969,11 @@
         // 如果消息气泡被禁用，标记为已经离开
         if (tooltipDisabled) {
           hasLeftAfterDrag = true;
-          console.log('[Tooltip] Mouse left after drag, hasLeftAfterDrag:', hasLeftAfterDrag);
         }
       });
 
       // 鼠标进入悬浮球
       ballWrapper.addEventListener('mouseenter', () => {
-        console.log('[Tooltip] Mouse enter, tooltipDisabled:', tooltipDisabled, 'hasLeftAfterDrag:', hasLeftAfterDrag);
         // 只有在拖动后离开过，再重新进入时才恢复
         if (tooltipDisabled && hasLeftAfterDrag) {
           tooltipDisabled = false;
@@ -4023,10 +3997,8 @@
               tooltip.style.opacity = '';
               tooltip.style.visibility = '';
               tooltip.style.transform = '';
-              console.log('[Tooltip] Cleared inline styles with transition');
             });
           }
-          console.log('[Tooltip] Tooltip re-enabled');
         }
       });
     }
@@ -4276,9 +4248,8 @@
           hideCitationTooltip();
         }, 100);
       });
-    }
 
-    // Phase 5: 来源卡片事件委托（点击打开链接 + 折叠/展开）
+      // Phase 5: 来源卡片事件委托（点击打开链接 + 折叠/展开）
     messagesContainer.addEventListener('click', (e) => {
       // 搜索结果点击 - 打开链接
       const searchItem = e.target.closest('.search-result-item');
@@ -4384,6 +4355,7 @@
     if (confirmDeleteBtn) {
       confirmDeleteBtn.addEventListener('click', executeDelete);
     }
+  }
 
     // ========== 拖动功能 ==========
     const chatHeader = container.querySelector('.chat-header');
@@ -4415,28 +4387,28 @@
       document.addEventListener('touchmove', handleBallDragMove, { passive: false });
       document.addEventListener('touchend', handleBallDragEnd);
     }
-  }
 
-  // 调整大小功能：事件委托
-  container.addEventListener('mousedown', (e) => {
-    const resizeHandle = e.target.closest('.resize-handle');
-    if (resizeHandle) {
-      handleResizeStart(e);
+    // 调整大小功能：事件委托
+    container.addEventListener('mousedown', (e) => {
+      const resizeHandle = e.target.closest('.resize-handle');
+      if (resizeHandle) {
+        handleResizeStart(e);
+      }
+    });
+
+    container.addEventListener('touchstart', (e) => {
+      const resizeHandle = e.target.closest('.resize-handle');
+      if (resizeHandle) {
+        handleResizeStart(e);
+      }
+    }, { passive: false });
+
+    // 悬浮球拖动功能
+    const floatingBallForDrag = container.querySelector('.floating-ball');
+    if (floatingBallForDrag) {
+      floatingBallForDrag.addEventListener('mousedown', handleBallDragStart);
+      floatingBallForDrag.addEventListener('touchstart', handleBallDragStart, { passive: false });
     }
-  });
-
-  container.addEventListener('touchstart', (e) => {
-    const resizeHandle = e.target.closest('.resize-handle');
-    if (resizeHandle) {
-      handleResizeStart(e);
-    }
-  }, { passive: false });
-
-  // 悬浮球拖动功能
-  const floatingBallForDrag = container.querySelector('.floating-ball');
-  if (floatingBallForDrag) {
-    floatingBallForDrag.addEventListener('mousedown', handleBallDragStart);
-    floatingBallForDrag.addEventListener('touchstart', handleBallDragStart, { passive: false });
   }
 
   // ========== 拖动功能处理 ==========
@@ -4691,7 +4663,6 @@
           ));
 
           messagesContainer.scrollTop = targetScrollTop;
-          console.log('[调整大小] 滚动位置已恢复 - 百分比:', state.savedScrollPercentageBeforeResize.toFixed(4), 'scrollTop:', targetScrollTop);
 
           // 重置保存的百分比
           state.savedScrollPercentageBeforeResize = null;
@@ -4828,7 +4799,6 @@
       // 禁用消息气泡
       tooltipDisabled = true;
       hasLeftAfterDrag = false; // 重置离开标记
-      console.log('[Tooltip] Drag ended, tooltipDisabled:', tooltipDisabled, 'hasLeftAfterDrag:', hasLeftAfterDrag);
 
       // 添加CSS类禁用hover效果
       const ballWrapper = container.querySelector('.floating-ball-wrapper');
@@ -4940,12 +4910,11 @@
   // ========== 认证状态检查 ==========
   // ========== 认证相关工具函数 ==========
   function getLoginUrl() {
-    // file:// 协议下需要使用绝对路径
-    if (window.location.protocol === 'file:') {
-      // 尝试从当前页面路径推导登录页面路径
-      const currentPath = window.location.pathname;
-      const baseDir = currentPath.substring(0, currentPath.lastIndexOf('/') + 1);
-      return window.location.protocol + '//' + window.location.host + baseDir + 'static/login.html';
+    // file:// 协议下需要跳转到 http://localhost 下的登录页，确保 cookie 可共享
+    if (window.location.protocol === 'file:' && config.server && config.server.baseUrl) {
+      const base = config.server.baseUrl;
+      const redirect = encodeURIComponent(base + '/');
+      return base + '/static/login.html?redirect=' + redirect;
     }
     return '/login';
   }
@@ -5060,7 +5029,6 @@
         config.onInit();
       }
 
-      console.log('AI Assistant Widget initialized');
 
       return this;
     },
