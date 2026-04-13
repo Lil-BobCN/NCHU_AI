@@ -25,6 +25,7 @@ from app.utils import (
 from app.qwen_api import get_qwen_api
 from app.auth import login_required
 from app.logger import log_debug
+from app.search_keywords import format_search_event
 
 api_bp = Blueprint('api', __name__)
 
@@ -45,7 +46,8 @@ def create_sse_response(generator):
         headers={
             'Cache-Control': 'no-cache',
             'X-Accel-Buffering': 'no',
-            'Connection': 'keep-alive'
+            'Connection': 'keep-alive',
+            'Content-Type': 'text/event-stream; charset=utf-8'
         }
     )
 
@@ -143,6 +145,10 @@ def chat():
             search_results = []
             citation_map = {}
             sent_citation_keys = set()  # 已发送的引用键，避免重复
+            search_keywords_sent = False  # search_keywords 事件已发送
+            thinking_start_sent = False   # thinking_start 已发送
+            thinking_end_sent = False     # thinking_end 已发送
+            text_started = False          # 是否已开始正文
 
             try:
                 for line in qwen_api.stream_chat(payload):
@@ -151,6 +157,53 @@ def chat():
                         try:
                             data_str = line[5:].strip()
                             data = json.loads(data_str)
+
+                            # 检测 web_search_call 完成事件，提取搜索信息并发送 search_keywords
+                            event_type = data.get('type', '')
+                            if not search_keywords_sent and event_type == 'response.output_item.done':
+                                item = data.get('item', {})
+                                if item.get('type') == 'web_search_call':
+                                    action = item.get('action', {})
+                                    search_query = action.get('query', '')
+                                    sources = action.get('sources', [])
+                                    keywords = [search_query] if search_query else []
+                                    count = len(sources)
+                                    if keywords or count > 0:
+                                        yield format_search_event(keywords, count)
+                                        search_keywords_sent = True
+                                        log_debug(f"[SEARCH] 发送搜索关键词事件, {len(keywords)} 个关键词, {count} 个结果")
+
+                            # 统一提取正文内容（兼容 DashScope Responses API 和 OpenAI 格式）
+                            content = ''
+                            event_type = data.get('type', '')
+
+                            # DashScope Responses API 格式: response.output_text.delta
+                            if event_type == 'response.output_text.delta':
+                                content = data.get('delta', '')
+
+                            # OpenAI 兼容格式: choices[0].delta.content
+                            if not content:
+                                choices = data.get('choices', [])
+                                if choices:
+                                    delta = choices[0].get('delta', {})
+                                    content = delta.get('content', '')
+
+                            # 检测正文内容开始，发送 thinking 事件
+                            if content and not thinking_end_sent:
+                                if not text_started:
+                                    text_started = True
+                                    if search_keywords_sent:
+                                        # 有搜索：发送 thinking_start + thinking_end
+                                        yield 'data: {"type": "thinking_start"}\n\n'
+                                        thinking_start_sent = True
+                                        yield 'data: {"type": "thinking_end"}\n\n'
+                                        thinking_end_sent = True
+                                        log_debug("[THINKING] 搜索完成，正文开始，发送 thinking_start + thinking_end")
+                                    else:
+                                        # 无搜索：直接发送 thinking_end
+                                        yield 'data: {"type": "thinking_end"}\n\n'
+                                        thinking_end_sent = True
+                                        log_debug("[THINKING] 正文开始，发送 thinking_end")
 
                             # 提取搜索结果
                             if 'output' in data and isinstance(data['output'], list):
@@ -207,12 +260,18 @@ def chat():
 
                     yield line
 
-                    # 提取内容用于缓存
+                    # 提取内容用于缓存（兼容两种格式）
                     try:
                         if line.startswith('data:'):
                             data = json.loads(line[5:].strip())
-                            delta = data.get('choices', [{}])[0].get('delta', {})
-                            content = delta.get('content', '')
+                            content = ''
+                            if data.get('type') == 'response.output_text.delta':
+                                content = data.get('delta', '')
+                            else:
+                                choices = data.get('choices', [{}])
+                                if choices:
+                                    delta = choices[0].get('delta', {})
+                                    content = delta.get('content', '')
                             if content:
                                 full_response.append(content)
                     except Exception:

@@ -109,6 +109,48 @@ class QwenAPI:
 
         return payload
 
+    def _iter_sse_lines(self, response) -> Generator[str, None, None]:
+        """
+        安全迭代 SSE 行，避免 UTF-8 多字节字符在字节边界处被截断
+
+        BUG-001 修复: 原 iter_lines() 在字节边界截断中文等多字节字符，
+        导致下游收到的 SSE 数据中中文字符损坏。改用 iter_content(decode_unicode=True)
+        确保字符级别的完整性。
+        """
+        buffer = ''
+        for chunk in response.iter_content(chunk_size=4096, decode_unicode=True):
+            if chunk is None:
+                break
+            buffer += chunk
+            while '\n' in buffer:
+                line, buffer = buffer.split('\n', 1)
+                line = line.strip()
+                if line and line.startswith('data:'):
+                    yield line + '\n\n'
+        # 处理缓冲区剩余数据
+        if buffer.strip():
+            line = buffer.strip()
+            if line.startswith('data:'):
+                yield line + '\n\n'
+
+    def parse_sse_event(self, line: str) -> Optional[Dict]:
+        """
+        解析单条 SSE 数据行为 JSON 对象
+
+        Args:
+            line: 原始 SSE 行（包含 'data: ' 前缀）
+
+        Returns:
+            解析后的字典，解析失败返回 None
+        """
+        try:
+            data_str = line[5:].strip()
+            if data_str == '[DONE]':
+                return {'__done__': True}
+            return json.loads(data_str)
+        except (json.JSONDecodeError, ValueError):
+            return None
+
     def stream_chat(
         self,
         payload: Dict
@@ -120,7 +162,7 @@ class QwenAPI:
             payload: 请求体
 
         Yields:
-            SSE 格式的数据行
+            SSE 格式的数据行（包含 'data: ' 前缀和 '\\n\\n' 后缀）
 
         Raises:
             QwenAPIError: API调用失败
@@ -156,12 +198,8 @@ class QwenAPI:
 
                 raise QwenAPIError(error_msg)
 
-            # 流式读取响应
-            for line in response.iter_lines():
-                if line:
-                    decoded_line = line.decode('utf-8')
-                    if decoded_line.startswith('data:'):
-                        yield decoded_line + '\n\n'
+            # 流式读取响应（使用修复后的 UTF-8 安全迭代器）
+            yield from self._iter_sse_lines(response)
 
         except requests.exceptions.Timeout:
             log_debug("[API_ERROR] 请求超时")
