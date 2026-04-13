@@ -601,6 +601,8 @@
     // 模型功能控制开关
     searchResults: [],  // 存储搜索结果URL
     citationUrls: {},   // 引用编号到URL的映射
+    // Phase 6: 消息反馈状态
+    feedback: {},       // { messageIndex: 'like' | 'dislike' }
   };
 
   let config = {};
@@ -632,7 +634,11 @@
     chevronRight: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>',
     sendArrow: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>',
     chevronDown: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>',
-    sparkles: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path><path d="M5 3v4"></path><path d="M19 17v4"></path><path d="M3 5h4"></path><path d="M17 19h4"></path></svg>'
+    sparkles: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path><path d="M5 3v4"></path><path d="M19 17v4"></path><path d="M3 5h4"></path><path d="M17 19h4"></path></svg>',
+    regenerate: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"></path><path d="M16 16h5v5"></path></svg>',
+    share: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>',
+    thumbsUp: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v12"></path><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"></path></svg>',
+    thumbsDown: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 14V2"></path><path d="M9 18.12 10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22a3.13 3.13 0 0 1-3-3.88Z"></path></svg>',
   };
 
   // ========== 工具函数 ==========
@@ -1346,10 +1352,26 @@
       </button>
     ` : '';
 
+    // Phase 6: AI 消息新增操作按钮
+    const aiExtraBtns = message.type === 'ai' ? `
+      <button class="action-btn regenerate-btn" data-index="${index}" title="重新生成" ${isProcessing ? 'disabled' : ''}>
+        ${ICONS.regenerate}
+      </button>
+      <button class="action-btn share-btn" data-index="${index}" title="分享消息">
+        ${ICONS.share}
+      </button>
+      <button class="action-btn feedback-btn feedback-like${message.feedback === 'like' ? ' active' : ''}" data-index="${index}" data-feedback="like" title="点赞">
+        ${ICONS.thumbsUp}
+      </button>
+      <button class="action-btn feedback-btn feedback-dislike${message.feedback === 'dislike' ? ' active' : ''}" data-index="${index}" data-feedback="dislike" title="点踩">
+        ${ICONS.thumbsDown}
+      </button>
+    ` : '';
+
     // 复制按钮：允许复制AI正在输出的消息
     const copyBtn = `
       <button class="action-btn copy-btn"
-              data-index="${index}" 
+              data-index="${index}"
               title="复制消息">
         ${message.copied ? ICONS.copied : ICONS.copy}
       </button>
@@ -1357,17 +1379,18 @@
 
     // 删除按钮：处理期间禁用
     const deleteBtn = `
-      <button class="action-btn delete-btn${isProcessing ? ' disabled' : ''}" 
-              data-index="${index}" 
+      <button class="action-btn delete-btn${isProcessing ? ' disabled' : ''}"
+              data-index="${index}"
               title="删除消息"
               ${isProcessing ? 'disabled' : ''}>
         ${ICONS.delete}
       </button>
     `;
 
-    // 始终显示按钮，但根据状态禁用
+    // 始终显示按钮
     const actions = `
       <div class="message-actions">
+        ${aiExtraBtns}
         ${copyBtn}
         ${resendBtn}
         ${deleteBtn}
@@ -1663,6 +1686,12 @@
     }
 
     bindEvents();
+
+    // Phase 6: 为渲染后的表格添加操作按钮
+    requestAnimationFrame(() => {
+      const tables = container.querySelectorAll('table:not([data-table-actions-added])');
+      tables.forEach(addTableActions);
+    });
 
     // 恢复窗口的位置和尺寸（必须在bindEvents之后）
     if (state.showChatWindow) {
@@ -2481,6 +2510,179 @@
       }
       console.error('复制失败:', err);
       alert('复制失败，请手动选择复制。');
+    }
+  }
+
+  // Phase 6: 重新生成消息
+  function regenerateMessage(index) {
+    if (state.isSending || state.isReceiving) return;
+
+    // 检查是否有后续消息，如果有则提示用户
+    const msgsAfterRegen = state.messages.length - index;
+    if (msgsAfterRegen > 1) {
+      if (!confirm('重新生成将删除此消息之后的所有内容，确定继续？')) {
+        return;
+      }
+    }
+
+    // 找到该消息之前最近的一条用户消息
+    let userIndex = index;
+    while (userIndex >= 0 && state.messages[userIndex].type !== 'user') {
+      userIndex--;
+    }
+    if (userIndex < 0) return;
+
+    const userMessage = state.messages[userIndex];
+
+    // 删除从该 AI 消息之后的所有消息
+    state.messages.splice(index, state.messages.length - index);
+
+    // 重新发送用户消息
+    state.messages.push({ type: 'user', content: userMessage.content, timestamp: new Date() });
+    state.messages.push({
+      type: 'ai',
+      content: '',
+      timestamp: new Date(),
+      isTyping: true,
+      searchKeywords: null,
+      searchResultCount: 0,
+      searchResults: [],
+      citationUrls: {},
+      feedback: null
+    });
+    sendMessageToAPI();
+    render();
+  }
+
+  // Phase 6: 表格操作（复制/下载 CSV）
+  function addTableActions(table) {
+    if (table.dataset.tableActionsAdded) return;
+    table.dataset.tableActionsAdded = 'true';
+
+    // 创建操作按钮容器
+    const wrapper = document.createElement('div');
+    wrapper.className = 'table-actions-wrapper';
+    wrapper.style.cssText = 'position:relative;';
+
+    table.parentNode.insertBefore(wrapper, table);
+    wrapper.appendChild(table);
+
+    const btnContainer = document.createElement('div');
+    btnContainer.className = 'table-action-buttons';
+    btnContainer.innerHTML = `
+      <button class="table-action-btn" title="复制表格" data-action="copy-table">
+        ${ICONS.copy}
+      </button>
+      <button class="table-action-btn" title="下载 CSV" data-action="download-csv">
+        ${ICONS.share}
+      </button>`;
+    btnContainer.style.cssText = 'position:absolute;top:4px;right:4px;display:flex;gap:4px;z-index:10;';
+    wrapper.appendChild(btnContainer);
+
+    btnContainer.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-action]');
+      if (!btn) return;
+      const action = btn.getAttribute('data-action');
+      if (action === 'copy-table') {
+        const csv = tableToCSV(table);
+        navigator.clipboard.writeText(csv).then(() => {
+          btn.textContent = '✓';
+          setTimeout(() => { btn.innerHTML = ICONS.copy; }, 1500);
+        }).catch(() => {
+          // Fallback
+          const ta = document.createElement('textarea');
+          ta.value = csv;
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand('copy');
+          document.body.removeChild(ta);
+        });
+      } else if (action === 'download-csv') {
+        const csv = tableToCSV(table);
+        const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'table_' + Date.now() + '.csv';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+    });
+  }
+
+  // 表格转 CSV
+  function tableToCSV(table) {
+    const rows = table.querySelectorAll('tr');
+    return Array.from(rows).map(row => {
+      const cells = row.querySelectorAll('th, td');
+      return Array.from(cells).map(cell => {
+        let text = cell.textContent.trim();
+        // 如果包含逗号、引号或换行，用双引号包裹
+        if (text.includes(',') || text.includes('"') || text.includes('\n') || text.includes('\r')) {
+          text = '"' + text.replace(/"/g, '""') + '"';
+        }
+        return text;
+      }).join(',');
+    }).join('\n');
+  }
+
+  // Phase 6: 分享消息（复制为文本）
+  function shareMessage(index) {
+    const message = state.messages[index];
+    if (!message || message.type !== 'ai') return;
+
+    const shareText = message.content;
+    const textArea = document.createElement('textarea');
+    textArea.value = shareText;
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-999999px';
+    document.body.appendChild(textArea);
+    textArea.select();
+    try {
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      // 短暂显示"已复制"反馈
+      const shareBtn = container.querySelector(`.share-btn[data-index="${index}"]`);
+      if (shareBtn) {
+        const original = shareBtn.innerHTML;
+        shareBtn.innerHTML = ICONS.copied;
+        shareBtn.classList.add('copied');
+        setTimeout(() => {
+          shareBtn.innerHTML = original;
+          shareBtn.classList.remove('copied');
+        }, 1500);
+      }
+    } catch (err) {
+      document.body.removeChild(textArea);
+      console.error('分享失败:', err);
+    }
+  }
+
+  // Phase 6: 设置反馈
+  function setFeedback(index, type) {
+    if (!state.feedback) state.feedback = {};
+    const isActive = state.feedback[index] === type;
+    // 切换：已选中则取消，否则选中
+    if (isActive) {
+      delete state.feedback[index];
+    } else {
+      state.feedback[index] = type;
+    }
+    // 同步到消息对象
+    if (state.messages[index]) {
+      state.messages[index].feedback = state.feedback[index] || null;
+    }
+    // 只更新反馈按钮状态
+    const likeBtn = container.querySelector(`.feedback-like[data-index="${index}"]`);
+    const dislikeBtn = container.querySelector(`.feedback-dislike[data-index="${index}"]`);
+
+    if (likeBtn) {
+      likeBtn.classList.toggle('active', state.feedback[index] === 'like');
+    }
+    if (dislikeBtn) {
+      dislikeBtn.classList.toggle('active', state.feedback[index] === 'dislike');
     }
   }
 
@@ -4128,6 +4330,34 @@
       btn.addEventListener('click', () => {
         const index = parseInt(btn.getAttribute('data-index'));
         confirmDeleteMessage(index);
+      });
+    });
+
+    // Phase 6: 重新生成按钮
+    const regenBtns = container.querySelectorAll('.regenerate-btn');
+    regenBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const index = parseInt(btn.getAttribute('data-index'));
+        regenerateMessage(index);
+      });
+    });
+
+    // Phase 6: 分享按钮
+    const shareBtns = container.querySelectorAll('.share-btn');
+    shareBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const index = parseInt(btn.getAttribute('data-index'));
+        shareMessage(index);
+      });
+    });
+
+    // Phase 6: 点赞/点踩按钮
+    const feedbackBtns = container.querySelectorAll('.feedback-btn');
+    feedbackBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const index = parseInt(btn.getAttribute('data-index'));
+        const type = btn.getAttribute('data-feedback');
+        setFeedback(index, type);
       });
     });
 
