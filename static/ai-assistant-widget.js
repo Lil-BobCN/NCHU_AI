@@ -1215,6 +1215,9 @@
       result = result.replace(regex2, replacement);
     }
 
+    // 清理未被匹配替换的残留 [^数字] 引用标记
+    result = result.replace(/\[\^(\d+)\]/g, '');
+
     return result;
   }
 
