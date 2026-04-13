@@ -608,6 +608,9 @@
   let config = {};
   let container = null;
 
+  // CRITICAL FIX: 文档级事件监听器只绑定一次，防止 render() 重复累积
+  let _documentListenersBound = false;
+
   // ========== 工具函数 ==========
   function escapeHtml(text) {
     if (!text) return '';
@@ -1170,19 +1173,19 @@
       const safeNum = escapeHtml(num);
       const safeUrl = escapeHtml(url);
 
-      // 替换 Markdown 脚注格式 [^数字] 为 citation pill
-      const regex1 = new RegExp(`\\[\\^${num}\\](?!</a>)`, 'g');
-      result = result.replace(regex1,
-        `<a href="${safeUrl}" target="_blank" rel="noopener noreferrer" ` +
+      // HIGH FIX: 替换时跳过 <code> 和 <pre> 块内的内容
+      // 使用负向前瞻确保不在 <code>/<pre> 标签内
+      const replacement = `<a href="${safeUrl}" target="_blank" rel="noopener noreferrer" ` +
         `class="citation-link" data-citation-num="${safeNum}" ` +
-        `data-citation-title="${safeTitle}" data-citation-url="${safeUrl}">${num}</a>`);
+        `data-citation-title="${safeTitle}" data-citation-url="${safeUrl}">${num}</a>`;
 
-      // 同时替换没有^的格式 [数字]
-      const regex2 = new RegExp(`\\[${num}\\](?!</a>)(?!:\\s*https?://)`, 'g');
-      result = result.replace(regex2,
-        `<a href="${safeUrl}" target="_blank" rel="noopener noreferrer" ` +
-        `class="citation-link" data-citation-num="${safeNum}" ` +
-        `data-citation-title="${safeTitle}" data-citation-url="${safeUrl}">${num}</a>`);
+      // 替换 [^数字] 格式
+      const regex1 = new RegExp(`\\[\\^${num}\\](?!</a>)(?![^<]*</code>)(?![^<]*</pre>)`, 'g');
+      result = result.replace(regex1, replacement);
+
+      // 替换 [数字] 格式
+      const regex2 = new RegExp(`\\[${num}\\](?!</a>)(?!:\\s*https?://)(?![^<]*</code>)(?![^<]*</pre>)`, 'g');
+      result = result.replace(regex2, replacement);
     }
 
     return result;
@@ -1275,8 +1278,8 @@
     links.sort((a, b) => parseInt(a.num) - parseInt(b.num));
     
     // 生成链接列表 HTML - 使用标题作为链接文本
-    const linksHtml = links.map(link => 
-      `<li><a href="${link.url}" target="_blank" rel="noopener noreferrer" class="source-link">${link.title}</a></li>`
+    const linksHtml = links.map(link =>
+      `<li><a href="${escapeHtml(link.url)}" target="_blank" rel="noopener noreferrer" class="source-link">${escapeHtml(link.title)}</a></li>`
     ).join('');
     
     return `
@@ -1672,6 +1675,10 @@
     }
 
     if (state.showChatWindow) {
+      // CRITICAL FIX: DOM 替换前清理孤立的 tooltip
+      const orphanTooltip = document.body.querySelector('.citation-preview-tooltip');
+      if (orphanTooltip) orphanTooltip.remove();
+
       container.innerHTML = renderChatWindow() + renderFloatingBall();
 
       // DOM重建后立即恢复标签栏滚动位置，不使用requestAnimationFrame
@@ -2689,9 +2696,9 @@
   function confirmDeleteMessage(index) {
     const message = state.messages[index];
     const messageType = message.type === 'user' ? '用户消息' : message.type === 'ai' ? 'AI回复' : '消息';
-    const contentPreview = message.content.length > 50
+    const contentPreview = escapeHtml(message.content.length > 50
       ? message.content.substring(0, 50) + '...'
-      : message.content;
+      : message.content);
 
     state.deleteConfirmData = {
       messageType: messageType,
@@ -4306,59 +4313,56 @@
       });
     });
 
-    // 复制按钮
-    const copyBtns = container.querySelectorAll('.copy-btn');
-    copyBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        const index = parseInt(btn.getAttribute('data-index'));
+    // HIGH FIX: 使用事件委托处理所有操作按钮，防止 updateMessageDisplay 后事件丢失
+    messagesContainer.addEventListener('click', (e) => {
+      // 复制按钮
+      const copyBtn = e.target.closest('.copy-btn');
+      if (copyBtn) {
+        const index = parseInt(copyBtn.getAttribute('data-index'));
         copyMessage(state.messages[index].content, index);
-      });
-    });
+        return;
+      }
 
-    // 重新发送按钮
-    const resendBtns = container.querySelectorAll('.resend-btn');
-    resendBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        const index = parseInt(btn.getAttribute('data-index'));
+      // 重新发送按钮
+      const resendBtn = e.target.closest('.resend-btn');
+      if (resendBtn) {
+        const index = parseInt(resendBtn.getAttribute('data-index'));
         resendMessage(index);
-      });
-    });
+        return;
+      }
 
-    // 删除按钮
-    const deleteBtns = container.querySelectorAll('.delete-btn');
-    deleteBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        const index = parseInt(btn.getAttribute('data-index'));
+      // 删除按钮
+      const deleteBtn = e.target.closest('.delete-btn');
+      if (deleteBtn) {
+        const index = parseInt(deleteBtn.getAttribute('data-index'));
         confirmDeleteMessage(index);
-      });
-    });
+        return;
+      }
 
-    // Phase 6: 重新生成按钮
-    const regenBtns = container.querySelectorAll('.regenerate-btn');
-    regenBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        const index = parseInt(btn.getAttribute('data-index'));
+      // 重新生成按钮
+      const regenBtn = e.target.closest('.regenerate-btn');
+      if (regenBtn) {
+        const index = parseInt(regenBtn.getAttribute('data-index'));
         regenerateMessage(index);
-      });
-    });
+        return;
+      }
 
-    // Phase 6: 分享按钮
-    const shareBtns = container.querySelectorAll('.share-btn');
-    shareBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        const index = parseInt(btn.getAttribute('data-index'));
+      // 分享按钮
+      const shareBtn = e.target.closest('.share-btn');
+      if (shareBtn) {
+        const index = parseInt(shareBtn.getAttribute('data-index'));
         shareMessage(index);
-      });
-    });
+        return;
+      }
 
-    // Phase 6: 点赞/点踩按钮
-    const feedbackBtns = container.querySelectorAll('.feedback-btn');
-    feedbackBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        const index = parseInt(btn.getAttribute('data-index'));
-        const type = btn.getAttribute('data-feedback');
+      // 点赞/点踩按钮
+      const feedbackBtn = e.target.closest('.feedback-btn');
+      if (feedbackBtn) {
+        const index = parseInt(feedbackBtn.getAttribute('data-index'));
+        const type = feedbackBtn.getAttribute('data-feedback');
         setFeedback(index, type);
-      });
+        return;
+      }
     });
 
     // 深度思考和联网搜索按钮已移除，功能默认开启
@@ -4387,49 +4391,52 @@
 
     if (chatHeader && assistant) {
       chatHeader.addEventListener('mousedown', handleDragStart);
+      chatHeader.addEventListener('touchstart', handleDragStart, { passive: false });
+    }
+
+    // CRITICAL FIX: 文档级事件监听器只绑定一次
+    if (!_documentListenersBound) {
+      _documentListenersBound = true;
+      // 窗口拖动
       document.addEventListener('mousemove', handleDragMove);
       document.addEventListener('mouseup', handleDragEnd);
-
-      // 触摸支持
-      chatHeader.addEventListener('touchstart', handleDragStart, { passive: false });
       document.addEventListener('touchmove', handleDragMove, { passive: false });
       document.addEventListener('touchend', handleDragEnd);
+
+      // 窗口调整大小
+      document.addEventListener('mousemove', handleResizeMove);
+      document.addEventListener('mouseup', handleResizeEnd);
+      document.addEventListener('touchmove', handleResizeMove, { passive: false });
+      document.addEventListener('touchend', handleResizeEnd);
+
+      // 悬浮球拖动
+      document.addEventListener('mousemove', handleBallDragMove);
+      document.addEventListener('mouseup', handleBallDragEnd);
+      document.addEventListener('touchmove', handleBallDragMove, { passive: false });
+      document.addEventListener('touchend', handleBallDragEnd);
     }
+  }
 
-    // ========== 调整大小功能 ==========
-    // 使用事件委托，因为控制点是动态渲某的
-    container.addEventListener('mousedown', (e) => {
-      const resizeHandle = e.target.closest('.resize-handle');
-      if (resizeHandle) {
-        handleResizeStart(e);
-      }
-    });
-
-    container.addEventListener('touchstart', (e) => {
-      const resizeHandle = e.target.closest('.resize-handle');
-      if (resizeHandle) {
-        handleResizeStart(e);
-      }
-    }, { passive: false });
-
-    // 全局移动和释放事件
-    document.addEventListener('mousemove', handleResizeMove);
-    document.addEventListener('mouseup', handleResizeEnd);
-    document.addEventListener('touchmove', handleResizeMove, { passive: false });
-    document.addEventListener('touchend', handleResizeEnd);
-
-    // ========== 悬浮球拖动功能 ==========
-    const floatingBallForDrag = container.querySelector('.floating-ball');
-    if (floatingBallForDrag) {
-      floatingBallForDrag.addEventListener('mousedown', handleBallDragStart);
-      floatingBallForDrag.addEventListener('touchstart', handleBallDragStart, { passive: false });
+  // 调整大小功能：事件委托
+  container.addEventListener('mousedown', (e) => {
+    const resizeHandle = e.target.closest('.resize-handle');
+    if (resizeHandle) {
+      handleResizeStart(e);
     }
+  });
 
-    // 悬浮球拖动的全局移动和释放事件
-    document.addEventListener('mousemove', handleBallDragMove);
-    document.addEventListener('mouseup', handleBallDragEnd);
-    document.addEventListener('touchmove', handleBallDragMove, { passive: false });
-    document.addEventListener('touchend', handleBallDragEnd);
+  container.addEventListener('touchstart', (e) => {
+    const resizeHandle = e.target.closest('.resize-handle');
+    if (resizeHandle) {
+      handleResizeStart(e);
+    }
+  }, { passive: false });
+
+  // 悬浮球拖动功能
+  const floatingBallForDrag = container.querySelector('.floating-ball');
+  if (floatingBallForDrag) {
+    floatingBallForDrag.addEventListener('mousedown', handleBallDragStart);
+    floatingBallForDrag.addEventListener('touchstart', handleBallDragStart, { passive: false });
   }
 
   // ========== 拖动功能处理 ==========
@@ -5156,6 +5163,10 @@
      * 销毁插件
      */
     destroy: function () {
+      // CRITICAL FIX: 清理孤立的 tooltip
+      const orphanTooltip = document.body.querySelector('.citation-preview-tooltip');
+      if (orphanTooltip) orphanTooltip.remove();
+
       if (container) {
         container.remove();
         container = null;
