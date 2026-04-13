@@ -1378,15 +1378,18 @@
     // 【第二部分】联网搜索结果区 - 独立窗口
     let searchHTML = '';
     if (message.type === 'ai' && message.searchResults && message.searchResults.length > 0) {
-      const searchItems = message.searchResults.map((result, i) => `
-        <div class="search-result-item" onclick="window.open('${result.url}', '_blank')">
+      const searchItems = message.searchResults.map((result, i) => {
+        const safeUrl = escapeHtml(result.url || '');
+        const safeTitle = escapeHtml(result.title || '搜索结果');
+        return `
+        <div class="search-result-item" data-url="${safeUrl}">
           <span class="search-result-bullet">📄</span>
           <div class="search-result-content">
-            <div class="search-result-title">${result.title || '搜索结果'}</div>
-            <div class="search-result-url">${result.url}</div>
+            <div class="search-result-title">${safeTitle}</div>
+            <div class="search-result-url">${safeUrl}</div>
           </div>
-        </div>
-      `).join('');
+        </div>`;
+      }).join('');
 
       searchHTML = `
         <div class="search-panel" data-part="search">
@@ -1415,6 +1418,48 @@
       `;
     }
 
+    // ========== Phase 5: 底部来源卡片 ==========
+    let sourceCardsHTML = '';
+    if (message.type === 'ai' && message.citationUrls && Object.keys(message.citationUrls).length > 0) {
+      const sourceEntries = Object.entries(message.citationUrls)
+        .map(([num, val]) => {
+          const url = typeof val === 'string' ? val : val?.url;
+          const title = typeof val === 'string' ? null : val?.title;
+          if (!url || url.includes('example')) return null;
+          const domain = (() => {
+            try { return new URL(url).hostname.replace('www.', ''); } catch { return url; }
+          })();
+          const safeTitle = escapeHtml(title || domain);
+          const safeDomain = escapeHtml(domain);
+          const faviconUrl = `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=32`;
+          return { url, safeTitle, safeDomain, faviconUrl };
+        })
+        .filter(Boolean);
+
+      if (sourceEntries.length > 0) {
+        const sourceCount = sourceEntries.length;
+        const cardsHTML = sourceEntries.map(entry => `
+          <div class="source-card" data-url="${escapeHtml(entry.url)}">
+            <img class="source-favicon" src="${entry.faviconUrl}" onerror="this.style.display='none'" alt="" referrerpolicy="no-referrer" />
+            <div class="source-info">
+              <div class="source-title">${entry.safeTitle}</div>
+              <div class="source-domain">${entry.safeDomain}</div>
+            </div>
+            <div class="source-expand-icon">›</div>
+          </div>`).join('');
+        sourceCardsHTML = `
+          <div class="source-cards-container" data-source-cards>
+            <div class="source-cards-header" data-action="toggle-sources">
+              <span class="source-cards-label">${sourceCount} 个来源</span>
+              <span class="source-cards-toggle">▼</span>
+            </div>
+            <div class="source-cards-list collapsed">
+              ${cardsHTML}
+            </div>
+          </div>`;
+      }
+    }
+
     const historyDivider = state.hasHistoryMessages && index === state.historyMessageCount - 1 ? `
       <div class="history-divider">
         <span>———— 以上是历史消息 ————</span>
@@ -1427,6 +1472,7 @@
         ${searchKeywordsBarHTML}
         ${searchHTML}
         <div class="message-content" data-part="answer">${content}</div>
+        ${sourceCardsHTML}
         ${actions}
         ${historyDivider}
       </div>
@@ -2005,6 +2051,24 @@
         }, 200); // 200ms 等待布局完全稳定
       });
     });
+  }
+
+  // Phase 5: 来源卡片折叠/展开（事件委托）
+  function toggleSourceCards(headerEl) {
+    const listEl = headerEl.nextElementSibling;
+    const toggleIcon = headerEl.querySelector('.source-cards-toggle');
+    if (!listEl || !toggleIcon) return;
+
+    const isCollapsed = listEl.classList.contains('collapsed');
+    if (isCollapsed) {
+      listEl.classList.remove('collapsed');
+      listEl.classList.add('expanded');
+      toggleIcon.textContent = '▲';
+    } else {
+      listEl.classList.add('collapsed');
+      listEl.classList.remove('expanded');
+      toggleIcon.textContent = '▼';
+    }
   }
 
   function closeChatWindow() {
@@ -4004,6 +4068,32 @@
         }, 100);
       });
     }
+
+    // Phase 5: 来源卡片事件委托（点击打开链接 + 折叠/展开）
+    messagesContainer.addEventListener('click', (e) => {
+      // 搜索结果点击 - 打开链接
+      const searchItem = e.target.closest('.search-result-item');
+      if (searchItem) {
+        const url = searchItem.getAttribute('data-url');
+        if (url) window.open(url, '_blank', 'noopener,noreferrer');
+        return;
+      }
+
+      // 来源卡片点击 - 打开链接
+      const card = e.target.closest('.source-card');
+      if (card) {
+        const url = card.getAttribute('data-url');
+        if (url) window.open(url, '_blank', 'noopener,noreferrer');
+        return;
+      }
+
+      // 来源卡片头部点击 - 折叠/展开
+      const header = e.target.closest('[data-action="toggle-sources"]');
+      if (header) {
+        toggleSourceCards(header);
+        return;
+      }
+    });
 
     // 预设问题项
     const presetItems = container.querySelectorAll('.preset-question-item');

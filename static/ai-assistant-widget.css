@@ -1084,6 +1084,159 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* Phase 5: 底部来源卡片 */
+.ai-widget .message.ai .source-cards-container {
+  margin: 12px 0 4px;
+  border-top: 1px solid #eee;
+  padding-top: 10px;
+}
+
+.ai-widget .message.ai .source-cards-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+  padding: 4px 0;
+}
+
+.ai-widget .message.ai .source-cards-header:hover .source-cards-label {
+  color: #333;
+}
+
+.ai-widget .message.ai .source-cards-label {
+  font-size: 12px;
+  color: #666;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.ai-widget .message.ai .source-cards-toggle {
+  font-size: 10px;
+  color: #999;
+  transition: transform 0.2s ease;
+}
+
+.ai-widget .message.ai .source-cards-list {
+  overflow: hidden;
+  transition: max-height 0.3s ease, opacity 0.2s ease;
+}
+
+.ai-widget .message.ai .source-cards-list.collapsed {
+  max-height: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.ai-widget .message.ai .source-cards-list.expanded {
+  max-height: 3000px;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.ai-widget .message.ai .source-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  margin-bottom: 6px;
+  background: #f8f8f8;
+  border-radius: 8px;
+  border: 1px solid #eee;
+  cursor: pointer;
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.ai-widget .message.ai .source-card:hover {
+  background: #f0f0f0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.ai-widget .message.ai .source-card:last-child {
+  margin-bottom: 0;
+}
+
+.ai-widget .message.ai .source-favicon {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.ai-widget .message.ai .source-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.ai-widget .message.ai .source-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: #333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ai-widget .message.ai .source-domain {
+  font-size: 11px;
+  color: #888;
+  margin-top: 2px;
+}
+
+.ai-widget .message.ai .source-expand-icon {
+  font-size: 16px;
+  color: #ccc;
+  transition: color 0.15s ease;
+  flex-shrink: 0;
+}
+
+.ai-widget .message.ai .source-card:hover .source-expand-icon {
+  color: #888;
+}
+
+/* 暗色主题 - 来源卡片 */
+.ai-widget.dark-theme .message.ai .source-cards-container {
+  border-top-color: #444;
+}
+
+.ai-widget.dark-theme .message.ai .source-cards-label {
+  color: #aaa;
+}
+
+.ai-widget.dark-theme .message.ai .source-cards-label:hover {
+  color: #ddd;
+}
+
+.ai-widget.dark-theme .message.ai .source-cards-toggle {
+  color: #666;
+}
+
+.ai-widget.dark-theme .message.ai .source-card {
+  background: #2a2a2a;
+  border-color: #3a3a3a;
+}
+
+.ai-widget.dark-theme .message.ai .source-card:hover {
+  background: #333;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.ai-widget.dark-theme .message.ai .source-title {
+  color: #ddd;
+}
+
+.ai-widget.dark-theme .message.ai .source-domain {
+  color: #888;
+}
+
+.ai-widget.dark-theme .message.ai .source-expand-icon {
+  color: #555;
+}
+
+.ai-widget.dark-theme .message.ai .source-card:hover .source-expand-icon {
+  color: #999;
+}
+
 /* 信息来源链接列表样式 */
 .ai-widget .message.ai .message-content .source-section {
   margin-top: 16px;
