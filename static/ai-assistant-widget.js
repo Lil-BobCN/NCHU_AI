@@ -532,7 +532,15 @@
     onMessage: null,
 
     // 输入框配置
-    maxInputLength: 500  // 最大输入500字
+    maxInputLength: 500,  // 最大输入500字
+
+    // 服务器配置（认证相关）
+    server: {
+      baseUrl: '',
+      endpoints: {
+        auth: { me: '/api/auth/me', logout: '/api/auth/logout' }
+      }
+    }
   };
 
   // ========== 状态管理 ==========
@@ -3502,7 +3510,10 @@
       state.currentTimeoutId = timeoutId;
 
       // 通过 Flask 后端代理调用（后端持有 API Key，强制登录鉴权）
-      const apiUrl = config.server.baseUrl + '/api/chat';
+      const baseUrl = (config.server && config.server.baseUrl)
+        ? config.server.baseUrl
+        : (window.location.protocol === 'file:' ? 'http://localhost' : '');
+      const apiUrl = baseUrl + '/api/chat';
       const headers = {
         'Content-Type': 'application/json'
       };
@@ -4911,17 +4922,25 @@
   // ========== 认证相关工具函数 ==========
   function getLoginUrl() {
     // file:// 协议下需要跳转到 http://localhost 下的登录页，确保 cookie 可共享
-    if (window.location.protocol === 'file:' && config.server && config.server.baseUrl) {
-      const base = config.server.baseUrl;
-      const redirect = encodeURIComponent(base + '/');
-      return base + '/static/login.html?redirect=' + redirect;
+    const baseUrl = (config.server && config.server.baseUrl)
+      ? config.server.baseUrl
+      : (window.location.protocol === 'file:' ? 'http://localhost' : '');
+    if (window.location.protocol === 'file:' && baseUrl) {
+      const redirect = encodeURIComponent(baseUrl + '/');
+      return baseUrl + '/static/login.html?redirect=' + redirect;
     }
     return '/login';
   }
 
   async function checkAuthState() {
     try {
-      const meUrl = config.server.baseUrl + config.server.endpoints.auth.me;
+      const authBase = (config.server && config.server.baseUrl)
+        ? config.server.baseUrl
+        : (window.location.protocol === 'file:' ? 'http://localhost' : '');
+      const mePath = (config.server && config.server.endpoints && config.server.endpoints.auth && config.server.endpoints.auth.me)
+        ? config.server.endpoints.auth.me
+        : '/api/auth/me';
+      const meUrl = authBase + mePath;
       const res = await fetch(meUrl, {
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' }
@@ -4945,7 +4964,13 @@
 
   async function handleLogout() {
     try {
-      const logoutUrl = config.server.baseUrl + config.server.endpoints.auth.logout;
+      const logoutBase = (config.server && config.server.baseUrl)
+        ? config.server.baseUrl
+        : (window.location.protocol === 'file:' ? 'http://localhost' : '');
+      const logoutPath = (config.server && config.server.endpoints && config.server.endpoints.auth && config.server.endpoints.auth.logout)
+        ? config.server.endpoints.auth.logout
+        : '/api/auth/logout';
+      const logoutUrl = logoutBase + logoutPath;
       await fetch(logoutUrl, {
         method: 'POST',
         credentials: 'include',

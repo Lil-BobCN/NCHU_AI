@@ -2206,6 +2206,14 @@
     <script>
         // 初始化AI助手插件（使用后端代理模式）
         AIAssistant.init({
+            // 服务器配置（用于认证状态检查）
+            server: {
+                baseUrl: 'http://localhost',
+                endpoints: {
+                    auth: { me: '/api/auth/me', logout: '/api/auth/logout' }
+                }
+            },
+
             // API配置（使用代理服务器，无需暴露密钥）
             apiKey: '',  // 留空，由代理服务器处理
             apiBaseUrl: 'http://localhost:5000/api',  // 代理服务器地址

@@ -212,14 +212,16 @@
                     credentials: 'include'
                 });
                 if (!res.ok) {
-                    window.location.href = '/login?redirect=/admin/users';
+                    const loginBase = window.location.protocol === 'file:' ? 'http://localhost' : '';
+                    window.location.href = loginBase + '/login?redirect=/admin/users';
                     return false;
                 }
                 const user = await res.json();
                 document.getElementById('current-user').textContent = '欢迎，' + user.username;
                 return true;
             } catch (err) {
-                window.location.href = '/login?redirect=/admin/users';
+                const loginBase = window.location.protocol === 'file:' ? 'http://localhost' : '';
+                window.location.href = loginBase + '/login?redirect=/admin/users';
                 return false;
             }
         }
@@ -235,7 +237,8 @@
                 );
 
                 if (res.status === 401) {
-                    window.location.href = '/login?redirect=/admin/users';
+                    const loginBase = window.location.protocol === 'file:' ? 'http://localhost' : '';
+                    window.location.href = loginBase + '/login?redirect=/admin/users';
                     return;
                 }
                 if (res.status === 503) {

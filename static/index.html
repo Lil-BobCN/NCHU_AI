@@ -3,6 +3,12 @@
 <html>
 
 <head>
+    <script>
+        // file:// 协议下自动跳转到 http://localhost，确保所有资源正确加载
+        if (window.location.protocol === "file:") {
+            window.location.href = "http://localhost/";
+        }
+    </script>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
     <meta name="application-name" content="学生工作部(处) - 南昌航空大学">
