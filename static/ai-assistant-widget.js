@@ -1277,6 +1277,22 @@
   }
 
   function renderMessage(message, index) {
+    // ========== Phase 3: 思考卡片渲染 ==========
+    if (message.type === 'ai' && message.isThinking) {
+      const thinkingText = message.thinkingStatus === 'searching' ? '正在搜索' : '正在思考';
+      return `
+        <div class="message ai" data-layout="three-part">
+          <div class="thinking-card">
+            <div class="thinking-dots">
+              <span></span><span></span><span></span>
+            </div>
+            <span class="thinking-label">${thinkingText}</span>
+          </div>
+          <div class="message-actions"></div>
+        </div>
+      `;
+    }
+
     // 对 AI 消息预处理：自动链接化纯文本 URL
     let processedContent = message.type === 'ai' ? linkifyText(message.content) : message.content;
     
@@ -1366,7 +1382,7 @@
           </div>
         </div>
       `).join('');
-      
+
       searchHTML = `
         <div class="search-panel" data-part="search">
           <div class="search-header">
@@ -1381,6 +1397,19 @@
       `;
     }
 
+    // ========== Phase 3: 搜索关键词条（Kimi 风格）==========
+    let searchKeywordsBarHTML = '';
+    if (message.type === 'ai' && message.searchKeywords && message.searchKeywords.length > 0) {
+      const keywordTags = message.searchKeywords.map(kw => `<span class="keyword-tag">${escapeHtml(kw)}</span>`).join('');
+      searchKeywordsBarHTML = `
+        <div class="search-keywords-bar">
+          <span class="search-icon-label">🔍 搜索</span>
+          ${keywordTags}
+          ${message.searchResultCount ? `<span class="result-count">${escapeHtml(String(message.searchResultCount))} 个结果</span>` : ''}
+        </div>
+      `;
+    }
+
     const historyDivider = state.hasHistoryMessages && index === state.historyMessageCount - 1 ? `
       <div class="history-divider">
         <span>———— 以上是历史消息 ————</span>
@@ -1390,6 +1419,7 @@
     // 【第三部分】最终结果区
     return `
       <div class="message ${message.type}" data-layout="three-part">
+        ${searchKeywordsBarHTML}
         ${searchHTML}
         <div class="message-content" data-part="answer">${content}</div>
         ${actions}
@@ -3215,13 +3245,15 @@
         'Content-Type': 'application/json'
       };
       
-      // 立即显示"正在搜索..."提示（感知速度优化）
+      // 立即显示思考卡片（Kimi 风格 - 感知速度优化）
       const loadingMessageIndex = state.messages.length;
       state.messages.push({
         type: 'ai',
-        content: '🔍 正在搜索相关资料...',
+        content: '',
         timestamp: new Date(),
-        isTyping: false
+        isTyping: false,
+        isThinking: true,
+        thinkingStatus: 'searching'  // searching -> thinking -> done
       });
       render(true);
       
@@ -3318,7 +3350,8 @@
                 hasResolved = true;
                 
                 // 移除loading消息
-                if (loadingMessageIndex !== -1 && state.messages[loadingMessageIndex]?.content === '🔍 正在搜索相关资料...') {
+                if (loadingMessageIndex !== -1 && state.messages[loadingMessageIndex] &&
+                    state.messages[loadingMessageIndex].isThinking) {
                   state.messages.splice(loadingMessageIndex, 1);
                 }
 
@@ -3336,9 +3369,9 @@
             }
 
             // Dashscope Responses API格式解析
-            // 支持多种事件类型：output_text.delta, reasoning.delta, web_search_call 等
+            // 支持多种事件类型：output_text.delta, reasoning.delta, web_search_call, search_keywords, thinking_start, thinking_end 等
             let content = null;
-            
+
             // ========== 处理后端返回的引用数据（方案A核心）==========
             if (parsed.citations) {
               // 后端返回的引用映射（优先使用）
@@ -3353,8 +3386,53 @@
                 }
               }
             }
-            
-            // 捕获搜索结果
+
+            // ========== Phase 3: 处理 search_keywords 事件 ==========
+            if (parsed.type === 'search_keywords') {
+              const keywords = parsed.keywords || [];
+              const count = parsed.count || 0;
+              console.log('[Phase3] 搜索关键词:', keywords, '结果数:', count);
+              if (aiMessageIndex !== -1) {
+                const message = state.messages[aiMessageIndex];
+                if (message) {
+                  message.searchKeywords = keywords;
+                  message.searchResultCount = count;
+                  message.isThinking = false;
+                  message.thinkingStatus = 'thinking';
+                  updateMessageDisplay(aiMessageIndex);
+                }
+              }
+              return;
+            }
+
+            // ========== Phase 3: 处理 thinking_start 事件 ==========
+            if (parsed.type === 'thinking_start') {
+              console.log('[Phase3] 思考开始');
+              if (aiMessageIndex !== -1) {
+                const message = state.messages[aiMessageIndex];
+                if (message) {
+                  message.thinkingStatus = 'thinking';
+                  updateMessageDisplay(aiMessageIndex);
+                }
+              }
+              return;
+            }
+
+            // ========== Phase 3: 处理 thinking_end 事件 ==========
+            if (parsed.type === 'thinking_end') {
+              console.log('[Phase3] 思考结束，正文开始');
+              if (aiMessageIndex !== -1) {
+                const message = state.messages[aiMessageIndex];
+                if (message) {
+                  message.isThinking = false;
+                  message.thinkingStatus = 'done';
+                  updateMessageDisplay(aiMessageIndex);
+                }
+              }
+              return;
+            }
+
+            // 捕获搜索结果（原有逻辑，保持兼容）
             if (parsed.type === 'response.web_search_call' && parsed.web_search_call) {
               const searchCall = parsed.web_search_call;
               if (searchCall.search_results && Array.isArray(searchCall.search_results)) {
@@ -3388,14 +3466,16 @@
             if (content !== undefined && content !== null && content !== '') {
               // 首次收到内容时，替换loading消息或创建新消息
               if (aiMessageIndex === -1) {
-                // 如果之前有loading消息，替换它
-                if (loadingMessageIndex !== -1 && state.messages[loadingMessageIndex]?.content === '🔍 正在搜索相关资料...') {
+                // 如果之前有思考卡片消息，替换它
+                if (loadingMessageIndex !== -1 && state.messages[loadingMessageIndex]?.isThinking) {
                   state.messages[loadingMessageIndex] = {
                     type: 'ai',
                     content: content,
                     timestamp: new Date(),
                     isTyping: false,
-                    pendingContent: ''
+                    pendingContent: '',
+                    searchKeywords: state.messages[loadingMessageIndex].searchKeywords || [],
+                    searchResultCount: state.messages[loadingMessageIndex].searchResultCount || 0
                   };
                   aiMessageIndex = loadingMessageIndex;
                 } else {

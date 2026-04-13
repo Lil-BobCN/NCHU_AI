@@ -2938,3 +2938,156 @@
   color: #8b949e;
 }
 
+/* ========== Phase 3: Kimi-style 搜索关键词条 + 思考卡片 ========== */
+
+/* 搜索关键词条 - 显示在 AI 回答上方 */
+.ai-widget .search-keywords-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px 12px;
+  margin: 0 0 8px 0;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  font-size: 13px;
+  color: #666;
+}
+
+.ai-widget .search-keywords-bar .search-icon-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #999;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.ai-widget .search-keywords-bar .keyword-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  background: #f0f0f0;
+  border-radius: 12px;
+  font-size: 12px;
+  color: #555;
+  white-space: nowrap;
+}
+
+.ai-widget .search-keywords-bar .result-count {
+  color: #999;
+  font-size: 12px;
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+/* 思考动画卡片 - 替换原来的 "🔍 正在搜索..." 文字提示 */
+.ai-widget .thinking-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  margin: 0 0 8px 0;
+  background: linear-gradient(135deg, #f8f9fa 0%, #f0f1f3 100%);
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  max-width: fit-content;
+  position: relative;
+  overflow: hidden;
+  animation: thinking-fade-in 0.3s ease;
+}
+
+.ai-widget .thinking-card .thinking-dots {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.ai-widget .thinking-card .thinking-dots span {
+  width: 6px;
+  height: 6px;
+  background-color: #888;
+  border-radius: 50%;
+  display: inline-block;
+  animation: thinking-bounce 1.2s infinite ease-in-out;
+}
+
+.ai-widget .thinking-card .thinking-dots span:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.ai-widget .thinking-card .thinking-dots span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.ai-widget .thinking-card .thinking-dots span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.ai-widget .thinking-card .thinking-label {
+  font-size: 13px;
+  color: #666;
+  font-weight: 500;
+}
+
+/* 亮光扫过效果 */
+.ai-widget .thinking-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -100%;
+  width: 40px;
+  height: 200%;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.5) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: skewX(-20deg);
+  animation: thinking-shine 2.5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes thinking-fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes thinking-bounce {
+  0%, 80%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-5px); }
+}
+
+@keyframes thinking-shine {
+  0% { left: -100%; }
+  50% { left: 120%; }
+  100% { left: 120%; }
+}
+
+/* 暗色主题适配 */
+.ai-widget.dark-theme .search-keywords-bar {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: #333;
+  color: #aaa;
+}
+
+.ai-widget.dark-theme .search-keywords-bar .keyword-tag {
+  background: rgba(255, 255, 255, 0.1);
+  color: #bbb;
+}
+
+.ai-widget.dark-theme .thinking-card {
+  background: linear-gradient(135deg, #2d2d2d 0%, #252525 100%);
+  border-color: #333;
+}
+
+.ai-widget.dark-theme .thinking-card .thinking-dots span {
+  background-color: #aaa;
+}
+
+.ai-widget.dark-theme .thinking-card .thinking-label {
+  color: #bbb;
+}
+
