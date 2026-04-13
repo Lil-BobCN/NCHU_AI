@@ -1128,14 +1128,14 @@
     return citationUrls;
   }
   
-  // 将 [数字] 转换为可点击的引用链接
+  // 将 [数字] 转换为可点击的引用链接（Phase 4: Kimi 风格 citation pill）
   function convertCitationsToLinks(htmlContent, citationUrls) {
     if (!htmlContent) return htmlContent;
-    
+
     // 优先级1：传入的 citationUrls（从文末信息来源解析的）
     // 优先级2：state.citationUrls（来自搜索结果，兼容旧格式）
     const allCitationUrls = {};
-    
+
     // 合并 state.citationUrls（可能是字符串URL）
     Object.entries(state.citationUrls).forEach(([num, val]) => {
       if (typeof val === 'string') {
@@ -1144,7 +1144,7 @@
         allCitationUrls[num] = val;
       }
     });
-    
+
     // 合并传入的 citationUrls（优先）
     Object.entries(citationUrls).forEach(([num, val]) => {
       if (typeof val === 'string') {
@@ -1153,27 +1153,32 @@
         allCitationUrls[num] = val;
       }
     });
-    
-    console.log('[convertCitationsToLinks] 可用引用映射:', Object.keys(allCitationUrls));
-    
+
     // 按引用编号从大到小替换，避免[10]被[1]先匹配
     const sortedKeys = Object.keys(allCitationUrls).sort((a, b) => parseInt(b) - parseInt(a));
-    
+
     let result = htmlContent;
     for (const num of sortedKeys) {
       const { url, title } = allCitationUrls[num];
-      
-      // 替换 Markdown 脚注格式 [^数字] 为可点击链接
+      const safeTitle = escapeHtml(title || '查看详情');
+      const safeNum = escapeHtml(num);
+      const safeUrl = escapeHtml(url);
+
+      // 替换 Markdown 脚注格式 [^数字] 为 citation pill
       const regex1 = new RegExp(`\\[\\^${num}\\](?!</a>)`, 'g');
-      result = result.replace(regex1, `<a href="${url}" target="_blank" rel="noopener noreferrer" class="citation-link" title="${title || ''}">[^${num}]</a>`);
-      
-      // 同时替换没有^的格式 [数字]（不在脚注定义行中）
-      // 使用负向前瞻确保不匹配 [数字]: URL 这种脚注定义行
+      result = result.replace(regex1,
+        `<a href="${safeUrl}" target="_blank" rel="noopener noreferrer" ` +
+        `class="citation-link" data-citation-num="${safeNum}" ` +
+        `data-citation-title="${safeTitle}" data-citation-url="${safeUrl}">${num}</a>`);
+
+      // 同时替换没有^的格式 [数字]
       const regex2 = new RegExp(`\\[${num}\\](?!</a>)(?!:\\s*https?://)`, 'g');
-      result = result.replace(regex2, `<a href="${url}" target="_blank" rel="noopener noreferrer" class="citation-link" title="${title || ''}">[${num}]</a>`);
+      result = result.replace(regex2,
+        `<a href="${safeUrl}" target="_blank" rel="noopener noreferrer" ` +
+        `class="citation-link" data-citation-num="${safeNum}" ` +
+        `data-citation-title="${safeTitle}" data-citation-url="${safeUrl}">${num}</a>`);
     }
-    
-    // 没有映射的引用标记保持原样（不转换为链接）
+
     return result;
   }
 
@@ -3883,7 +3888,7 @@
     const messagesContainer = container.querySelector('.chat-messages');
     if (messagesContainer) {
       messagesContainer.addEventListener('scroll', handleMessagesScroll);
-      
+
       // 事件委托处理链接点击，确保所有链接在新窗口打开
       messagesContainer.addEventListener('click', (e) => {
         const link = e.target.closest('a');
@@ -3892,6 +3897,111 @@
           e.stopPropagation();
           window.open(link.href, '_blank', 'noopener,noreferrer');
         }
+      });
+
+      // Phase 4: 悬浮引用预览（事件委托）
+      let citationTooltip = null;
+      let citationHideTimeout = null;
+
+      function hideCitationTooltip() {
+        if (citationTooltip) {
+          citationTooltip.classList.remove('visible');
+          setTimeout(() => {
+            if (citationTooltip && citationTooltip.parentNode) {
+              document.body.removeChild(citationTooltip);
+            }
+            citationTooltip = null;
+          }, 200);
+        }
+      }
+
+      messagesContainer.addEventListener('mouseover', (e) => {
+        const pill = e.target.closest('a.citation-link');
+        if (!pill) return;
+
+        clearTimeout(citationHideTimeout);
+
+        // 销毁旧 tooltip
+        if (citationTooltip) {
+          document.body.removeChild(citationTooltip);
+          citationTooltip = null;
+        }
+
+        const num = pill.getAttribute('data-citation-num');
+        const title = pill.getAttribute('data-citation-title');
+        const url = pill.getAttribute('data-citation-url');
+
+        if (!num || !url) return;
+
+        // 创建悬浮预览卡片
+        citationTooltip = document.createElement('div');
+        citationTooltip.className = 'citation-preview-tooltip';
+        citationTooltip.innerHTML = `
+          <div class="citation-source-name">[${num}] ${escapeHtml(title)}</div>
+          <div class="citation-url-preview">${escapeHtml(url)}</div>
+          <div class="citation-arrow"></div>
+        `;
+
+        document.body.appendChild(citationTooltip);
+
+        // 鼠标移入 tooltip 时不关闭
+        citationTooltip.addEventListener('mouseleave', () => {
+          if (citationHideTimeout) clearTimeout(citationHideTimeout);
+          citationHideTimeout = setTimeout(() => {
+            hideCitationTooltip();
+          }, 100);
+        });
+
+        // 计算位置：在 pill 正上方居中
+        const pillRect = pill.getBoundingClientRect();
+        const tooltipRect = citationTooltip.getBoundingClientRect();
+        const left = pillRect.left + pillRect.width / 2 - tooltipRect.width / 2;
+        const top = pillRect.top - tooltipRect.height - 8;
+
+        // 防止超出左边界
+        const adjustedLeft = Math.max(8, left);
+        // 防止超出右边界
+        const finalLeft = adjustedLeft + tooltipRect.width > window.innerWidth
+          ? window.innerWidth - tooltipRect.width - 8
+          : adjustedLeft;
+        // 如果上方空间不足，显示在下方
+        let showBelow = top < 8;
+        // 下方也不够时，强制显示在上方并裁剪
+        if (showBelow && pillRect.bottom + tooltipRect.height > window.innerHeight - 8) {
+          showBelow = false;
+        }
+        const finalTop = showBelow ? pillRect.bottom + 8 : top;
+
+        citationTooltip.style.left = finalLeft + 'px';
+        citationTooltip.style.top = finalTop + 'px';
+
+        // 翻转到下方时箭头方向也要改变
+        const arrow = citationTooltip.querySelector('.citation-arrow');
+        if (showBelow) {
+          arrow.style.bottom = 'auto';
+          arrow.style.top = '-6px';
+          arrow.style.transform = 'translateX(-50%) rotate(-135deg)';
+        }
+
+        // 短暂延迟后显示动画
+        requestAnimationFrame(() => {
+          citationTooltip.classList.add('visible');
+        });
+      });
+
+      messagesContainer.addEventListener('mouseout', (e) => {
+        const pill = e.target.closest('a.citation-link');
+        if (!pill) return;
+
+        // 检查是否移动到了 tooltip 上
+        const relatedTarget = e.relatedTarget;
+        if (relatedTarget && relatedTarget.closest && relatedTarget.closest('.citation-preview-tooltip')) {
+          return;
+        }
+
+        citationHideTimeout = setTimeout(() => {
+          hideCitationTooltip();
+        }, 100);
       });
     }
 
