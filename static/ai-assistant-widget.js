@@ -113,43 +113,47 @@
         let token;
 
         while (src) {
-          // 表格（更强健的匹配）
-          const tableRegex = /^(\|.+\|\s*\n)(\|\s*:?-+:?\s*\|.+\n)((?:\|.+\|\s*\n?)+)/;
-          if (token = tableRegex.exec(src)) {
+          // 表格（支持带管道和不带管道两种格式）
+          const pipeTableRegex = /^(\|.+\|\s*\n)(\|\s*:?-+:?\s*\|.+\n)((?:\|.+\|\s*\n?)+)/;
+          const plainTableRegex = /^([^\n|]+\|[^\n]+\n)([-:]+\s*\|[^\n]+\n)((?:[^\n]+\|[^\n]*\n?)+)/;
+          if (token = pipeTableRegex.exec(src) || plainTableRegex.exec(src)) {
             src = src.substring(token[0].length);
 
-            // 表头 - 保留所有单元格（包括空的）
-            const headerParts = token[1].split('|');
-            const header = [];
-            for (let i = 1; i < headerParts.length - 1; i++) {
-              header.push(headerParts[i].trim());
-            }
+            // 判断是否是管道格式
+            const isPipeFormat = token[0].trim().startsWith('|');
 
-            // 对齐方式 - 保持与表头一致
-            const alignParts = token[2].split('|');
-            const align = [];
-            for (let i = 1; i < alignParts.length - 1; i++) {
-              const c = alignParts[i].trim();
-              if (/^:?-+:$/.test(c)) align.push('center');
-              else if (/-+:$/.test(c)) align.push('right');
-              else if (/^:-+/.test(c)) align.push('left');
-              else align.push(null);
-            }
+            // 解析表头
+            const headerLine = token[1].trim();
+            const header = isPipeFormat
+              ? headerLine.split('|').slice(1, -1).map(h => h.trim())
+              : headerLine.split('|').map(h => h.trim()).filter(h => h !== '');
 
-            // 表体 - 保证每行列数一致
+            // 对齐方式
+            const alignLine = token[2].trim();
+            const alignParts = isPipeFormat
+              ? alignLine.split('|').slice(1, -1)
+              : alignLine.split('|').map(a => a.trim()).filter(a => a !== '');
+            const align = alignParts.map(c => {
+              c = c.trim();
+              if (/^:?-+:$/.test(c)) return 'center';
+              if (/-+:$/.test(c)) return 'right';
+              if (/^:-+/.test(c)) return 'left';
+              return null;
+            });
+
+            // 表体
             const cells = [];
             const rows = token[3].trim().split('\n').filter(row => row.trim());
             rows.forEach(row => {
-              const rowParts = row.split('|');
-              const rowCells = [];
-              for (let i = 1; i < rowParts.length - 1; i++) {
-                rowCells.push(rowParts[i].trim());
-              }
+              const rowLine = row.trim();
+              const rowCells = isPipeFormat
+                ? rowLine.split('|').slice(1, -1).map(c => c.trim())
+                : rowLine.split('|').map(c => c.trim()).filter((_, i) => i < header.length);
               // 补齐到表头长度
               while (rowCells.length < header.length) {
                 rowCells.push('');
               }
-              cells.push(rowCells);
+              cells.push(rowCells.slice(0, header.length));
             });
 
             tokens.push({ type: 'table', header, align, cells });
@@ -167,6 +171,21 @@
           if (token = /^(#{1,6}) +([^\n]+)/.exec(src)) {
             src = src.substring(token[0].length);
             tokens.push({ type: 'heading', depth: token[1].length, text: token[2] });
+            continue;
+          }
+
+          // 引用块
+          if (token = /^(\>\s*[^\n]+(?:\n\>\s*[^\n]+)*)/.exec(src)) {
+            src = src.substring(token[0].length);
+            const lines = token[1].split('\n').map(line => line.replace(/^\>\s*/, ''));
+            tokens.push({ type: 'blockquote', text: lines.join('\n') });
+            continue;
+          }
+
+          // 分隔线
+          if (token = /^ {0,3}([-*_])(?:\s*\1){2,}\s*(?:\n|$)/.exec(src)) {
+            src = src.substring(token[0].length);
+            tokens.push({ type: 'hr' });
             continue;
           }
 
@@ -264,6 +283,12 @@
               });
               html += `</${tag}>`;
               break;
+            case 'blockquote':
+              html += `<blockquote>${marked.parseInline(token.text)}</blockquote>`;
+              break;
+            case 'hr':
+              html += '<hr>';
+              break;
             case 'table':
               html += '<table class="markdown-table"><thead><tr>';
               token.header.forEach((cell, i) => {
@@ -336,7 +361,10 @@
 
         // 自动链接化：纯文本 URL（http://... 或 https://...）
         // 避免替换已存在的 <a> 标签内的 URL
-        text = text.replace(/(?<!["'>])(https?:\/\/[^\s<>"']+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer nofollow">$1</a>');
+        text = text.replace(/(["'>])?(https?:\/\/[^\s<>"']+)/g, function(match, prefix, url) {
+          if (prefix) return match;
+          return '<a href="' + url + '" target="_blank" rel="noopener noreferrer nofollow">' + url + '</a>';
+        });
 
         // 图片（Markdown格式）
         text = text.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" style="max-width: 100%; height: auto; border-radius: 8px; margin: 8px 0;" />');
@@ -1077,8 +1105,11 @@
     // 转换纯文本 URL 为 Markdown 链接
     // 支持：域名、IP地址、localhost、端口号
     processedText = processedText.replace(
-      /(?<!["'\(])((?:https?:\/\/)(?:[a-zA-Z0-9][-a-zA-Z0-9]*|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}|localhost)(?::\d+)?(?:[-a-zA-Z0-9._~:/?#[\]@!$&'()*+,;=%]*)?)/g,
-      '[$1]($1)'
+      /(["'\(])?((?:https?:\/\/)(?:[a-zA-Z0-9][-a-zA-Z0-9]*|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}|localhost)(?::\d+)?(?:[-a-zA-Z0-9._~:/?#[\]@!$&'()*+,;=%]*)?)/g,
+      function(match, prefix, url) {
+        if (prefix) return match;
+        return '[' + url + '](' + url + ')';
+      }
     );
     
     // 恢复被保护的 Markdown 链接
