@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "active": true,
+  "skill": "analyze",
+  "keyword": "$analyze",
+  "phase": "planning",
+  "activated_at": "2026-05-12T09:20:36.027Z",
+  "updated_at": "2026-05-12T10:42:01.904Z",
+  "source": "keyword-detector",
+  "input_lock": null,
+  "active_skills": [
+    {
+      "skill": "analyze",
+      "phase": "planning",
+      "active": true,
+      "activated_at": "2026-05-12T09:20:36.027Z",
+      "updated_at": "2026-05-12T09:20:36.035Z"
+    }
+  ]
+}
