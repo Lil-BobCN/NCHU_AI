@@ -9,9 +9,8 @@ FastAPI's Depends() injection.
 """
 from __future__ import annotations
 
-from typing import AsyncGenerator
-
-from qdrant_client import AsyncQdrantClient
+from collections.abc import AsyncGenerator
+from typing import Any
 
 from app.config import Settings, get_settings
 from app.db.repositories.chat_repo import ChatRepository
@@ -22,13 +21,12 @@ from app.services.llm_service import LLMService
 from app.services.rag_service import RAGService
 from app.services.session_service import SessionService
 
-
 # ---------------------------------------------------------------------------
 # Module-level service singletons (lazy-initialized on first access)
 # ---------------------------------------------------------------------------
 _llm_service: LLMService | None = None
 _embedding_service: EmbeddingService | None = None
-_qdrant_client: AsyncQdrantClient | None = None
+_milvus_client: Any | None = None
 _retriever: Retriever | None = None
 _prompt_builder: PromptBuilder | None = None
 _rag_service: RAGService | None = None
@@ -67,22 +65,36 @@ def _get_embedding_service() -> EmbeddingService:
     return _embedding_service
 
 
-def _get_qdrant_client() -> AsyncQdrantClient:
-    """Get or create the Qdrant async client singleton."""
-    global _qdrant_client
-    if _qdrant_client is None:
+def _get_milvus_client() -> Any:
+    """Get or create the Milvus client singleton."""
+    global _milvus_client
+    if _milvus_client is None:
+        from pymilvus import MilvusClient
+
         settings = _get_settings()
-        _qdrant_client = AsyncQdrantClient(url=settings.qdrant_url)
-    return _qdrant_client
+        kwargs: dict[str, Any] = {
+            "uri": f"http://{settings.milvus_host}:{settings.milvus_port}",
+            "db_name": settings.milvus_db_name,
+        }
+        if settings.milvus_token:
+            kwargs["token"] = settings.milvus_token
+        _milvus_client = MilvusClient(**kwargs)
+    return _milvus_client
 
 
 def _get_retriever() -> Retriever:
     """Get or create the retriever singleton."""
     global _retriever
     if _retriever is None:
+        settings = _get_settings()
         _retriever = Retriever(
-            qdrant_client=_get_qdrant_client(),
+            milvus_client=_get_milvus_client(),
             embedding_service=_get_embedding_service(),
+            collection_name=settings.milvus_collection,
+            vector_dim=settings.milvus_vector_dim,
+            metric_type=settings.milvus_metric_type,
+            index_type=settings.milvus_index_type,
+            index_nlist=settings.milvus_index_nlist,
         )
     return _retriever
 
@@ -176,13 +188,13 @@ def get_embedding_service() -> EmbeddingService:
     return _get_embedding_service()
 
 
-def get_qdrant_client() -> AsyncQdrantClient:
-    """Provide the Qdrant client dependency.
+def get_milvus_client() -> Any:
+    """Provide the Milvus client dependency.
 
     Returns:
-        Configured AsyncQdrantClient instance.
+        Configured MilvusClient instance.
     """
-    return _get_qdrant_client()
+    return _get_milvus_client()
 
 
 def get_retriever() -> Retriever:

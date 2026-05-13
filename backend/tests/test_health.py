@@ -8,7 +8,7 @@ from httpx import AsyncClient
 @pytest.mark.asyncio
 async def test_health_returns_200(async_client: AsyncClient) -> None:
     """Health endpoint returns 200 with expected fields."""
-    response = await async_client.get("/health")
+    response = await async_client.get("/api/v1/health")
     assert response.status_code == 200
     data = response.json()
     assert data["status"] == "healthy"
@@ -20,7 +20,7 @@ async def test_health_returns_200(async_client: AsyncClient) -> None:
 @pytest.mark.asyncio
 async def test_health_has_request_id(async_client: AsyncClient) -> None:
     """Health response includes X-Request-ID header."""
-    response = await async_client.get("/health")
+    response = await async_client.get("/api/v1/health")
     assert "x-request-id" in response.headers
     assert len(response.headers["x-request-id"]) > 0
 
@@ -28,5 +28,30 @@ async def test_health_has_request_id(async_client: AsyncClient) -> None:
 @pytest.mark.asyncio
 async def test_health_content_type(async_client: AsyncClient) -> None:
     """Health endpoint returns JSON content type."""
-    response = await async_client.get("/health")
+    response = await async_client.get("/api/v1/health")
     assert "application/json" in response.headers["content-type"]
+
+
+@pytest.mark.asyncio
+async def test_readiness_returns_checks(
+    async_client: AsyncClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Readiness endpoint returns dependency check details."""
+    from app.api.v1 import health
+
+    async def fake_checks(_settings):
+        return {
+            "postgres": {"status": "ready", "operation": "select_1"},
+            "redis": {"status": "ready", "operation": "ping"},
+            "minio": {"status": "ready", "operation": "list_buckets"},
+            "milvus": {"status": "ready", "operation": "list_collections"},
+        }
+
+    monkeypatch.setattr(health, "_run_readiness_checks", fake_checks)
+    response = await async_client.get("/api/v1/readiness")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "ready"
+    assert set(data["checks"]) == {"postgres", "redis", "minio", "milvus"}

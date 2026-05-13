@@ -14,7 +14,7 @@ from app.api.v1.rag import router as rag_router
 
 api_router = APIRouter()
 
-# Register health at root level (not under /api/v1 prefix)
+# Register health at the v1 root: /api/v1/health and /api/v1/readiness
 api_router.include_router(health_router)
 
 # Register auth endpoints

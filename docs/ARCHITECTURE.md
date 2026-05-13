@@ -1,81 +1,81 @@
-# 系统架构
+# Architecture
 
-## 总体架构
+## Current Phase
 
-```
-                    ┌─────────────────────────────────┐
-                    │         浏览器 (Browser)          │
-                    │  http://localhost 或 file://      │
-                    └──────────┬───────────────────────┘
-                               │
-                    ┌──────────▼───────────────────────┐
-                    │       Nginx (端口 80, 443)         │
-                    │  ┌──────────────────────────────┐ │
-                    │  │  静态文件: static/ → alias     │ │
-                    │  │  /api/v1/  → FastAPI :8000   │ │
-                    │  │  /api/     → Flask   :5000   │ │
-                    │  │  /login    → login.html       │ │
-                    │  │  /rag-chat → rag-chat.html    │ │
-                    │  │  /admin/*  → admin-pages      │ │
-                    │  └──────────────────────────────┘ │
-                    └─────┬──────────────────┬──────────┘
-                          │                  │
-          ┌───────────────▼──┐    ┌──────────▼───────────────┐
-          │  Flask 后端 :5000 │    │  FastAPI 后端 :8000       │
-          │  (ai-assistant-api)│   │  (nchu-counselor-api)    │
-          │                   │    │                          │
-          │  认证: Session    │    │  认证: JWT               │
-          │  存储: Redis DB 0 │    │  存储: PostgreSQL        │
-          │  AI: Qwen + 搜索  │    │  AI: Qwen + RAG         │
-          └───────┬───────────┘    └─────┬────────────────────┘
-                  │                      │
-          ┌───────▼───────┐    ┌─────────▼─────────┐
-          │  Redis DB 0   │    │  PostgreSQL        │
-          │  (用户/缓存)   │    │  (用户/对话/文档)   │
-          └───────────────┘    │                    │
-                               │  Qdrant (向量库)   │
-                               │  Redis DB 1 (缓存)  │
-                               └────────────────────┘
+Technical Phase 1 establishes the local/private engineering foundation. The
+formal backend direction is:
+
+```text
+FastAPI (`backend/`)
+  |-- PostgreSQL: structured application data
+  |-- Redis: cache, session, and task-state foundation
+  |-- MinIO: original documents and object storage
+  `-- Milvus: formal vector database
 ```
 
-## 两系统独立性
+The legacy Flask prototype under `src/backend/` remains inspectable but is not
+part of the current acceptance gate. Qdrant artifacts are migration references
+only and are not the formal vector-store path for Phase 1.
 
-Flask AI 助手和 FastAPI RAG 系统**完全独立**，可分别启动、停止、部署：
+## Phase 1 Docker Topology
 
-| 维度 | 独立项 |
-|------|--------|
-| **Docker** | 不同的 docker-compose.yml |
-| **网络** | 不同的 Docker network |
-| **认证** | Flask Session vs JWT |
-| **用户** | Redis vs PostgreSQL（各自管理） |
-| **数据库** | Redis DB 0 vs DB 1 |
-| **前端** | 悬浮球 vs 独立页面 |
-| **AI** | 联网搜索 vs RAG 检索 |
-| **API** | `/api/` vs `/api/v1/` |
+Recommended entrypoint:
 
-唯一共享点：Nginx 反向代理（属于 Flask 栈），通过 `host.docker.internal:8000` 跨栈代理到 FastAPI。
-
-## 请求流程
-
-### Flask AI 助手流程
-
-```
-1. 用户点击悬浮球 → 打开对话框
-2. 输入问题 → POST /api/chat (SSE)
-3. Nginx 代理到 Flask :5000
-4. Flask @login_required 检查 session cookie
-5. Flask 调用 DashScope/Qwen API (stream)
-6. 流式 SSE 返回给浏览器
-7. fetchEventSource 解析 SSE → 实时渲染 Markdown + 引用链接
+```powershell
+cd backend
+docker compose -f docker-compose.phase1.yml up -d
 ```
 
-### FastAPI RAG 流程
+Service layout:
 
+```text
+Host
+  |-- :8000  -> api / FastAPI
+  |-- :5432  -> postgres / PostgreSQL + pgvector image
+  |-- :6379  -> redis / Redis
+  |-- :9000  -> minio / business object storage API
+  |-- :9001  -> minio / console
+  |-- :19530 -> milvus / vector database API
+  `-- :9091  -> milvus / health endpoint
+
+Internal Milvus dependencies
+  |-- milvus-etcd
+  `-- milvus-minio
 ```
-1. 用户打开 /rag-chat → 加载 rag-chat.html
-2. 输入问题 → POST /api/v1/chat/ (Bearer Token)
-3. Nginx 代理到 FastAPI :8000
-4. FastAPI 验证 JWT → 查询 Qdrant 向量库
-5. 检索相关文档 → 组装 prompt → 调用 Qwen
-6. 返回增强后的 AI 回复
-```
+
+The business MinIO service is named `minio`. Milvus uses a separate internal
+`milvus-minio` service so original document storage is not confused with Milvus
+internal object storage.
+
+## API Health Boundary
+
+- `GET /api/v1/health` is liveness only. It proves the FastAPI process can
+  respond.
+- `GET /api/v1/readiness` checks lightweight connectivity to PostgreSQL, Redis,
+  MinIO, and Milvus.
+- `python scripts/smoke_phase1.py` is the acceptance-grade smoke gate. It
+  performs writes, reads, searches, and cleanup.
+
+## Data Boundaries
+
+PostgreSQL stores structured data and metadata. It is not the accepted vector
+database for Phase 1, even though the image includes pgvector for historical
+compatibility.
+
+Milvus is the formal vector database. The configured default collection uses
+1024-dimensional embeddings and a configurable metric/index pair.
+
+MinIO stores original uploaded/source documents so future ingestion can rebuild
+indexes and preserve auditability.
+
+Redis is reserved for cache, session, and task-state foundations. The current
+smoke gate verifies key/value and TTL behavior only.
+
+## Legacy Boundary
+
+The root `docker-compose.yml` starts the old Flask-oriented stack. Keep it
+available for prototype comparison, but do not use it to decide Phase 1
+completion.
+
+Do not remove `src/backend/` or old Qdrant migration-reference files until the
+FastAPI + Milvus + MinIO smoke gate is stable.

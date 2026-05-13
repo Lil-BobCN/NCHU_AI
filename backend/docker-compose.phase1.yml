@@ -1,0 +1,210 @@
+# NCHU AI Counselor - Technical Phase 1 stack
+# Start: docker compose -f docker-compose.phase1.yml up -d
+# Stop:  docker compose -f docker-compose.phase1.yml down
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nchu-phase1-api
+    restart: unless-stopped
+    ports:
+      - "${API_PORT:-8000}:8000"
+    environment:
+      APP_NAME: ${APP_NAME:-NCHU AI Counselor API}
+      APP_VERSION: ${APP_VERSION:-2.0.0}
+      HOST: 0.0.0.0
+      PORT: 8000
+      DEBUG: ${API_DEBUG:-false}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      DASHSCOPE_API_KEY: ${DASHSCOPE_API_KEY:-}
+      DASHSCOPE_API_BASE_URL: ${DASHSCOPE_API_BASE_URL:-https://dashscope.aliyuncs.com/compatible-mode/v1}
+      DASHSCOPE_MODEL: ${DASHSCOPE_MODEL:-qwen3.5-plus}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-text-embedding-v3}
+      ENABLE_THINKING: ${ENABLE_THINKING:-false}
+      POSTGRES_USER: ${POSTGRES_USER:-counselor}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-counselor_pass}
+      POSTGRES_DB: ${POSTGRES_DB:-counselor_db}
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-counselor}:${POSTGRES_PASSWORD:-counselor_pass}@postgres:5432/${POSTGRES_DB:-counselor_db}
+      REDIS_URL: redis://redis:6379/1
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-minioadmin}
+      MINIO_BUCKET: ${MINIO_BUCKET:-nchu-counselor-documents}
+      MINIO_SECURE: "false"
+      MILVUS_HOST: milvus
+      MILVUS_PORT: 19530
+      MILVUS_DB_NAME: ${MILVUS_DB_NAME:-default}
+      MILVUS_COLLECTION: ${MILVUS_COLLECTION:-nchu_counselor_documents}
+      MILVUS_VECTOR_DIM: ${MILVUS_VECTOR_DIM:-1024}
+      MILVUS_METRIC_TYPE: ${MILVUS_METRIC_TYPE:-COSINE}
+      MILVUS_INDEX_TYPE: ${MILVUS_INDEX_TYPE:-IVF_FLAT}
+      MILVUS_INDEX_NLIST: ${MILVUS_INDEX_NLIST:-1024}
+      MILVUS_TOKEN: ${MILVUS_TOKEN:-}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://localhost:5173,http://localhost:8000,http://localhost:80,http://localhost,null}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-phase1-dev-jwt-secret-change-before-production}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      milvus:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - phase1-network
+
+  postgres:
+    image: ${POSTGRES_IMAGE:-pgvector/pgvector:pg16}
+    container_name: nchu-phase1-postgres
+    restart: unless-stopped
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-counselor}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-counselor_pass}
+      POSTGRES_DB: ${POSTGRES_DB:-counselor_db}
+    volumes:
+      - phase1-postgres-data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-counselor} -d ${POSTGRES_DB:-counselor_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - phase1-network
+
+  redis:
+    image: ${REDIS_IMAGE:-redis:7-alpine}
+    container_name: nchu-phase1-redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - phase1-redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+    networks:
+      - phase1-network
+
+  minio:
+    image: ${MINIO_IMAGE:-quay.io/minio/minio:RELEASE.2024-12-18T13-15-44Z}
+    container_name: nchu-phase1-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    ports:
+      - "${MINIO_API_PORT:-9000}:9000"
+      - "${MINIO_CONSOLE_PORT:-9001}:9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-minioadmin}
+    volumes:
+      - phase1-minio-data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - phase1-network
+
+  milvus-etcd:
+    image: ${MILVUS_ETCD_IMAGE:-quay.io/coreos/etcd:v3.5.25}
+    container_name: nchu-phase1-milvus-etcd
+    restart: unless-stopped
+    command: >
+      etcd
+      -advertise-client-urls=http://milvus-etcd:2379
+      -listen-client-urls=http://0.0.0.0:2379
+      --data-dir /etcd
+    environment:
+      ETCD_AUTO_COMPACTION_MODE: revision
+      ETCD_AUTO_COMPACTION_RETENTION: "1000"
+      ETCD_QUOTA_BACKEND_BYTES: "4294967296"
+      ETCD_SNAPSHOT_COUNT: "50000"
+    volumes:
+      - phase1-milvus-etcd-data:/etcd
+    healthcheck:
+      test: ["CMD", "etcdctl", "endpoint", "health"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    networks:
+      - phase1-network
+
+  milvus-minio:
+    image: ${MILVUS_MINIO_IMAGE:-quay.io/minio/minio:RELEASE.2024-12-18T13-15-44Z}
+    container_name: nchu-phase1-milvus-minio
+    restart: unless-stopped
+    command: server /minio_data --console-address ":9001"
+    environment:
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    volumes:
+      - phase1-milvus-minio-data:/minio_data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    networks:
+      - phase1-network
+
+  milvus:
+    image: ${MILVUS_IMAGE:-docker.m.daocloud.io/milvusdb/milvus:v2.6.15}
+    container_name: nchu-phase1-milvus
+    restart: unless-stopped
+    command: ["milvus", "run", "standalone"]
+    security_opt:
+      - seccomp:unconfined
+    environment:
+      ETCD_ENDPOINTS: milvus-etcd:2379
+      MINIO_ADDRESS: milvus-minio:9000
+      MQ_TYPE: woodpecker
+    volumes:
+      - phase1-milvus-data:/var/lib/milvus
+    ports:
+      - "${MILVUS_PORT:-19530}:19530"
+      - "${MILVUS_HEALTH_PORT:-9091}:9091"
+    depends_on:
+      milvus-etcd:
+        condition: service_healthy
+      milvus-minio:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9091/healthz"]
+      interval: 30s
+      timeout: 20s
+      retries: 10
+      start_period: 90s
+    networks:
+      - phase1-network
+
+volumes:
+  phase1-postgres-data:
+  phase1-redis-data:
+  phase1-minio-data:
+  phase1-milvus-etcd-data:
+  phase1-milvus-minio-data:
+  phase1-milvus-data:
+
+networks:
+  phase1-network:
+    driver: bridge

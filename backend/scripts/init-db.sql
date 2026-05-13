@@ -59,7 +59,7 @@ CREATE TABLE IF NOT EXISTS documents (
     chunk_index INTEGER,
     metadata JSONB,
     embedding VECTOR(1536),
-    qdrant_id VARCHAR(100),
+    vector_store_id VARCHAR(100),
     created_at TIMESTAMP DEFAULT NOW()
 );
 

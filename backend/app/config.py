@@ -6,7 +6,6 @@ Mirrors the Flask config/default.py structure but uses pydantic validation.
 from __future__ import annotations
 
 from functools import lru_cache
-from typing import List
 
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -30,8 +29,18 @@ class Settings(BaseSettings):
         enable_thinking: Enable Qwen deep thinking mode.
 
         database_url: PostgreSQL connection string (asyncpg).
-        qdrant_url: Qdrant vector store URL.
         redis_url: Redis connection string.
+        minio_endpoint: MinIO API endpoint.
+        minio_access_key: MinIO access key.
+        minio_secret_key: MinIO secret key.
+        minio_bucket: Default bucket for original documents.
+        milvus_host: Milvus host.
+        milvus_port: Milvus gRPC/HTTP port.
+        milvus_db_name: Milvus database name.
+        milvus_collection: Default collection for counselor vectors.
+        milvus_vector_dim: Embedding vector dimension.
+        milvus_metric_type: Milvus vector metric type.
+        milvus_index_type: Milvus vector index type.
 
         cors_origins: Comma-separated list of allowed CORS origins.
         rate_limit_per_minute: Max requests per minute per client.
@@ -67,8 +76,25 @@ class Settings(BaseSettings):
 
     # Infrastructure
     database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/nchu_ai_counselor"
-    qdrant_url: str = "http://localhost:6333"
     redis_url: str = "redis://localhost:6379/0"
+
+    # Object storage (official Phase 1 path)
+    minio_endpoint: str = "localhost:9000"
+    minio_access_key: str = "minioadmin"
+    minio_secret_key: str = "minioadmin"
+    minio_bucket: str = "nchu-counselor-documents"
+    minio_secure: bool = False
+
+    # Vector database (official Phase 1 path)
+    milvus_host: str = "localhost"
+    milvus_port: int = 19530
+    milvus_db_name: str = "default"
+    milvus_collection: str = "nchu_counselor_documents"
+    milvus_vector_dim: int = Field(default=1024, gt=0)
+    milvus_metric_type: str = "COSINE"
+    milvus_index_type: str = "IVF_FLAT"
+    milvus_index_nlist: int = Field(default=1024, gt=0)
+    milvus_token: str = ""
 
     # CORS
     cors_origins: str = "http://localhost:3000,http://localhost:5173,http://localhost:8000"
@@ -95,6 +121,20 @@ class Settings(BaseSettings):
                 f"log_level must be one of {valid_levels}, got '{value}'"
             )
         return upper
+
+    @field_validator("debug", mode="before")
+    @classmethod
+    def normalize_debug(cls, value):
+        """Accept deployment words sometimes exported as DEBUG values."""
+        if isinstance(value, str) and value.lower() in {"release", "prod", "production"}:
+            return False
+        return value
+
+    @field_validator("milvus_metric_type", "milvus_index_type")
+    @classmethod
+    def normalize_milvus_uppercase(cls, value: str) -> str:
+        """Normalize Milvus enum-like settings."""
+        return value.upper()
 
     @field_validator("jwt_secret_key")
     @classmethod

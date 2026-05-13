@@ -1,217 +1,160 @@
-# NCHU AI 助手 - 航宝智辅
+# NCHU AI Counselor
 
-南昌航空大学学工处 AI 智能辅导助手，包含两套**完全独立**的对话系统。
+This repository currently contains two backend lines:
 
-> **项目状态说明**
-> - **Flask AI 助手（系统A）** 为早期实验原型（Prototype），用于快速验证 AI 对话功能与前端集成方案。
-> - **FastAPI RAG（系统B）** 为后续正式版本的开发方向，将逐步替代 Flask 后端，提供更成熟的 RAG 检索增强对话能力。
-> - 当前两套系统并存，均可独立运行。后续迭代将以 FastAPI 为主力框架。
+- `backend/`: the formal FastAPI backend for technical Phase 1.
+- `src/backend/`: the legacy Flask prototype, retained only as reference material.
 
----
+Technical Phase 1 acceptance is limited to the engineering foundation: FastAPI,
+PostgreSQL, Redis, MinIO, Milvus, Docker local/private deployment, liveness,
+readiness, and an automated smoke gate. It does not include the full student
+Q&A product loop, admin UI, permission/audit, dashboard, notifications, document
+generation, or multi-terminal rollout.
 
-## 系统架构概览
+## Phase 1 Quick Start
 
-| 维度 | 系统A：Flask AI 助手 | 系统B：FastAPI RAG |
-|------|---------------------|-------------------|
-| **状态** | 实验原型（Prototype） | 正式开发方向 |
-| **用途** | 悬浮球式 AI 对话（嵌入学工处页面） | RAG 检索增强对话（独立页面） |
-| **后端** | Flask (Python) | FastAPI (Python) |
-| **端口** | 5000 | 8000 |
-| **认证** | Flask Session Cookie | JWT Bearer Token |
-| **用户存储** | Redis DB 0 | PostgreSQL |
-| **AI 模型** | Qwen 3.5 + 联网搜索 | Qwen 3.5 + RAG 检索 |
-| **前端** | ai-assistant-widget.js (悬浮球) | rag-chat.html (独立页面) |
-| **Docker Compose** | `docker-compose.yml` | `backend/docker-compose.rag.yml` |
-| **登录页** | `/login` (login.html) | rag-chat.html 内置弹窗 |
+Run these commands from the repository root:
 
-两套系统共享 Nginx 反向代理（端口 80），通过路径前缀区分：
-- `/api/` → Flask (端口 5000)
-- `/api/v1/` → FastAPI (端口 8000)
+```powershell
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r backend\requirements.txt
 
----
-
-## 核心功能
-
-### Flask AI 助手（系统A）- 悬浮球
-- **Kimi 风格流式输出**：搜索关键词栏 → 思考卡片 → 流式正文 → 引用标注 → 来源卡片
-- **丰富 Markdown 渲染**：表格（深色主题）、粗体、列表、引用块、代码块
-- **实时引用系统**：
-  - 正文引用显示为灰色 Pill（带域名名称）
-  - 悬停预览卡片（favicon + 标题 + URL）
-  - 底部来源卡片列表（可折叠/展开）
-- **消息操作栏**：复制、重新生成、分享、点赞/点踩
-- **表格操作**：一键复制 CSV、下载 CSV
-- **Session Cookie 认证**：登录后自动保持状态
-
-### FastAPI RAG 系统（系统B）- 独立页面
-- **向量检索增强对话**：基于 Qdrant 向量库检索学校文档
-- **JWT Bearer Token 认证**：独立用户体系
-- **对话历史管理**：多会话、消息持久化
-
----
-
-## 快速启动
-
-### 前置条件
-
-- [Docker](https://www.docker.com/get-started/) 已安装并运行
-- [通义千问 API Key](https://dashscope.console.aliyun.com/)（从阿里云 DashScope 获取）
-
-### 第一步：克隆项目
-
-```bash
-git clone https://github.com/your-org/agentproject.git
-cd agentproject
-```
-
-### 第二步：配置环境变量
-
-```bash
-# Flask 栈配置
-cp .env.example .env
-# 编辑 .env，将 QWEN_API_KEY 替换为你的 API Key
-# 将 SESSION_SECRET_KEY 替换为随机字符串
-
-# FastAPI 栈配置（可选，如果需要 RAG 对话）
-cp backend/.env.example backend/.env
-# 编辑 backend/.env，将 DASHSCOPE_API_KEY 替换为你的 API Key
-# 将 JWT_SECRET_KEY 替换为随机字符串
-```
-
-### 第三步：启动服务
-
-```bash
-# 启动 Flask AI 助手栈（Flask + Redis + Nginx）
-docker compose up -d
-
-# （可选）启动 FastAPI RAG 栈
 cd backend
-docker compose -f docker-compose.rag.yml up -d
-cd ..
+docker compose -f docker-compose.phase1.yml up -d
+..\.venv\Scripts\python.exe scripts\smoke_phase1.py
+..\.venv\Scripts\python.exe -m pytest
 ```
 
-### 第四步：访问
+If the virtual environment is already activated and has `backend/requirements.txt`
+installed, the shorter `python scripts/smoke_phase1.py` and `pytest` commands
+are equivalent.
 
-| 页面 | 地址 |
-|------|------|
-| 学工处主页 + AI 悬浮球 | http://localhost/ |
-| 登录/注册 | http://localhost/login |
-| RAG 对话（FastAPI） | http://localhost/rag-chat |
-| 管理员用户列表 | http://localhost/admin/users |
+The compose file starts:
 
-### 停止服务
+| Service | Container | Host port | Purpose |
+| --- | --- | --- | --- |
+| FastAPI | `nchu-phase1-api` | `8000` | Formal backend API |
+| PostgreSQL | `nchu-phase1-postgres` | `5432` | Structured data |
+| Redis | `nchu-phase1-redis` | `6379` | Cache/session/task state base |
+| MinIO | `nchu-phase1-minio` | `9000`, `9001` | Original document/object storage |
+| Milvus | `nchu-phase1-milvus` | `19530`, `9091` | Formal vector database |
+| Milvus etcd | `nchu-phase1-milvus-etcd` | internal | Milvus dependency |
+| Milvus MinIO | `nchu-phase1-milvus-minio` | internal | Milvus object-store dependency |
 
-```bash
-# 停止 Flask 栈
-docker compose down
+Stop the stack with:
 
-# 停止 FastAPI 栈
-cd backend && docker compose -f docker-compose.rag.yml down
+```powershell
+cd backend
+docker compose -f docker-compose.phase1.yml down
 ```
 
----
+Remove persisted local volumes only when you intentionally want a clean data
+reset:
 
-## 项目文件结构
-
-```
-agentproject/
-├── docker-compose.yml          # Flask 栈编排
-├── Dockerfile                  # Flask 容器镜像
-├── nginx.conf                  # Nginx 反向代理配置
-├── requirements.txt            # Flask 依赖
-├── .env                        # Flask 环境变量
-├── .gitignore
-│
-├── static/                     # 前端静态文件（Nginx 直接服务）
-│   ├── index.html              # 主页（http://localhost/）
-│   ├── login.html              # 登录/注册页面
-│   ├── admin-users.html        # 管理员用户列表
-│   ├── rag-chat.html           # RAG 对话界面（FastAPI）
-│   ├── config.js               # 前端配置（API 端点、预设问题）
-│   ├── ai-assistant-widget.js  # AI 悬浮球 + 对话框逻辑
-│   ├── ai-assistant-widget.css # AI 悬浮球样式
-│   └── xgc-resources/          # 学工处网站静态资源
-│
-├── docs/                       # 架构与规划文档
-│   ├── ARCHITECTURE.md         # 系统架构图
-│   ├── FLASK-SYSTEM.md         # Flask 系统详解
-│   ├── FASTAPI-SYSTEM.md       # FastAPI 系统详解
-│   └── KIMI_STYLE_REFACTOR_PLAN.md  # Kimi 风格改造计划
-│
-├── NCHU_XGC.html               # 原版学工处 HTML（file:// 协议访问用）
-│
-├── src/backend/                # Flask 后端
-│   ├── app/
-│   │   ├── __init__.py         # Flask 应用工厂
-│   │   ├── auth.py             # 认证（注册、登录、登出）
-│   │   └── routes.py           # API 路由（/api/chat SSE 流式）
-│   └── wsgi.py                 # Gunicorn 入口
-│
-├── backend/                    # FastAPI RAG 系统
-│   ├── docker-compose.rag.yml  # FastAPI 栈编排
-│   ├── Dockerfile              # FastAPI 容器镜像
-│   ├── .env.example            # FastAPI 环境变量模板
-│   ├── .env                    # FastAPI 环境变量（不提交到 Git）
-│   ├── app/
-│   │   ├── main.py             # FastAPI 应用工厂
-│   │   ├── config.py           # Pydantic 配置
-│   │   ├── core/auth.py        # JWT 认证
-│   │   ├── api/v1/auth.py      # 认证端点
-│   │   ├── api/v1/chat.py      # RAG 对话端点
-│   │   ├── api/v1/rag.py       # 向量检索端点
-│   │   └── api/deps.py         # 依赖注入
-│   └── ...
-│
-├── .env.example                # Flask 环境变量模板
-│
-├── docs/                       # 架构文档
-│   ├── ARCHITECTURE.md         # 系统架构图
-│   ├── FLASK-SYSTEM.md         # Flask 系统详解
-│   └── FASTAPI-SYSTEM.md       # FastAPI 系统详解
-│
-└── PROJECT_STATE.md            # 项目状态（开发日志）
+```powershell
+cd backend
+docker compose -f docker-compose.phase1.yml down -v
 ```
 
----
+## Configuration
 
-## 环境变量
+Use `backend/.env.example` as the host-side template:
 
-### Flask 栈（根目录 `.env`）
+```powershell
+cd backend
+copy .env.example .env
+```
 
-| 变量 | 说明 | 必填 |
-|------|------|------|
-| `QWEN_API_KEY` | 通义千问 API 密钥 | 是 |
-| `SESSION_SECRET_KEY` | Flask session 加密密钥 | 是 |
-| `ADMIN_USERS` | 管理员用户名（逗号分隔） | 否 |
-| `CORS_ORIGINS` | 允许的 CORS 来源 | 否 |
+The template uses `localhost` defaults so host-run smoke commands work after the
+Docker stack is up. `docker-compose.phase1.yml` overrides API-container service
+URLs to Docker DNS names such as `postgres`, `redis`, `minio`, and `milvus`.
 
-### FastAPI 栈（`backend/.env`）
+Important Phase 1 variables:
 
-| 变量 | 说明 | 必填 |
-|------|------|------|
-| `DASHSCOPE_API_KEY` | DashScope API 密钥 | 是 |
-| `JWT_SECRET_KEY` | JWT 签名密钥 | 是 |
-| `DATABASE_URL` | PostgreSQL 连接串 | 是 |
-| `EMBEDDING_MODEL` | Embedding 模型名 | 否 |
+| Variable | Purpose |
+| --- | --- |
+| `DATABASE_URL` | Host-side PostgreSQL URL for smoke/dev commands |
+| `REDIS_URL` | Host-side Redis URL |
+| `MINIO_ENDPOINT` | Host-side MinIO API endpoint |
+| `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY`, `MINIO_BUCKET` | Object storage credentials and bucket |
+| `MILVUS_HOST`, `MILVUS_PORT`, `MILVUS_DB_NAME` | Milvus connection target |
+| `MILVUS_COLLECTION`, `MILVUS_VECTOR_DIM`, `MILVUS_METRIC_TYPE` | Formal vector-store defaults |
+| `DASHSCOPE_API_KEY`, `EMBEDDING_MODEL` | Future model integration settings |
+| `JWT_SECRET_KEY` | FastAPI JWT signing secret |
 
----
+## Health And Smoke
 
-## Docker 容器清单
+FastAPI liveness:
 
-| 容器名 | 端口 | 服务 | 所属栈 |
-|--------|------|------|--------|
-| `ai-assistant-api` | 5000 | Flask 后端 | Flask |
-| `ai-assistant-nginx` | 80, 443 | Nginx 代理 | Flask |
-| `ai-assistant-redis` | 6379 | Redis (DB 0) | Flask |
-| `nchu-counselor-api` | 8000 | FastAPI 后端 | FastAPI |
-| `nchu-counselor-postgres` | 5432 | PostgreSQL | FastAPI |
-| `nchu-counselor-qdrant` | 6333-6334 | Qdrant 向量库 | FastAPI |
-| `nchu-counselor-redis` | 6379 | Redis (DB 1) | FastAPI |
+```powershell
+Invoke-RestMethod http://localhost:8000/api/v1/health
+```
 
----
+FastAPI readiness:
 
-## 许可证
+```powershell
+Invoke-RestMethod http://localhost:8000/api/v1/readiness
+```
 
-MIT License
+Full smoke gate:
 
-Copyright (c) 2026 南昌航空大学学生工作部(处)
+```powershell
+cd backend
+..\.venv\Scripts\python.exe scripts\smoke_phase1.py
+```
+
+The smoke script performs real round trips:
+
+- PostgreSQL: create/use test table, insert, select, cleanup.
+- Redis: set, get, TTL check, delete.
+- MinIO: create/reuse bucket, put object, get object, delete object.
+- Milvus: create smoke collection, insert a 1024-dimensional vector, create
+  index, load, TopK search, cleanup.
+
+Failures name the service and failed operation, for example:
+
+```text
+FAIL milvus operation=search error="collection not loaded"
+```
+
+## Legacy Boundary
+
+The root `docker-compose.yml` and `src/backend/` belong to the old Flask
+prototype. They are not part of technical Phase 1 acceptance.
+
+Older Qdrant code is retained only as migration/reference material until the
+FastAPI + Milvus + MinIO smoke gate is stable. New Phase 1 validation uses
+Milvus, not Qdrant.
+
+## Troubleshooting
+
+Check container state:
+
+```powershell
+cd backend
+docker compose -f docker-compose.phase1.yml ps
+```
+
+View a failing service log:
+
+```powershell
+cd backend
+docker compose -f docker-compose.phase1.yml logs api
+docker compose -f docker-compose.phase1.yml logs milvus
+docker compose -f docker-compose.phase1.yml logs minio
+```
+
+Common causes:
+
+- Port conflict: change `POSTGRES_PORT`, `REDIS_PORT`, `MINIO_API_PORT`,
+  `MINIO_CONSOLE_PORT`, `MILVUS_PORT`, `MILVUS_HEALTH_PORT`, or `API_PORT`.
+- Registry access: the compose defaults avoid Docker Hub for MinIO and Milvus.
+  If another registry is unavailable, override `MILVUS_IMAGE`, `MINIO_IMAGE`,
+  or `MILVUS_MINIO_IMAGE` for the current shell and rerun the same command.
+- Orphan Qdrant warning: an existing `nchu-counselor-qdrant` container can be
+  ignored for Phase 1. Do not remove old Flask/Qdrant assets until the migration
+  boundary is explicitly closed.
+- API unhealthy: check `JWT_SECRET_KEY`, `DATABASE_URL`, and `api` logs.
+- MinIO failure: verify `MINIO_ACCESS_KEY` and `MINIO_SECRET_KEY`.
+- Milvus slow start: wait for `milvus-etcd`, `milvus-minio`, and `milvus` to
+  become healthy; first startup can take longer than other services.
