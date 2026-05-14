@@ -1,6 +1,9 @@
 # Environment secrets
 .env
+.env.*
 backend/.env
+backend/.env.*
+!backend/.env.example
 
 # Python
 __pycache__/
@@ -38,5 +41,4 @@ logs/
 
 # Docker
 postgres-data/
-qdrant-data/
 redis-data/

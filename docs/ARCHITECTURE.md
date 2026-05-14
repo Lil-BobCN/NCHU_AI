@@ -7,17 +7,17 @@ formal backend direction is:
 
 ```text
 FastAPI (`backend/`)
-  |-- PostgreSQL: structured application data
+  |-- PostgreSQL: structured application data foundation
   |-- Redis: cache, session, and task-state foundation
   |-- MinIO: original documents and object storage
   `-- Milvus: formal vector database
 ```
 
-The legacy Flask prototype under `src/backend/` remains inspectable but is not
-part of the current acceptance gate. Qdrant artifacts are migration references
-only and are not the formal vector-store path for Phase 1.
+Legacy Flask, Qdrant, and old static frontend code were removed after the
+FastAPI + Milvus + MinIO smoke gate became stable. They are no longer runtime
+surfaces for this repository.
 
-## Phase 1 Docker Topology
+## Docker Topology
 
 Recommended entrypoint:
 
@@ -30,13 +30,13 @@ Service layout:
 
 ```text
 Host
-  |-- :8000  -> api / FastAPI
-  |-- :5432  -> postgres / PostgreSQL + pgvector image
-  |-- :6379  -> redis / Redis
-  |-- :9000  -> minio / business object storage API
-  |-- :9001  -> minio / console
-  |-- :19530 -> milvus / vector database API
-  `-- :9091  -> milvus / health endpoint
+  |-- 127.0.0.1:8000  -> api / FastAPI
+  |-- 127.0.0.1:5432  -> postgres / PostgreSQL + pgvector image
+  |-- 127.0.0.1:6379  -> redis / Redis
+  |-- 127.0.0.1:9000  -> minio / object storage API
+  |-- 127.0.0.1:9001  -> minio / console
+  |-- 127.0.0.1:19530 -> milvus / vector database API
+  `-- 127.0.0.1:9091  -> milvus / health endpoint
 
 Internal Milvus dependencies
   |-- milvus-etcd
@@ -47,14 +47,22 @@ The business MinIO service is named `minio`. Milvus uses a separate internal
 `milvus-minio` service so original document storage is not confused with Milvus
 internal object storage.
 
-## API Health Boundary
+Published ports are localhost-bound by default. Private-network exposure is an
+explicit deployment choice through `*_BIND_HOST` variables and should be paired
+with non-default PostgreSQL and MinIO credentials.
+
+## API Boundary
 
 - `GET /api/v1/health` is liveness only. It proves the FastAPI process can
   respond.
 - `GET /api/v1/readiness` checks lightweight connectivity to PostgreSQL, Redis,
   MinIO, and Milvus.
+- Generated FastAPI documentation routes are disabled in this phase.
 - `python scripts/smoke_phase1.py` is the acceptance-grade smoke gate. It
   performs writes, reads, searches, and cleanup.
+
+No auth, chat, RAG question-answering, admin, dashboard, notification, or
+frontend endpoints are exposed in Phase 1.
 
 ## Data Boundaries
 
@@ -73,9 +81,6 @@ smoke gate verifies key/value and TTL behavior only.
 
 ## Legacy Boundary
 
-The root `docker-compose.yml` starts the old Flask-oriented stack. Keep it
-available for prototype comparison, but do not use it to decide Phase 1
-completion.
-
-Do not remove `src/backend/` or old Qdrant migration-reference files until the
-FastAPI + Milvus + MinIO smoke gate is stable.
+The old Flask/Qdrant/static prototype code is intentionally absent from the
+current runtime. Use git history or `.omx/` planning artifacts only when a
+historical reference is needed.

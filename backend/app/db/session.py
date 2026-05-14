@@ -1,8 +1,4 @@
-"""SQLAlchemy async database engine and session factory.
-
-Uses asyncpg driver for PostgreSQL. Provides engine lifecycle management
-for startup/shutdown.
-"""
+"""SQLAlchemy async database engine and session factory."""
 from __future__ import annotations
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
@@ -56,18 +52,17 @@ def get_session_factory(database_url: str, echo: bool = False) -> async_sessionm
 
 
 async def init_db(database_url: str, echo: bool = False) -> None:
-    """Initialize database engine and create tables.
+    """Initialize the database engine and verify PostgreSQL connectivity.
 
     Args:
         database_url: PostgreSQL connection string with asyncpg dialect.
         echo: Enable SQL echo logging.
     """
-    from app.db.base import Base
-    from app.models.user import User  # noqa: F401 -- ensure model is registered
+    from sqlalchemy import text
 
     engine = get_engine(database_url, echo)
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    async with engine.connect() as conn:
+        await conn.execute(text("SELECT 1"))
 
 
 async def close_db() -> None:
