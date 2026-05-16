@@ -1,6 +1,6 @@
 # Project State
 
-Last updated: 2026-05-13
+Last updated: 2026-05-15
 
 ## Current Runtime
 
@@ -28,9 +28,26 @@ Mounted endpoints:
 
 - `GET /api/v1/health`
 - `GET /api/v1/readiness`
+- `POST /api/v1/auth/login`
+- `POST /api/v1/auth/sso/callback`
+- `GET /api/v1/auth/me`
+- `POST /api/v1/student/questions`
+- `GET /api/v1/student/resources`
+- `GET /api/v1/student/conversations`
+- `POST /api/v1/student/conversations`
+- `GET /api/v1/student/conversations/{conversation_id}`
+- `POST /api/v1/student/conversations/{conversation_id}/messages`
+- `GET /api/v1/admin/knowledge`
+- `POST /api/v1/admin/knowledge`
+- `PUT /api/v1/admin/knowledge/{knowledge_id}`
+- `DELETE /api/v1/admin/knowledge/{knowledge_id}`
+- `GET /api/v1/admin/audit`
+- `GET /api/v1/admin/stats`
+- `POST /api/v1/counselor/assistance`
 
-The full student Q&A loop, auth, chat sessions, admin UI, notifications,
-dashboards, and frontend delivery are intentionally outside the current phase.
+The business surface is in-memory for now. The full persistence-backed student
+Q&A loop, admin UI, notifications, dashboards, and frontend delivery are still
+future work.
 
 ## Legacy Cleanup
 

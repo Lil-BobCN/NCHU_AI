@@ -58,18 +58,6 @@ async def test_readiness_returns_checks(
 
 
 @pytest.mark.asyncio
-async def test_phase1_does_not_expose_business_routes(async_client: AsyncClient) -> None:
-    """Phase 1 should not expose incomplete auth/chat/RAG business endpoints."""
-    for path in (
-        "/api/v1/auth/me",
-        "/api/v1/chat/sessions",
-        "/api/v1/rag/retrieval",
-    ):
-        response = await async_client.get(path)
-        assert response.status_code == 404
-
-
-@pytest.mark.asyncio
 async def test_phase1_does_not_expose_docs_routes(async_client: AsyncClient) -> None:
     """Phase 1 should expose only health/readiness HTTP routes."""
     for path in ("/docs", "/redoc", "/openapi.json"):

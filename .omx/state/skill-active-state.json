@@ -1,20 +1,11 @@
 {
   "version": 1,
-  "active": true,
-  "skill": "analyze",
-  "keyword": "$analyze",
-  "phase": "planning",
-  "activated_at": "2026-05-12T09:20:36.027Z",
-  "updated_at": "2026-05-12T14:09:58.323Z",
+  "active": false,
+  "skill": "ralph",
+  "keyword": "$ralph",
+  "phase": "completing",
+  "activated_at": "2026-05-15T11:26:28.703Z",
+  "updated_at": "2026-05-16T09:16:23.684Z",
   "source": "keyword-detector",
-  "input_lock": null,
-  "active_skills": [
-    {
-      "skill": "analyze",
-      "phase": "planning",
-      "active": true,
-      "activated_at": "2026-05-12T09:20:36.027Z",
-      "updated_at": "2026-05-12T09:20:36.035Z"
-    }
-  ]
+  "input_lock": null
 }

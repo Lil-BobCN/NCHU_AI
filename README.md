@@ -1,12 +1,13 @@
 # NCHU AI Counselor
 
-This repository is now scoped to the formal FastAPI technical Phase 1 backend.
+This repository is now scoped to the formal FastAPI backend plus a lightweight
+in-memory business Phase 1 surface.
 
-Technical Phase 1 acceptance covers the engineering foundation only:
-FastAPI, PostgreSQL, Redis, MinIO, Milvus, Docker local/private deployment,
-liveness, readiness, and an automated smoke gate. It does not include the full
-student Q&A loop, admin UI, permission/audit, dashboard, notifications,
-document generation, or multi-terminal rollout.
+The technical Phase 1 foundation still covers FastAPI, PostgreSQL, Redis,
+MinIO, Milvus, Docker local/private deployment, liveness, readiness, and the
+automated smoke gate. On top of that, the repo now exposes in-memory business
+routes for auth, student Q&A/resources/conversations, knowledge maintenance,
+audit, stats, and counselor assistance.
 
 Legacy Flask, old static frontend, and Qdrant prototype code were removed after
 the FastAPI + Milvus + MinIO smoke gate became stable. Historical rationale
@@ -124,17 +125,30 @@ FAIL milvus operation=search error="collection not loaded"
 
 ## API Boundary
 
-Phase 1 exposes only:
+Mounted Phase 1 routes include:
 
 - `GET /api/v1/health`
 - `GET /api/v1/readiness`
+- `POST /api/v1/auth/login`
+- `POST /api/v1/auth/sso/callback`
+- `GET /api/v1/auth/me`
+- `POST /api/v1/student/questions`
+- `GET /api/v1/student/resources`
+- `GET /api/v1/student/conversations`
+- `POST /api/v1/student/conversations`
+- `GET /api/v1/student/conversations/{conversation_id}`
+- `POST /api/v1/student/conversations/{conversation_id}/messages`
+- `GET /api/v1/admin/knowledge`
+- `POST /api/v1/admin/knowledge`
+- `PUT /api/v1/admin/knowledge/{knowledge_id}`
+- `DELETE /api/v1/admin/knowledge/{knowledge_id}`
+- `GET /api/v1/admin/audit`
+- `GET /api/v1/admin/stats`
+- `POST /api/v1/counselor/assistance`
 
 FastAPI's generated `/docs`, `/redoc`, and `/openapi.json` routes are disabled
-in this phase to keep the HTTP surface limited to the two infrastructure
-endpoints above.
-
-Auth, chat, RAG question answering, admin management, dashboards, notifications,
-and frontend pages are deliberately not exposed in this phase.
+in this phase. The business surface is intentionally in-memory so the endpoints
+can be validated before persistence-backed services land.
 
 ## Troubleshooting
 

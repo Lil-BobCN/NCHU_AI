@@ -8,6 +8,15 @@ import pytest
 from httpx import ASGITransport, AsyncClient
 
 from app.main import create_app
+from app.services.business import store
+
+
+@pytest.fixture(autouse=True)
+def reset_business_store() -> None:
+    """Reset the in-memory business store before each test."""
+    store.reset()
+    yield
+    store.reset()
 
 
 @pytest.fixture

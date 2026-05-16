@@ -3,8 +3,9 @@
 ## Purpose
 
 `backend/` is the formal backend for the AI counselor system. In technical
-Phase 1 it provides infrastructure readiness and smoke validation, not the full
-student-facing Q&A workflow.
+Phase 1 it provides infrastructure readiness and smoke validation; the current
+business Phase 1 layer adds a lightweight in-memory auth, student, admin, and
+counselor API surface for acceptance testing.
 
 ## Stack
 
@@ -23,6 +24,12 @@ student-facing Q&A workflow.
 | `backend/.env.example` | Host-side environment template |
 | `backend/app/config.py` | Pydantic settings for PostgreSQL, Redis, MinIO, Milvus |
 | `backend/app/api/v1/health.py` | Liveness and readiness endpoints |
+| `backend/app/api/v1/auth.py` | Local login and mock SSO auth routes |
+| `backend/app/api/v1/student.py` | Student Q&A, resources, and conversations |
+| `backend/app/api/v1/admin.py` | Knowledge maintenance, audit, and stats |
+| `backend/app/api/v1/counselor.py` | Counselor assistance route |
+| `backend/app/services/business.py` | In-memory business store and helper logic |
+| `backend/app/schemas/business.py` | Request and response models for business routes |
 | `backend/scripts/smoke_phase1.py` | Acceptance-grade infrastructure smoke script |
 
 ## Start, Verify, Stop
@@ -78,16 +85,31 @@ The smoke script is the acceptance gate and performs real mutations:
 
 ## API Boundary
 
-The mounted Phase 1 API surface is intentionally small:
+The mounted Phase 1 API surface is intentionally small but now includes the
+business acceptance layer:
 
 - `GET /api/v1/health`
 - `GET /api/v1/readiness`
+- `POST /api/v1/auth/login`
+- `POST /api/v1/auth/sso/callback`
+- `GET /api/v1/auth/me`
+- `POST /api/v1/student/questions`
+- `GET /api/v1/student/resources`
+- `GET /api/v1/student/conversations`
+- `POST /api/v1/student/conversations`
+- `GET /api/v1/student/conversations/{conversation_id}`
+- `POST /api/v1/student/conversations/{conversation_id}/messages`
+- `GET /api/v1/admin/knowledge`
+- `POST /api/v1/admin/knowledge`
+- `PUT /api/v1/admin/knowledge/{knowledge_id}`
+- `DELETE /api/v1/admin/knowledge/{knowledge_id}`
+- `GET /api/v1/admin/audit`
+- `GET /api/v1/admin/stats`
+- `POST /api/v1/counselor/assistance`
 
-Generated documentation routes (`/docs`, `/redoc`, `/openapi.json`) are disabled
-in this phase so the HTTP surface matches the infrastructure-only boundary.
-
-Auth, chat sessions, RAG question answering, admin features, dashboards,
-notifications, and frontend delivery are outside this phase and are not mounted.
+Generated documentation routes (`/docs`, `/redoc`, `/openapi.json`) are still
+disabled in this phase. The business layer is in-memory and exists to validate
+the acceptance contract before persistence-backed services are added.
 
 ## Configuration Notes
 
@@ -151,4 +173,6 @@ commands unchanged but override image variables in the shell, for example
 
 Legacy Flask, Qdrant, and old static frontend code were removed from the current
 runtime after the FastAPI + Milvus + MinIO smoke gate stabilized. They are not
-Phase 1 acceptance conditions.
+Phase 1 acceptance conditions. Persistence-backed auth/chat/RAG services are
+still future work; the current business routes are only the in-memory
+acceptance surface.

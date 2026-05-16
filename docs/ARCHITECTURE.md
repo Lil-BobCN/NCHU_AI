@@ -2,8 +2,9 @@
 
 ## Current Phase
 
-Technical Phase 1 establishes the local/private engineering foundation. The
-formal backend direction is:
+Technical Phase 1 establishes the local/private engineering foundation, and
+the current business Phase 1 layer adds an in-memory acceptance surface for the
+student and counselor workflows. The formal backend direction is:
 
 ```text
 FastAPI (`backend/`)
@@ -57,12 +58,15 @@ with non-default PostgreSQL and MinIO credentials.
   respond.
 - `GET /api/v1/readiness` checks lightweight connectivity to PostgreSQL, Redis,
   MinIO, and Milvus.
+- Business Phase 1 endpoints are mounted under `/api/v1/auth`,
+  `/api/v1/student`, `/api/v1/admin`, and `/api/v1/counselor`.
 - Generated FastAPI documentation routes are disabled in this phase.
 - `python scripts/smoke_phase1.py` is the acceptance-grade smoke gate. It
   performs writes, reads, searches, and cleanup.
 
-No auth, chat, RAG question-answering, admin, dashboard, notification, or
-frontend endpoints are exposed in Phase 1.
+The business layer is in-memory. It covers local login, mock SSO callback,
+student Q&A/resources/conversations, knowledge maintenance, audit, stats, and
+counselor assistance before persistence-backed services arrive.
 
 ## Data Boundaries
 
@@ -78,6 +82,11 @@ indexes and preserve auditability.
 
 Redis is reserved for cache, session, and task-state foundations. The current
 smoke gate verifies key/value and TTL behavior only.
+
+The business acceptance surface currently keeps users, knowledge entries,
+conversations, audit events, and stats counters in memory. That layer is
+intentionally disposable and is not the persistence contract for the eventual
+production system.
 
 ## Legacy Boundary
 
