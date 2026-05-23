@@ -1,21 +1,21 @@
 {
   "version": 1,
   "active": true,
-  "skill": "deep-interview",
+  "skill": "ralph",
   "keyword": "$deep-interview",
-  "phase": "deep-interview",
-  "activated_at": "2026-05-18T11:40:46.596Z",
-  "updated_at": "2026-05-18T17:54:03.083Z",
+  "phase": "executing",
+  "activated_at": "2026-05-23T14:14:45.330Z",
+  "updated_at": "2026-05-23T14:14:45.330Z",
   "source": "keyword-detector",
   "session_id": "019e2ad6-d60f-7131-a133-821b9bd51f85",
   "turn_id": "019e3ac8-49df-7c81-ba64-3790c712e20a",
   "active_skills": [
     {
-      "skill": "deep-interview",
-      "phase": "deep-interview",
+      "skill": "ralph",
+      "phase": "executing",
       "active": true,
-      "activated_at": "2026-05-18T11:40:46.596Z",
-      "updated_at": "2026-05-18T17:47:00.584Z"
+      "activated_at": "2026-05-23T14:14:45.330Z",
+      "updated_at": "2026-05-23T14:14:45.330Z"
     }
   ],
   "input_lock": {

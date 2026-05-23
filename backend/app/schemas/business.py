@@ -10,9 +10,10 @@ class UserPublic(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: str
-    email: str
-    name: str
+    display_name: str = Field(serialization_alias="displayName")
     role: str
+    demo_account: bool = Field(serialization_alias="demoAccount")
+    session_state: str = Field(serialization_alias="sessionState")
 
 
 class LoginRequest(BaseModel):
@@ -110,12 +111,15 @@ class AuditEventResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: str
-    actor_id: str
+    actor_id: str = Field(serialization_alias="actorId")
+    actor_role: str = Field(serialization_alias="actorRole")
     action: str
-    target_type: str
-    target_id: str
-    created_at: datetime
-    details: dict[str, str]
+    target_type: str = Field(serialization_alias="targetType")
+    target_id: str = Field(serialization_alias="targetId")
+    result: str
+    event_tags: list[str] = Field(default_factory=list, serialization_alias="eventTags")
+    counter_key: str | None = Field(default=None, serialization_alias="counterKey")
+    created_at: datetime = Field(serialization_alias="createdAt")
 
 
 class StatsResponse(BaseModel):
