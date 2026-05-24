@@ -1,0 +1,58 @@
+- generic [ref=e4]:
+  - banner [ref=e5]:
+    - button "NCHU AI AI Counselor Demo" [ref=e6] [cursor=pointer]:
+      - img [ref=e8]:
+        - img [ref=e9]
+      - generic [ref=e11]:
+        - generic [ref=e12]: NCHU AI
+        - generic [ref=e13]: AI Counselor Demo
+    - menu [ref=e14]:
+      - menuitem "首页" [ref=e15] [cursor=pointer]
+      - menuitem "产品能力" [ref=e16] [cursor=pointer]
+      - menuitem "使用流程" [ref=e17] [cursor=pointer]
+      - menuitem "可信边界" [ref=e18] [cursor=pointer]
+      - menuitem [disabled]:
+        - img:
+          - img
+    - generic [ref=e19]:
+      - generic [ref=e92]: 学生身份
+      - button "学生工作台" [ref=e93] [cursor=pointer]:
+        - generic [ref=e25]: 学生工作台
+      - button "logout 退出" [ref=e95] [cursor=pointer]:
+        - img "logout" [ref=e97]:
+          - img [ref=e98]
+        - generic [ref=e100]: 退出
+  - main [ref=e26]:
+    - main [ref=e101]:
+      - generic [ref=e102]:
+        - generic [ref=e103]:
+          - generic [ref=e104]:
+            - generic [ref=e106]: 学生工作台
+            - generic [ref=e108]: Demo
+          - heading "Demo Student" [level=2] [ref=e109]
+          - generic [ref=e110]: 学生问答、来源卡片、会话历史。当前只使用已批准的 Demo 契约，不包含真实学生数据或生产 SSO。
+        - button "返回登录" [ref=e111] [cursor=pointer]:
+          - generic [ref=e112]: 返回登录
+      - generic [ref=e113]:
+        - generic [ref=e116]:
+          - generic [ref=e118]: 会话状态
+          - generic [ref=e120]: authenticated
+        - generic [ref=e123]:
+          - generic [ref=e125]: Demo 账号
+          - generic [ref=e127]: "true"
+        - generic [ref=e130]:
+          - generic [ref=e132]: 当前角色
+          - generic [ref=e134]: 学生
+      - generic [ref=e135]:
+        - generic [ref=e136]:
+          - generic [ref=e139]: 交互结构
+          - list [ref=e141]:
+            - listitem [ref=e142]: 登录成功后进入角色专属工作台。
+            - listitem [ref=e143]: 学生、老师、运维管理人员各自只显示自己的主入口。
+            - listitem [ref=e144]: 未授权角色会被重定向回可访问路径。
+        - generic [ref=e145]:
+          - generic [ref=e148]: 下一阶段接口
+          - list [ref=e150]:
+            - listitem [ref=e151]: 学生问答。
+            - listitem [ref=e152]: 老师案例与建议。
+            - listitem [ref=e153]: 运维管理人员知识、审计和统计。

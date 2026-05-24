@@ -1,0 +1,44 @@
+- generic [ref=e4]:
+  - banner [ref=e5]:
+    - button "NCHU AI AI Counselor Demo" [ref=e6] [cursor=pointer]:
+      - img [ref=e8]:
+        - img [ref=e9]
+      - generic [ref=e11]:
+        - generic [ref=e12]: NCHU AI
+        - generic [ref=e13]: AI Counselor Demo
+    - menu [ref=e14]:
+      - menuitem "首页" [ref=e15] [cursor=pointer]
+      - menuitem "产品能力" [ref=e16] [cursor=pointer]
+      - menuitem "使用流程" [ref=e17] [cursor=pointer]
+      - menuitem "可信边界" [ref=e18] [cursor=pointer]
+      - menuitem [disabled]:
+        - img:
+          - img
+    - generic [ref=e19]:
+      - button "登录" [ref=e21] [cursor=pointer]:
+        - generic [ref=e22]: 登录
+      - button "开始体验" [ref=e24] [cursor=pointer]:
+        - generic [ref=e25]: 开始体验
+  - main [ref=e26]:
+    - main [ref=e27]:
+      - region [ref=e28]:
+        - generic [ref=e30]:
+          - img [ref=e31]
+          - generic [ref=e43]:
+            - generic [ref=e44]: Future motion asset slot
+            - generic [ref=e45]: NCHU emblem animation / product video
+            - generic [ref=e46]: 当前使用本地 GSAP + SVG 抽象航空 AI 动效占位，后续可替换为正式视频、Lottie 或校徽动效资产。
+        - generic [ref=e47]:
+          - heading [level=1] [ref=e48]
+          - button "arrow-right 进入登录" [ref=e52] [cursor=pointer]:
+            - img "arrow-right" [ref=e54]:
+              - img [ref=e55]
+            - generic [ref=e57]: 进入登录
+          - button "查看产品叙事" [ref=e58] [cursor=pointer]:
+            - generic [ref=e59]: 查看产品叙事
+          - generic "Demo status" [ref=e60]
+      - region "产品能力章节" [ref=e61]:
+        - generic [ref=e62]: Demo
+        - generic [ref=e63]: Demo
+        - generic [ref=e64]: Demo
+        - generic [ref=e65]: Boundary

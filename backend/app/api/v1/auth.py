@@ -10,6 +10,7 @@ from app.schemas.business import LoginRequest, SSOCallbackRequest, TokenResponse
 from app.services.business import TokenSession, User, store
 
 router = APIRouter(prefix="/auth", tags=["auth"])
+SSO_DEFERRED_DETAIL = "Production SSO is deferred for this Demo phase; use local Demo login."
 
 
 @router.post("/login", response_model=TokenResponse)
@@ -26,9 +27,8 @@ async def login(payload: LoginRequest) -> TokenResponse:
 
 @router.post("/sso/callback", response_model=TokenResponse)
 async def sso_callback(payload: SSOCallbackRequest) -> TokenResponse:
-    """Accept a simulated SSO callback and issue a local bearer token."""
-    session = store.authenticate_sso(payload.provider, payload.code, payload.email)
-    return _token_response(session)
+    """Expose the SSO adapter boundary without enabling SSO login."""
+    raise HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED, detail=SSO_DEFERRED_DETAIL)
 
 
 @router.get("/sso/callback", response_model=TokenResponse)
@@ -37,9 +37,8 @@ async def sso_callback_get(
     provider: str = "campus-sso",
     email: str | None = None,
 ) -> TokenResponse:
-    """Support browser-style SSO callbacks with query parameters."""
-    session = store.authenticate_sso(provider, code, email)
-    return _token_response(session)
+    """Expose the browser callback boundary without enabling SSO login."""
+    raise HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED, detail=SSO_DEFERRED_DETAIL)
 
 
 @router.get("/me", response_model=UserPublic)

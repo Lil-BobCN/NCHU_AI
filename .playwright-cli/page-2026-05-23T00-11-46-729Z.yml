@@ -1,0 +1,281 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e4]:
+    - generic [ref=e7]:
+      - link "icon" [ref=e8] [cursor=pointer]:
+        - /url: https://tongyi.aliyun.com
+        - img "通义logo" [ref=e9]
+      - button "模型" [ref=e10] [cursor=pointer]:
+        - generic [ref=e11]: 模型
+      - generic [ref=e12]:
+        - button "简体中文 " [ref=e13] [cursor=pointer]:
+          - text: 简体中文
+          - generic [ref=e14]: 
+        - link " 体验千问" [ref=e15] [cursor=pointer]:
+          - /url: https://www.qianwen.com/?source=tongyigw
+          - generic [ref=e16]:
+            - generic [ref=e17]: 
+            - text: 体验千问
+            - img [ref=e19]
+    - main [ref=e23]:
+      - generic [ref=e24]:
+        - generic [ref=e28]:
+          - generic [ref=e30]: 通
+          - generic [ref=e32]: 义
+          - generic [ref=e34]: 实
+          - generic [ref=e36]: 验
+          - generic [ref=e38]: 室
+        - generic [ref=e39]:
+          - paragraph [ref=e40]: 千问 · 万相
+          - paragraph [ref=e41]: 全球领先的AI大模型
+        - img "tongyi-scroll-gif" [ref=e43] [cursor=pointer]
+      - generic [ref=e45]:
+        - generic [ref=e46]:
+          - heading [level=3] [ref=e47]
+          - generic [ref=e49]:
+            - generic [ref=e50]:
+              - paragraph [ref=e51]: 千问大语言模型通过超万亿参数规模预训练具备自然语言理解、文本生成、视觉理解、音频理解、工具使用、角色扮演、AI Agent互动等多种能力。
+              - link "了解更多" [ref=e52] [cursor=pointer]:
+                - /url: ./landing?family=qwen
+                - generic [ref=e53]:
+                  - text: 了解更多
+                  - img [ref=e55]
+              - link " Qwen3-VL-Flash上架百炼" [ref=e59] [cursor=pointer]:
+                - /url: /news?id=pxwhvf/suodqg/lg29wnzv8vmi2h1o&eId=pxwhvf/suodqg/rtgo7st53v06y1gh
+                - generic [ref=e60]:
+                  - generic [ref=e61]: 
+                  - generic [ref=e63]: Qwen3-VL-Flash上架百炼
+                - img [ref=e66]
+            - generic [ref=e69]:
+              - generic [ref=e70]:
+                - generic [ref=e71]: Qwen3-Max
+                - paragraph [ref=e72]: 全能、至强
+              - generic [ref=e73]:
+                - generic [ref=e74]: Qwen-Plus
+                - paragraph [ref=e75]: 旗舰、均衡
+              - generic [ref=e76]:
+                - generic [ref=e77]: Qwen-Flash
+                - paragraph [ref=e78]: 轻量、极速
+              - generic [ref=e79]:
+                - generic [ref=e80]: Qwen3-Coder-Plus
+                - paragraph [ref=e81]: 代码、Agent
+              - generic [ref=e82]:
+                - generic [ref=e83]: Qwen3-VL-Plus
+                - paragraph [ref=e84]: 视觉、感知
+              - generic [ref=e85]:
+                - generic [ref=e86]: Qwen3-Omni-Flash
+                - paragraph [ref=e87]: 全模态、多感
+              - generic [ref=e88]:
+                - generic [ref=e89]: Qwen-Image
+                - paragraph [ref=e90]: 绘图、精准
+        - generic [ref=e91]:
+          - heading [level=3] [ref=e92]
+          - generic [ref=e94]:
+            - generic [ref=e95]:
+              - paragraph [ref=e96]: 万相视觉生成大模型通过原生多模态统一框架进行训练，具备图像、视频、声音等多模态生成能力。在画面质量、语义理解、运动幅度、物理规律遵循、艺术质感能力上均达到领先水平。
+              - link "了解更多" [ref=e97] [cursor=pointer]:
+                - /url: ./landing?family=wan
+                - generic [ref=e98]:
+                  - text: 了解更多
+                  - img [ref=e100]
+              - link " Wan2.6系列模型正式发布" [ref=e104] [cursor=pointer]:
+                - /url: /news?id=pxwhvf/suodqg/qkhh70wdrlgwogs2&eId=pxwhvf/suodqg/zb8ufi86steu3s9v
+                - generic [ref=e105]:
+                  - generic [ref=e106]: 
+                  - generic [ref=e108]: Wan2.6系列模型正式发布
+                - img [ref=e111]
+            - generic [ref=e114]:
+              - generic [ref=e115]:
+                - generic [ref=e116]: Wan2.6-R2V
+                - paragraph [ref=e117]: 视频角色参考生成
+              - generic [ref=e118]:
+                - generic [ref=e119]: Wan2.6-I2V
+                - paragraph [ref=e120]: 智能多镜头叙事
+              - generic [ref=e121]:
+                - generic [ref=e122]: Wan2.6-T2V
+                - paragraph [ref=e123]: 自然音画同步
+              - generic [ref=e124]:
+                - generic [ref=e125]: Wan2.6-T2I
+                - paragraph [ref=e126]: 强大的指令遵循能力
+              - generic [ref=e127]:
+                - generic [ref=e128]: Wan2.6-Image
+                - paragraph [ref=e129]: 图文混排输出
+              - generic [ref=e130]:
+                - generic [ref=e131]: Wan2.2-Animate
+                - paragraph [ref=e132]: 视频换人&图生动作
+      - generic [ref=e133]:
+        - generic [ref=e135]:
+          - img "divider-gif" [ref=e136]
+          - generic [ref=e137]: 数 万个客户选择了
+          - generic [ref=e138]:
+            - text: 千问大模型
+            - img [ref=e139]
+          - generic [ref=e142]: 适用于 千行百业
+        - generic [ref=e143]:
+          - generic [ref=e145]:
+            - heading [level=3]
+            - heading [level=3]
+            - generic [ref=e146]:
+              - generic [ref=e147]: Qwen-Omni
+              - generic [ref=e148]: Qwen3
+              - generic [ref=e149]: Qwen-TTS
+              - generic [ref=e150]: CosyVoice
+              - generic [ref=e151]: Fun-ASR
+            - generic [ref=e152]:
+              - generic [ref=e154]:
+                - heading "消费电子终端" [level=4] [ref=e158]
+                - paragraph [ref=e159]: 基于千问大模型与多模态交互套件,赋予玩具、穿戴设备、陪伴机器人、智能家居等终端设备全新多模态交互体验。
+              - generic [ref=e161]:
+                - heading "陪伴与社交" [level=4] [ref=e165]
+                - paragraph [ref=e166]: 面向社交拟人交互场景，集成千问大模型的实时交互、文字翻译、物体识别等能力，支持虚拟IP打造与实时情感化对话等个性化需求，构建沉浸式交互新体验。
+              - generic [ref=e168]:
+                - heading "智能座舱" [level=4] [ref=e172]
+                - paragraph [ref=e173]: 依托千问大模型集成出行助手、智能规划、智能推荐、长期记忆等能力，开创安全愉悦的智能出行新境界。
+          - generic [ref=e175]:
+            - heading [level=3]
+            - heading [level=3]
+            - generic [ref=e176]:
+              - generic [ref=e177]: Qwen-Doc
+              - generic [ref=e178]: Qwen-Long
+              - generic [ref=e179]: 数据挖掘
+            - generic [ref=e180]:
+              - generic [ref=e182]:
+                - heading "实体识别和电商信息提取" [level=4] [ref=e186]
+                - paragraph [ref=e187]: 得益于千问大模型的创新算法与能力，可快速准确提取非结构化文本中的关键信息，在招投标、人力资源、数据服务等领域打造智能信息处理新范式。
+              - generic [ref=e189]:
+                - heading "长文档归纳总结" [level=4] [ref=e193]
+                - paragraph [ref=e194]: 源于千问大模型领先的数据挖掘和文字分析能力，实现长文档快速解析与精准归纳总结，广泛应用于会议纪要、论文核心解读等场景。
+              - generic [ref=e196]:
+                - heading "文本分析打标" [level=4] [ref=e200]
+                - paragraph [ref=e201]: 通过对文本数据的深度分析和自动标注，显著提升文本数据处理效率，广泛支持文本分类、商品标签提取、评论分类及业务数据标注等场景。
+          - generic [ref=e203]:
+            - heading [level=3]
+            - heading [level=3]
+            - generic [ref=e204]:
+              - generic [ref=e205]: Tongyi-intent-detect
+              - generic [ref=e206]: Qwen-Vl-CIP
+              - generic [ref=e207]: Tongyi-fraud-detection
+            - generic [ref=e208]:
+              - generic [ref=e210]:
+                - heading "内容安全审核" [level=4] [ref=e214]
+                - paragraph [ref=e215]: 结合千问大模型，实时分析多模态数据，精准识别欺诈、涉黄及敏感内容，高效过滤风险，保障平台安全与用户体验。
+              - generic [ref=e217]:
+                - heading "设备风控" [level=4] [ref=e221]
+                - paragraph [ref=e222]: 打造设备风控领域模型，精准识别黑灰产最新攻击工具特征，高效判定风险设备，泛化能力与覆盖范围全面超越现有专家模型。
+              - generic [ref=e224]:
+                - heading "互联网反欺诈" [level=4] [ref=e228]
+                - paragraph [ref=e229]: 依托千问大模型构建反欺诈模型，实时解析社交内容特征，精准预警情感投资类风险，高效识别身份伪装、诱导行为及违规信息。
+      - generic [ref=e235]:
+        - generic [ref=e236]:
+          - generic [ref=e238]: 千问大模型
+          - generic [ref=e240]: 深受企业信赖
+        - paragraph [ref=e241]:
+          - generic [ref=e242]: 千问已服务全球超
+          - generic [ref=e243]: 过30万家企业级
+          - generic [ref=e244]: 客户涵盖互联网、
+          - generic [ref=e245]: 消费电子等行业
+      - generic [ref=e247]:
+        - img "divider-gif" [ref=e249]
+        - generic [ref=e251]:
+          - paragraph [ref=e252]: 联系我们
+          - generic [ref=e254]:
+            - generic [ref=e255]: 
+            - generic [ref=e256]:
+              - text: 扫描二维码
+              - text: 了解更多
+    - generic [ref=e257]:
+      - generic [ref=e259]:
+        - generic [ref=e261]: 千问大模型,
+        - generic [ref=e263]: 企业拥抱AI时代首选
+      - generic [ref=e264]:
+        - generic [ref=e265]:
+          - generic [ref=e266]:
+            - generic [ref=e267]: 研究
+            - generic [ref=e268]:
+              - link "Qwen3-Max" [ref=e269] [cursor=pointer]:
+                - /url: https://qwen.ai/blog?id=241398b9cd6353de490b0f82806c7848c5d2777d&from=research.latest-advancements-list
+                - generic [ref=e270]: Qwen3-Max
+                - img [ref=e272]
+              - link "Qwen3-VL" [ref=e275] [cursor=pointer]:
+                - /url: https://qwen.ai/blog?id=b550154aa5ba6b812cdebba2b9dc1156c4369d40&from=research.research-list
+                - generic [ref=e276]: Qwen3-VL
+                - img [ref=e278]
+              - link "Qwen3-Omni" [ref=e281] [cursor=pointer]:
+                - /url: https://qwen.ai/blog?id=fdfbaf2907a36b7659a470c77fb135e381302028&from=research.research-list
+                - generic [ref=e282]: Qwen3-Omni
+                - img [ref=e284]
+          - generic [ref=e287]:
+            - generic [ref=e288]: API 平台
+            - generic [ref=e289]:
+              - link "平台综述" [ref=e290] [cursor=pointer]:
+                - /url: https://bailian.console.aliyun.com
+                - generic [ref=e291]: 平台综述
+                - img [ref=e293]
+              - link "API 定价" [ref=e296] [cursor=pointer]:
+                - /url: https://bailian.console.aliyun.com/?tab=doc#/doc/?type=model&url=2987148
+                - generic [ref=e297]: API 定价
+                - img [ref=e299]
+              - link "智能体搭建" [ref=e302] [cursor=pointer]:
+                - /url: https://bailian.console.aliyun.com/?tab=app#/app-center
+                - generic [ref=e303]: 智能体搭建
+                - img [ref=e305]
+              - link "MCP 创建" [ref=e308] [cursor=pointer]:
+                - /url: https://bailian.console.aliyun.com/?tab=mcp#/mcp-market
+                - generic [ref=e309]: MCP 创建
+                - img [ref=e311]
+              - link "文档" [ref=e314] [cursor=pointer]:
+                - /url: https://bailian.console.aliyun.com/?tab=doc#/doc
+                - generic [ref=e315]: 文档
+                - img [ref=e317]
+          - generic [ref=e320]:
+            - generic [ref=e321]: 开源社区
+            - generic [ref=e322]:
+              - link "创作平台" [ref=e323] [cursor=pointer]:
+                - /url: https://www.modelscope.cn/aigc/home
+                - generic [ref=e324]: 创作平台
+                - img [ref=e326]
+              - link "MCP" [ref=e329] [cursor=pointer]:
+                - /url: https://www.modelscope.cn/mcp
+                - generic [ref=e330]: MCP
+                - img [ref=e332]
+              - link "模型" [ref=e335] [cursor=pointer]:
+                - /url: http://modelscope.cn/models
+                - generic [ref=e336]: 模型
+                - img [ref=e338]
+          - generic [ref=e341]:
+            - generic [ref=e342]: 个人应用
+            - link "千问" [ref=e344] [cursor=pointer]:
+              - /url: https://www.qianwen.com/?source=tongyigw
+              - generic [ref=e345]: 千问
+              - img [ref=e347]
+        - generic [ref=e350]:
+          - generic [ref=e351]:
+            - generic [ref=e352]:
+              - generic [ref=e354]: 
+              - generic [ref=e356]: 
+              - generic [ref=e358]: 
+              - generic [ref=e360]: 
+            - generic [ref=e361]: © 2026 由阿里云提供支持
+          - generic [ref=e365]:
+            - link "阿里巴巴集团" [ref=e366] [cursor=pointer]:
+              - /url: https://www.alibabagroup.com/
+            - link "阿里云计算" [ref=e367] [cursor=pointer]:
+              - /url: https://www.aliyun.com/
+            - link "淘宝网" [ref=e368] [cursor=pointer]:
+              - /url: https://www.taobao.com/
+            - link "天猫" [ref=e369] [cursor=pointer]:
+              - /url: https://www.tmall.com/
+            - link "阿里妈妈" [ref=e370] [cursor=pointer]:
+              - /url: http://alimama.com/
+            - link "全球速卖通" [ref=e371] [cursor=pointer]:
+              - /url: http://aliexpress.com/
+            - link "阿里巴巴国际站" [ref=e372] [cursor=pointer]:
+              - /url: https://www.alibaba.com/
+            - link "1688" [ref=e373] [cursor=pointer]:
+              - /url: http://1688.com/
+            - link "高德" [ref=e374] [cursor=pointer]:
+              - /url: https://www.amap.com/
+            - link "钉钉" [ref=e375] [cursor=pointer]:
+              - /url: http://dingtalk.com/
+            - link "支付宝" [ref=e376] [cursor=pointer]:
+              - /url: https://www.alipay.com/
+  - alert [ref=e377]

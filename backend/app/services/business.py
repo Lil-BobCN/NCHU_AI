@@ -15,9 +15,11 @@ def utc_now() -> datetime:
 class User:
     id: str
     email: str
-    name: str
+    display_name: str
     role: str
     password: str
+    demo_account: bool = True
+    session_state: str = "authenticated"
 
 
 @dataclass(slots=True)
@@ -74,11 +76,14 @@ class Conversation:
 class AuditEvent:
     id: str
     actor_id: str
+    actor_role: str
     action: str
     target_type: str
     target_id: str
+    result: str
+    event_tags: list[str]
+    counter_key: str | None
     created_at: datetime
-    details: dict[str, str]
 
 
 class BusinessStore:
@@ -89,21 +94,21 @@ class BusinessStore:
             "student-1": User(
                 id="student-1",
                 email="student@example.edu",
-                name="Student One",
+                display_name="Demo Student",
                 role="student",
                 password="password",
             ),
             "counselor-1": User(
                 id="counselor-1",
                 email="counselor@example.edu",
-                name="Counselor One",
+                display_name="Demo Counselor",
                 role="counselor",
                 password="password",
             ),
             "admin-1": User(
                 id="admin-1",
                 email="admin@example.edu",
-                name="Admin One",
+                display_name="Demo Admin",
                 role="admin",
                 password="password",
             ),
@@ -153,6 +158,15 @@ class BusinessStore:
             None,
         )
         if user is None or user.password != password:
+            self.record_audit(
+                "anonymous",
+                "auth.login.failure",
+                "auth",
+                "local-demo-login",
+                result="failure",
+                event_tags=["auth:local"],
+                counter_key="auth.login.failure.count",
+            )
             return None
         return self._issue_token(user.id, "local")
 
@@ -168,9 +182,10 @@ class BusinessStore:
             user = User(
                 id=user_id,
                 email=email or f"{external_subject}@{provider}.local",
-                name=email.split("@", 1)[0] if email else external_subject,
+                display_name=email.split("@", 1)[0] if email else external_subject,
                 role="student",
                 password="",
+                demo_account=True,
             )
             self.users[user_id] = user
         return self._issue_token(user.id, provider)
@@ -277,7 +292,14 @@ class BusinessStore:
             updated_at=now,
         )
         self.knowledge[item.id] = item
-        self.record_audit(actor_id, "knowledge.create", "knowledge", item.id, {"title": title})
+        self.record_audit(
+            actor_id,
+            "knowledge.create",
+            "knowledge",
+            item.id,
+            event_tags=["resource:knowledge"],
+            counter_key="knowledge.write.count",
+        )
         return item
 
     def update_knowledge(
@@ -297,12 +319,26 @@ class BusinessStore:
         item.status = status
         item.updated_by = actor_id
         item.updated_at = utc_now()
-        self.record_audit(actor_id, "knowledge.update", "knowledge", item.id, {"title": title})
+        self.record_audit(
+            actor_id,
+            "knowledge.update",
+            "knowledge",
+            item.id,
+            event_tags=["resource:knowledge"],
+            counter_key="knowledge.write.count",
+        )
         return item
 
     def delete_knowledge(self, actor_id: str, item_id: str) -> None:
         del self.knowledge[item_id]
-        self.record_audit(actor_id, "knowledge.delete", "knowledge", item_id, {})
+        self.record_audit(
+            actor_id,
+            "knowledge.delete",
+            "knowledge",
+            item_id,
+            event_tags=["resource:knowledge"],
+            counter_key="knowledge.write.count",
+        )
 
     def record_audit(
         self,
@@ -310,17 +346,25 @@ class BusinessStore:
         action: str,
         target_type: str,
         target_id: str,
-        details: dict[str, str],
+        result: str = "success",
+        event_tags: list[str] | None = None,
+        counter_key: str | None = None,
     ) -> None:
+        actor = self.users.get(actor_id)
+        actor_role = actor.role if actor else "anonymous"
+        tags = ["demo", f"role:{actor_role}", f"result:{result}", *(event_tags or [])]
         self.audit_events.append(
             AuditEvent(
                 id=f"audit-{uuid4().hex}",
                 actor_id=actor_id,
+                actor_role=actor_role,
                 action=action,
                 target_type=target_type,
                 target_id=target_id,
+                result=result,
+                event_tags=list(dict.fromkeys(tags)),
+                counter_key=counter_key or f"{action}.count",
                 created_at=utc_now(),
-                details=details,
             )
         )
 
@@ -344,7 +388,14 @@ class BusinessStore:
             provider=provider,
         )
         self.tokens[session.token] = session
-        self.record_audit(user_id, "auth.login", "user", user_id, {"provider": provider})
+        self.record_audit(
+            user_id,
+            "auth.login.success",
+            "user",
+            user_id,
+            event_tags=[f"auth:{provider}"],
+            counter_key="auth.login.success.count",
+        )
         return session
 
 

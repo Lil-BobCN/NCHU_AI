@@ -1,0 +1,43 @@
+- generic [ref=e2]:
+  - banner [ref=e3]:
+    - generic [ref=e4]:
+      - strong [ref=e5]: NCHU AI 高级文字动效 Lab
+      - generic [ref=e6]: B 方向增强版：更科技感、更像产品启动/AI 解码，但仍保持可读。
+    - generic [ref=e7]:
+      - generic [ref=e8]:
+        - checkbox "强制预览动效" [checked] [ref=e9]
+        - text: 强制预览动效
+      - button "重播 1 解码" [ref=e10] [cursor=pointer]
+      - button "重播 2 光扫" [ref=e11] [cursor=pointer]
+      - button "重播 3 HUD" [ref=e12] [cursor=pointer]
+      - button "全部重播" [ref=e13] [cursor=pointer]
+      - button "0.35x 慢速" [ref=e14] [cursor=pointer]
+      - button "1x 正常" [ref=e15] [cursor=pointer]
+      - generic [ref=e17]: 0.5 秒后自动播放
+  - paragraph [ref=e19]: 这版不是正式首页，只用于选择“B 方案再高级化”的动效语言。三种都以词组级进入为核心，分别叠加 AI 解码、玻璃光扫、HUD 系统启动的科技感。
+  - main "高级文字动效方案" [ref=e20]:
+    - region "方案 1 AI 解码式" [ref=e21]:
+      - generic [ref=e22]: 1 / AI Decode
+      - heading [level=1] [ref=e24]
+      - generic [ref=e33]:
+        - generic [ref=e34]: AI ROUTE 01
+        - generic [ref=e35]: READY
+    - region "方案 2 光扫遮罩式" [ref=e36]:
+      - generic [ref=e37]: 2 / Glass Scan
+      - heading [level=1] [ref=e40]
+      - generic [ref=e49]:
+        - generic [ref=e50]: LIGHT FIELD
+        - generic [ref=e51]: SYNCED
+    - region "方案 3 HUD 分层启动式" [ref=e52]:
+      - generic [ref=e53]: 3 / HUD Boot
+      - heading [level=1] [ref=e56]
+      - generic [ref=e62]:
+        - generic [ref=e63]: COUNSELOR OS
+        - generic [ref=e64]: BOOT OK
+  - complementary [ref=e65]:
+    - generic [ref=e66]:
+      - strong [ref=e67]: 推荐判断：
+      - text: 如果想“高级但不炫技”，优先选 2；如果想突出 AI，选 1；如果想强化航空/驾驶舱科技感，选 3。
+    - generic [ref=e68]:
+      - strong [ref=e69]: 正式实现边界：
+      - text: 仍建议只移植一个方向到 React 首页，避免三个动效叠加导致首屏乱、慢、不可控。

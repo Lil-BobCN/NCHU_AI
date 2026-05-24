@@ -29,14 +29,15 @@ async def test_local_login_issues_bearer_token(async_client: AsyncClient) -> Non
     assert payload["access_token"]
     assert payload["user"] == {
         "id": "student-1",
-        "email": "student@example.edu",
-        "name": "Student One",
+        "displayName": "Demo Student",
         "role": "student",
+        "demoAccount": True,
+        "sessionState": "authenticated",
     }
 
 
 @pytest.mark.asyncio
-async def test_mock_sso_callback_issues_token(async_client: AsyncClient) -> None:
+async def test_sso_callback_is_explicitly_deferred(async_client: AsyncClient) -> None:
     response = await async_client.post(
         "/api/v1/auth/sso/callback",
         json={
@@ -46,13 +47,8 @@ async def test_mock_sso_callback_issues_token(async_client: AsyncClient) -> None
         },
     )
 
-    assert response.status_code == 200
-    payload = response.json()
-    assert payload["provider"] == "campus-sso"
-    assert payload["token_type"] == "bearer"
-    assert payload["user"]["email"] == "fresh.student@example.edu"
-    assert payload["user"]["role"] == "student"
-    assert payload["access_token"]
+    assert response.status_code == 501
+    assert "SSO is deferred" in response.json()["detail"]
 
 
 @pytest.mark.asyncio
@@ -67,10 +63,33 @@ async def test_auth_me_returns_authenticated_profile(async_client: AsyncClient) 
     assert response.status_code == 200
     assert response.json() == {
         "id": "student-1",
-        "email": "student@example.edu",
-        "name": "Student One",
+        "displayName": "Demo Student",
         "role": "student",
+        "demoAccount": True,
+        "sessionState": "authenticated",
     }
+
+
+@pytest.mark.asyncio
+async def test_failed_login_records_structured_audit_event(async_client: AsyncClient) -> None:
+    failed = await async_client.post(
+        "/api/v1/auth/login",
+        json={"username": "unknown@example.edu", "password": "wrong-password"},
+    )
+    assert failed.status_code == 401
+
+    admin = await _login(async_client, "admin@example.edu")
+    audit = await async_client.get(
+        "/api/v1/admin/audit",
+        headers=_bearer(admin["access_token"]),
+    )
+
+    assert audit.status_code == 200
+    failure = next(event for event in audit.json() if event["action"] == "auth.login.failure")
+    assert failure["result"] == "failure"
+    assert failure["targetId"] == "local-demo-login"
+    assert failure["counterKey"] == "auth.login.failure.count"
+    assert "role:anonymous" in failure["eventTags"]
 
 
 @pytest.mark.asyncio
@@ -316,10 +335,13 @@ async def test_audit_trail_records_login_and_operational_events(
         headers=_bearer(admin["access_token"]),
     )
     assert audit.status_code == 200
-    actions = [event["action"] for event in audit.json()]
-    assert "counselor.assistance" in actions
+    events = audit.json()
+    actions = [event["action"] for event in events]
+    assert "counselor.assistance.generate" in actions
     assert "knowledge.create" in actions
-    assert "auth.login" in actions
+    assert "auth.login.success" in actions
+    assert all("eventTags" in event for event in events)
+    assert all("counterKey" in event for event in events)
 
 
 @pytest.mark.asyncio

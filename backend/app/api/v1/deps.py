@@ -32,6 +32,15 @@ def current_user(
 def require_admin(user: Annotated[User, Depends(current_user)]) -> User:
     """Require an administrator user."""
     if user.role != "admin":
+        store.record_audit(
+            user.id,
+            "auth.permission.denied",
+            "route",
+            "admin",
+            result="denied",
+            event_tags=["required:admin"],
+            counter_key="permission.denied.count",
+        )
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin role required")
     return user
 
@@ -39,6 +48,15 @@ def require_admin(user: Annotated[User, Depends(current_user)]) -> User:
 def require_counselor(user: Annotated[User, Depends(current_user)]) -> User:
     """Require a counselor or administrator user."""
     if user.role not in {"counselor", "admin"}:
+        store.record_audit(
+            user.id,
+            "auth.permission.denied",
+            "route",
+            "counselor",
+            result="denied",
+            event_tags=["required:counselor"],
+            counter_key="permission.denied.count",
+        )
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Counselor role required",

@@ -1,0 +1,9 @@
+﻿### Result
+42. [POST] https://www.google-analytics.com/g/collect?v=2&tid=G-5CDH4LN3Z8&gtm=45je65k1v9195287322za200zd9195287322&_p=1779482876793&gcd=13l3l3l3l1l1&npa=0&dma=0&are=1&cid=1312875013.1779482878&frm=0&pscdl=noapi&rcb=12&sr=1280x720&uaa=x86&uab=64&uafvl=Chromium%3B148.0.7778.178%7CGoogle%2520Chrome%3B148.0.7778.178%7CNot%252FA)Brand%3B99.0.0.0&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=0&ul=zh-cn&_s=1&tag_exp=0~115938465~115938469&sid=1779482878&sct=1&seg=0&dl=https%3A%2F%2Fx.ant.design%2Findex-cn&dt=Ant%20Design%20X%20-%20AI%E7%95%8C%E9%9D%A2%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88&en=page_view&_fv=1&_nsi=1&_ss=1&_ee=1&tfd=2989 => [204] 
+43. [POST] https://www.google-analytics.com/g/collect?v=2&tid=G-5CDH4LN3Z8&gtm=45je65k1v9195287322za200zd9195287322&_p=1779482876793&gcd=13l3l3l3l1l1&npa=0&dma=0&are=1&cid=1312875013.1779482878&frm=0&pscdl=noapi&rcb=12&sr=1280x720&uaa=x86&uab=64&uafvl=Chromium%3B148.0.7778.178%7CGoogle%2520Chrome%3B148.0.7778.178%7CNot%252FA)Brand%3B99.0.0.0&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=0&ul=zh-cn&_s=1&tag_exp=0~115938465~115938469&sid=1779482878&sct=1&seg=0&dl=https%3A%2F%2Fx.ant.design%2Findex-cn&dt=Ant%20Design%20X%20-%20AI%E7%95%8C%E9%9D%A2%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88&en=page_view&_fv=1&_nsi=1&_ss=1&_ee=1&tfd=2989 => [204] 
+44. [POST] https://x.ant.design/cdn-cgi/rum? => [204] 
+52. [GET] https://mdn.alipayobjects.com/huamei_lkxviz/afts/file/n25_R7prS_0AAAAAQPAAAAgADtFMAQFr => [200] 
+53. [GET] https://mdn.alipayobjects.com/huamei_lkxviz/afts/file/nLaTTqe5cMAAAAAAQiAAAAgADtFMAQFr => [200] 
+54. [GET] https://mdn.alipayobjects.com/huamei_iwk9zp/afts/file/A*3QcuQpaOguQAAAAAAAAAAAAADgCCAQ => [200] 
+
+Note: 85 static requests not shown, run with --static option to see them.

@@ -33,10 +33,11 @@ async def counselor_assistance(
         )
     store.record_audit(
         user.id,
-        "counselor.assistance",
+        "counselor.assistance.generate",
         "student",
         payload.student_id or "unknown",
-        {"risk_level": risk_level},
+        event_tags=[f"risk:{risk_level}", "advisory:true"],
+        counter_key="counselor.assistance.generate.count",
     )
     return CounselorAssistResponse(
         suggested_response=suggested,

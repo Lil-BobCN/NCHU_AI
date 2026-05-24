@@ -1,0 +1,30 @@
+- generic [ref=e2]:
+  - banner [ref=e3]:
+    - generic [ref=e4]:
+      - strong [ref=e5]: NCHU AI 文本进入动效 Demo
+      - generic [ref=e6]: 用于选择首页左侧文字的 Linear-like 动效方向，不是正式页面实现。
+    - generic [ref=e7]:
+      - generic [ref=e8]:
+        - checkbox "强制预览动效" [checked] [ref=e9]
+        - text: 强制预览动效
+      - button "重播 A" [ref=e10] [cursor=pointer]
+      - button "重播 B" [ref=e11] [cursor=pointer]
+      - button "全部重播" [ref=e12] [cursor=pointer]
+      - button "0.35x 慢速" [ref=e13] [cursor=pointer]
+      - button "1x 正常" [ref=e14] [cursor=pointer]
+      - generic [ref=e16]: 0.5 秒后自动播放
+  - paragraph [ref=e19]: A 更接近“Linear 首屏整行层级 reveal”：每个层级从遮罩内向上出现，伴随轻微 blur 解除。 B 更强调标题内部词组逐个展开，存在更强的“被写出来”的感觉，但会更活跃。
+  - main "文本动效方案对比" [ref=e20]:
+    - region "方案 A 整行遮罩上浮" [ref=e21]:
+      - generic [ref=e22]: A / 整行遮罩上浮
+      - heading [level=1] [ref=e25]
+    - region "方案 B 词组逐个遮罩展开" [ref=e30]:
+      - generic [ref=e31]: B / 词组逐个遮罩展开
+      - heading "NCHU AI 让校园咨询服务拥有 清晰、可信、可演示的 AI 工作台。" [level=1] [ref=e34]
+  - complementary [ref=e42]:
+    - generic [ref=e43]:
+      - strong [ref=e44]: A 适合：
+      - text: 更克制、更 Linear、更高级，正式首页首屏推荐作为默认基准。
+    - generic [ref=e45]:
+      - strong [ref=e46]: B 适合：
+      - text: 希望标题更有“AI 生成/系统启动”的显性动效，但需要控制节奏，避免炫技。

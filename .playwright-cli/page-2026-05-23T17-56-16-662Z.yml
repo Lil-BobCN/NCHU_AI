@@ -1,0 +1,84 @@
+- generic [ref=e2]:
+  - banner [ref=e3]:
+    - generic [ref=e4]:
+      - strong [ref=e5]: NCHU AI 高级文字动效 Lab
+      - generic [ref=e6]: B 方向增强版：更科技感、更像产品启动/AI 解码，但仍保持可读。
+    - generic [ref=e7]:
+      - button "重播 1 解码" [ref=e8] [cursor=pointer]
+      - button "重播 2 光扫" [ref=e9] [cursor=pointer]
+      - button "重播 3 HUD" [ref=e10] [cursor=pointer]
+      - button "全部重播" [ref=e11] [cursor=pointer]
+  - paragraph [ref=e12]: 这版不是正式首页，只用于选择“B 方案再高级化”的动效语言。三种都以词组级进入为核心，分别叠加 AI 解码、玻璃光扫、HUD 系统启动的科技感。
+  - main "高级文字动效方案" [ref=e13]:
+    - region "方案 1 AI 解码式" [ref=e14]:
+      - generic [ref=e15]: 1 / AI Decode
+      - generic [ref=e16]:
+        - generic [ref=e17]: H0HH0NICCAAAC0I0U0C-NH-HIIHHIC
+        - heading [level=1] [ref=e18]
+      - generic [ref=e27]:
+        - generic [ref=e28]: AI ROUTE 01
+        - generic [ref=e29]: READY
+    - region "方案 2 光扫遮罩式" [ref=e30]:
+      - generic [ref=e31]: 2 / Glass Scan
+      - generic [ref=e32]:
+        - generic [ref=e34]: AI-powered campus consultation
+        - heading "NCHU AI 让校园咨询服务拥有 清晰、 可信、 可演示的 AI 工作台。" [level=1] [ref=e35]:
+          - generic [ref=e37]: NCHU AI
+          - generic [ref=e39]: 让校园咨询服务拥有
+          - generic [ref=e41]: 清晰、
+          - generic [ref=e43]: 可信、
+          - generic [ref=e45]: 可演示的
+          - generic [ref=e47]: AI 工作台。
+        - paragraph [ref=e48]: 左侧文字像被玻璃光束扫过后逐词显影，适合“苹果式玻璃 + 航空科技”的方向。
+        - generic [ref=e49]:
+          - link "进入登录" [ref=e50] [cursor=pointer]:
+            - /url: "#"
+          - link "查看产品叙事" [ref=e51] [cursor=pointer]:
+            - /url: "#"
+        - generic [ref=e52]:
+          - generic [ref=e53]:
+            - strong [ref=e54]: "3"
+            - text: 角色工作台
+          - generic [ref=e55]:
+            - strong [ref=e56]: Demo
+            - text: 模拟数据边界
+          - generic [ref=e57]:
+            - strong [ref=e58]: FastAPI
+            - text: 后端业务边界
+      - generic [ref=e61]:
+        - generic [ref=e62]: LIGHT FIELD
+        - generic [ref=e63]: SYNCED
+    - region "方案 3 HUD 分层启动式" [ref=e64]:
+      - generic [ref=e65]: 3 / HUD Boot
+      - generic [ref=e66]:
+        - generic [ref=e68]: AI-powered campus consultation
+        - heading "NCHU AI 让校园咨询服务拥有 清晰、可信、可演示的 AI 工作台。" [level=1] [ref=e69]:
+          - generic [ref=e71]: NCHU AI
+          - generic [ref=e73]: 让校园咨询服务拥有
+          - generic [ref=e75]: 清晰、可信、可演示的 AI 工作台。
+        - paragraph [ref=e76]: 内容层不是单纯淡入，而是像驾驶舱 HUD 一样依次上电：标签、标题、说明、行动按钮和状态卡逐层锁定。
+        - generic [ref=e77]:
+          - link "进入登录" [ref=e78] [cursor=pointer]:
+            - /url: "#"
+          - link "查看产品叙事" [ref=e79] [cursor=pointer]:
+            - /url: "#"
+        - generic [ref=e80]:
+          - generic [ref=e81]:
+            - strong [ref=e82]: "3"
+            - text: 角色工作台
+          - generic [ref=e83]:
+            - strong [ref=e84]: Demo
+            - text: 模拟数据边界
+          - generic [ref=e85]:
+            - strong [ref=e86]: FastAPI
+            - text: 后端业务边界
+      - generic [ref=e89]:
+        - generic [ref=e90]: COUNSELOR OS
+        - generic [ref=e91]: BOOT OK
+  - complementary [ref=e92]:
+    - generic [ref=e93]:
+      - strong [ref=e94]: 推荐判断：
+      - text: 如果想“高级但不炫技”，优先选 2；如果想突出 AI，选 1；如果想强化航空/驾驶舱科技感，选 3。
+    - generic [ref=e95]:
+      - strong [ref=e96]: 正式实现边界：
+      - text: 仍建议只移植一个方向到 React 首页，避免三个动效叠加导致首屏乱、慢、不可控。

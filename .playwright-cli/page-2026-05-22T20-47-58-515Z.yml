@@ -1,0 +1,307 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - heading "logo Ant Design X" [level=1] [ref=e5]:
+      - link "logo Ant Design X" [ref=e6] [cursor=pointer]:
+        - /url: /index-cn
+        - img "logo" [ref=e7]
+        - generic [ref=e8]: Ant Design X
+    - navigation [ref=e9]:
+      - button "Search" [ref=e11] [cursor=pointer]:
+        - img "search" [ref=e12]:
+          - img [ref=e13]
+      - link "设计" [ref=e15] [cursor=pointer]:
+        - /url: /docs/spec/introduce-cn
+      - link "研发" [ref=e16] [cursor=pointer]:
+        - /url: /docs/react/introduce-cn
+      - link "组件" [ref=e17] [cursor=pointer]:
+        - /url: /components/introduce-cn/
+      - link "X Markdown" [ref=e18] [cursor=pointer]:
+        - /url: /x-markdowns/introduce-cn
+      - link "X SDK" [ref=e19] [cursor=pointer]:
+        - /url: /x-sdks/introduce-cn
+      - link "X Card" [ref=e20] [cursor=pointer]:
+        - /url: /x-cards/introduce-cn
+      - link "X Skill" [ref=e21] [cursor=pointer]:
+        - /url: /x-skills/introduce-cn
+      - link "演示" [ref=e22] [cursor=pointer]:
+        - /url: /docs/playground/ultramodern-cn
+      - link "国内镜像" [ref=e23] [cursor=pointer]:
+        - /url: https://ant-design-x.antgroup.com/index-cn
+    - generic [ref=e24]:
+      - button "2.7.0 down" [ref=e25] [cursor=pointer]:
+        - generic [ref=e26]:
+          - generic "2.7.0" [ref=e27]:
+            - text: 2.7.0
+            - combobox [ref=e28]
+          - img "down" [ref=e30]:
+            - img [ref=e31]
+      - button "中 En" [ref=e33] [cursor=pointer]:
+        - generic [ref=e35]:
+          - generic [ref=e36]: 中
+          - generic [ref=e37]: En
+      - button "RTL Switch Button" [ref=e38] [cursor=pointer]:
+        - img [ref=e40]:
+          - img "Direction Icon" [ref=e41]
+      - button [ref=e43] [cursor=pointer]:
+        - img [ref=e45]:
+          - img [ref=e46]
+      - link "github" [ref=e50] [cursor=pointer]:
+        - /url: https://github.com/ant-design/x
+        - button "github" [ref=e51]:
+          - img "github" [ref=e53]:
+            - img [ref=e54]
+  - main [ref=e57]:
+    - generic [ref=e61]:
+      - heading "Ant Des I gn X" [level=1] [ref=e62]:
+        - text: Ant Des
+        - generic [ref=e63]: I
+        - text: gn X
+      - heading "AI 体验新秩序" [level=1] [ref=e65]
+      - heading "Ant Design 团队匠心呈现 RICH 设计范式，打造卓越 AI 界面解决方案，引领智能新体验。" [level=5] [ref=e66]
+      - generic [ref=e67]:
+        - link "开始使用" [ref=e68] [cursor=pointer]:
+          - /url: /components/introduce-cn
+          - button "开始使用" [ref=e69]
+        - link "设计语言" [ref=e70] [cursor=pointer]:
+          - /url: /docs/spec/introduce-cn
+          - button "设计语言" [ref=e71]
+    - generic [ref=e73] [cursor=pointer]:
+      - heading "AI 设计范式 - RICH" [level=2] [ref=e74]
+      - paragraph [ref=e75]: 我们致力于构建 AI 设计理论，并在蚂蚁内部海量 AI 产品中实践、迭代。在此过程中，RICH 设计范式应运而生：角色（Role）、意图（Intention）、会话（Conversation）和混合界面（Hybrid UI）
+    - generic [ref=e77]:
+      - heading "AI 界面解决方案" [level=2] [ref=e78]
+      - paragraph [ref=e79]: 基于RICH，延续熟悉的 Ant Design 设计语言，全新 AGI 混合界面（Hybrid-UI）解决方案，完美融合 GUI 和自然会话交互。从唤醒到表达，从过程到反馈，合适的组件恰当的呈现在所有的人机互动过程中。
+      - generic [ref=e81]:
+        - generic [ref=e82]:
+          - generic [ref=e84]:
+            - img "icon" [ref=e85]
+            - img "icon" [ref=e86]
+          - generic [ref=e88]:
+            - generic [ref=e89]:
+              - generic [ref=e90]: "1."
+              - text: 唤醒
+            - generic [ref=e91]:
+              - text: 轻松唤醒
+              - generic [ref=e92]: ", 即刻吸引"
+            - generic [ref=e93]: 可以让首次接触的用户快速理解AI能做什么, 告知用户AI可实现的意图范围, 降低用户成本
+            - button "从唤醒开始" [ref=e94] [cursor=pointer]:
+              - generic [ref=e95]: 从唤醒开始
+        - generic [ref=e96]:
+          - generic [ref=e98]:
+            - img "icon" [ref=e99]
+            - img "icon" [ref=e100]
+          - generic [ref=e102]:
+            - generic [ref=e103]:
+              - generic [ref=e104]: "2."
+              - text: 表达
+            - generic [ref=e105]:
+              - text: 简单表达
+              - generic [ref=e106]: ", 随时反馈"
+            - generic [ref=e107]: 让用户知道如何快捷且正确的表达意图, 减少AI的不理解风险, 看清自己发送的内容
+            - button "从表达开始" [ref=e108] [cursor=pointer]:
+              - generic [ref=e109]: 从表达开始
+        - generic [ref=e110]:
+          - generic [ref=e112]:
+            - img "icon"
+            - img "icon"
+          - generic [ref=e114]:
+            - generic [ref=e115]:
+              - generic [ref=e116]: "3."
+              - text: 确认
+            - generic [ref=e117]:
+              - text: 过程确认
+              - generic [ref=e118]: ", 尽在掌握"
+            - generic [ref=e119]: 让用户知道该任务的AI执行运转情况, 缓解用户等待焦虑, 有掌控感
+            - button "从确认开始" [ref=e120] [cursor=pointer]:
+              - generic [ref=e121]: 从确认开始
+        - generic [ref=e122]:
+          - generic [ref=e124]:
+            - img "icon"
+            - img "icon"
+          - generic [ref=e126]:
+            - generic [ref=e127]:
+              - generic [ref=e128]: "4."
+              - text: 反馈
+            - generic [ref=e129]:
+              - text: 结果反馈
+              - generic [ref=e130]: ", 谁能不信"
+            - generic [ref=e131]: 让用户清晰看到并信任AI任务完成的情况, 并快速应用AI生成结果
+            - button "从反馈开始" [ref=e132] [cursor=pointer]:
+              - generic [ref=e133]: 从反馈开始
+    - generic [ref=e134]:
+      - generic [ref=e135]:
+        - heading "试一试 , 多种 AI 场景体验" [level=2] [ref=e136]
+        - paragraph [ref=e137]: 提供多场景解决方案 , 帮助用户提高与 AI 协作效率
+        - img "bg" [ref=e138]
+        - generic [ref=e139]:
+          - generic [ref=e140]:
+            - button "Web 独立式 自然语言为主 , 几乎没有界面操作" [ref=e141] [cursor=pointer]:
+              - heading "Web 独立式" [level=3] [ref=e142]
+              - paragraph [ref=e143]: 自然语言为主 , 几乎没有界面操作
+            - button "Web 助手式 自然语言和界面操作均衡配合使用" [ref=e144] [cursor=pointer]:
+              - heading "Web 助手式" [level=3] [ref=e145]
+              - paragraph [ref=e146]: 自然语言和界面操作均衡配合使用
+            - button "Web 嵌入式 界面操作为主 , 偶尔唤起AI指令" [ref=e147] [cursor=pointer]:
+              - heading "Web 嵌入式" [level=3] [ref=e148]
+              - paragraph [ref=e149]: 界面操作为主 , 偶尔唤起AI指令
+            - button "App 端 疯狂研发中 , 敬请期待" [disabled] [ref=e150]:
+              - heading "App 端" [level=3]
+              - paragraph: 疯狂研发中 , 敬请期待
+          - generic [ref=e152]:
+            - generic [ref=e159]:
+              - generic [ref=e160]:
+                - img "Ant Design X" [ref=e162]
+                - generic [ref=e163]:
+                  - heading "你好, 我是全新 AI 产品创造助手" [level=4] [ref=e164]
+                  - generic [ref=e165]: 基于 Ant Design 的 AGI 产品智能解决方案, 创造更美好的智能视界
+              - generic [ref=e166]:
+                - heading "我可以帮您:" [level=5] [ref=e167]
+                - generic [ref=e168]:
+                  - generic [ref=e170]:
+                    - heading "热门话题" [level=6] [ref=e171]
+                    - generic [ref=e173]:
+                      - generic [ref=e174]:
+                        - generic [ref=e176]: "1"
+                        - paragraph [ref=e178]: Ant Design X 全新升级了什么?
+                      - generic [ref=e179]:
+                        - generic [ref=e181]: "2"
+                        - paragraph [ref=e183]: Ant Design X 推出全新 RICH 设计规范
+                      - generic [ref=e184]:
+                        - generic [ref=e186]: "3"
+                        - paragraph [ref=e188]: Ant Design X 组件资产有哪些?
+                      - generic [ref=e189]:
+                        - generic [ref=e191]: "4"
+                        - paragraph [ref=e193]: 快来了解全新AI时代的设计范式!
+                  - generic [ref=e195]:
+                    - heading "Rich 设计指南" [level=6] [ref=e196]
+                    - generic [ref=e198]:
+                      - generic [ref=e199]:
+                        - generic [ref=e201]: "1"
+                        - paragraph [ref=e203]: AI 理解用户诉求并解决
+                      - generic [ref=e204]:
+                        - generic [ref=e206]: "2"
+                        - paragraph [ref=e208]: AI 对外的人设及形象
+                      - generic [ref=e209]:
+                        - generic [ref=e211]: "3"
+                        - paragraph [ref=e213]: AI 如何表达用户能听懂
+                      - generic [ref=e214]:
+                        - generic [ref=e216]: "4"
+                        - paragraph [ref=e218]: AI 兼顾“chat” & “do” 行为
+            - generic [ref=e220] [cursor=pointer]:
+              - textbox "Ant Design X 全新升级了什么?" [ref=e221]:
+                - /placeholder: "Ant Design X 全新升级了什么? "
+              - button "send" [ref=e223]:
+                - generic:
+                  - img "send"
+      - generic [ref=e224]:
+        - heading "组件丰富 , 选用自如" [level=2] [ref=e225]
+        - paragraph [ref=e226]: Ant Design X 全新 AI 组件 , 大量实用组件满足你的需求 , 灵活定制与拓展
+        - generic [ref=e227]:
+          - generic [ref=e228] [cursor=pointer]:
+            - generic [ref=e231]:
+              - img "icon" [ref=e233]
+              - generic [ref=e234]:
+                - heading "你好, 我是 Ant Design X" [level=4] [ref=e235]
+                - generic [ref=e236]: 基于 Ant Design 的 AGI 产品智能解决方案, 创造更美好的智能视界
+            - generic [ref=e238]:
+              - heading "欢迎组件 唤醒" [level=3] [ref=e239]:
+                - text: 欢迎组件
+                - generic [ref=e240]: 唤醒
+              - paragraph [ref=e241]: 开箱即用、易于配置、极致体验的通用图表库
+          - generic [ref=e242] [cursor=pointer]:
+            - generic [ref=e248]:
+              - heading "🎉 你好, 我是全新 AI 产品创造助手" [level=6] [ref=e249]
+              - paragraph [ref=e250]: 基于 Ant Design 的 AGI 产品智能解决方案, 创造更美好的智能视界
+              - generic [ref=e252]:
+                - paragraph [ref=e255]: Ant Design X 全新升级了什么?
+                - paragraph [ref=e258]: 快来了解全新AI时代的设计范式!
+            - generic [ref=e260]:
+              - heading "用户推荐 唤醒" [level=3] [ref=e261]:
+                - text: 用户推荐
+                - generic [ref=e262]: 唤醒
+              - paragraph [ref=e263]: 让首次接触AI产品的用户快速理解AI能做什么
+          - generic [ref=e264] [cursor=pointer]:
+            - generic [ref=e266]:
+              - img "thumbnails"
+            - generic [ref=e268]:
+              - heading "快捷命令 表达" [level=3] [ref=e269]:
+                - text: 快捷命令
+                - generic [ref=e270]: 表达
+              - paragraph [ref=e271]: 开箱即用、易于配置、极致体验的通用图表库
+          - generic [ref=e272] [cursor=pointer]:
+            - generic [ref=e274]:
+              - img "thumbnails"
+            - generic [ref=e276]:
+              - heading "进度加载 确认" [level=3] [ref=e277]:
+                - text: 进度加载
+                - generic [ref=e278]: 确认
+              - paragraph [ref=e279]: 开箱即用、易于配置、极致体验的通用图表库
+          - generic [ref=e280] [cursor=pointer]:
+            - generic [ref=e284]:
+              - generic [ref=e285]: Ant Design X 全新升级了什么?
+              - generic [ref=e287]:
+                - img "edit" [ref=e288]:
+                  - img [ref=e289]
+                - img "delete" [ref=e291]:
+                  - img [ref=e292]
+                - img "enter" [ref=e294]:
+                  - img [ref=e295]
+            - generic [ref=e298]:
+              - heading "结果操作 反馈" [level=3] [ref=e299]:
+                - text: 结果操作
+                - generic [ref=e300]: 反馈
+              - paragraph [ref=e301]: 开箱即用、易于配置、极致体验的通用图表库
+          - generic [ref=e302] [cursor=pointer]:
+            - generic [ref=e304]:
+              - img "thumbnails"
+            - generic [ref=e306]:
+              - heading "管理对话 通用" [level=3] [ref=e307]:
+                - text: 管理对话
+                - generic [ref=e308]: 通用
+              - paragraph [ref=e309]: 开箱即用、易于配置、极致体验的通用图表库
+    - generic [ref=e311]:
+      - heading "AI 设计语言与研发框架" [level=2] [ref=e312]
+      - paragraph [ref=e313]: 配套生态 , 让你快速搭建网站应用
+      - generic [ref=e314]:
+        - link "thumbnails RICH 设计指南 意图、角色、会话、混合 UI" [ref=e315] [cursor=pointer]:
+          - /url: /docs/spec/introduce-cn
+          - generic [ref=e317]:
+            - img "thumbnails"
+          - generic [ref=e319]:
+            - heading "RICH 设计指南" [level=3] [ref=e320]
+            - paragraph [ref=e321]: 意图、角色、会话、混合 UI
+        - link "thumbnails 组件设计指引 全局样式、设计模式" [ref=e322] [cursor=pointer]:
+          - /url: /docs/spec/hybrid-ui-design-cn
+          - generic [ref=e324]:
+            - img "thumbnails"
+          - generic [ref=e326]:
+            - heading "组件设计指引" [level=3] [ref=e327]
+            - paragraph [ref=e328]: 全局样式、设计模式
+        - link "thumbnails 组件库 Ant Design of React / Angular / Vue" [ref=e329] [cursor=pointer]:
+          - /url: /components/overview-cn
+          - generic [ref=e331]:
+            - img "thumbnails"
+          - generic [ref=e333]:
+            - heading "组件库" [level=3] [ref=e334]
+            - paragraph [ref=e335]: Ant Design of React / Angular / Vue
+        - link "https://mdn.alipayobjects.com/huamei_iwk9zp/afts/img/A*dUzuRJes4pUAAAAAAAAAAAAADgCCAQ/original Ant Design 企业级 UI 设计语言和 React 组件库" [ref=e336] [cursor=pointer]:
+          - /url: https://ant.design/
+          - generic [ref=e337]:
+            - img "https://mdn.alipayobjects.com/huamei_iwk9zp/afts/img/A*dUzuRJes4pUAAAAAAAAAAAAADgCCAQ/original" [ref=e338]
+            - generic [ref=e339]:
+              - heading "Ant Design" [level=3] [ref=e340]
+              - paragraph [ref=e341]: 企业级 UI 设计语言和 React 组件库
+        - link "https://mdn.alipayobjects.com/huamei_iwk9zp/afts/img/A*rzh3RoWC9zAAAAAAAAAAAAAADgCCAQ/original Ant Design Mobile Ant Design移动端 UI 组件库" [ref=e342] [cursor=pointer]:
+          - /url: https://mobile.ant.design/
+          - generic [ref=e343]:
+            - img "https://mdn.alipayobjects.com/huamei_iwk9zp/afts/img/A*rzh3RoWC9zAAAAAAAAAAAAAADgCCAQ/original" [ref=e344]
+            - generic [ref=e345]:
+              - heading "Ant Design Mobile" [level=3] [ref=e346]
+              - paragraph [ref=e347]: Ant Design移动端 UI 组件库
+        - link "https://mdn.alipayobjects.com/huamei_iwk9zp/afts/img/A*9MFyQ77L6E4AAAAAAAAAAAAADgCCAQ/fmt.webp AntV 全新一代数据可视化解决方案" [ref=e348] [cursor=pointer]:
+          - /url: https://antv.vision/
+          - generic [ref=e349]:
+            - img "https://mdn.alipayobjects.com/huamei_iwk9zp/afts/img/A*9MFyQ77L6E4AAAAAAAAAAAAADgCCAQ/fmt.webp" [ref=e350]
+            - generic [ref=e351]:
+              - heading "AntV" [level=3] [ref=e352]
+              - paragraph [ref=e353]: 全新一代数据可视化解决方案
