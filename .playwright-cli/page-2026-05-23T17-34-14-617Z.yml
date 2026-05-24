@@ -1,0 +1,53 @@
+- generic [ref=e2]:
+  - banner [ref=e3]:
+    - generic [ref=e4]:
+      - strong [ref=e5]: NCHU AI 文本进入动效 Demo
+      - generic [ref=e6]: 用于选择首页左侧文字的 Linear-like 动效方向，不是正式页面实现。
+    - generic [ref=e7]:
+      - generic [ref=e8]:
+        - checkbox "强制预览动效" [checked] [ref=e9]
+        - text: 强制预览动效
+      - button "重播 A" [ref=e10] [cursor=pointer]
+      - button "重播 B" [ref=e11] [cursor=pointer]
+      - button "全部重播" [ref=e12] [cursor=pointer]
+  - paragraph [ref=e14]: A 更接近“Linear 首屏整行层级 reveal”：每个层级从遮罩内向上出现，伴随轻微 blur 解除。 B 更强调标题内部词组逐个展开，存在更强的“被写出来”的感觉，但会更活跃。
+  - main "文本动效方案对比" [ref=e15]:
+    - region "方案 A 整行遮罩上浮" [ref=e16]:
+      - generic [ref=e17]: A / 整行遮罩上浮
+      - generic [ref=e18]:
+        - generic [ref=e20]: AI-powered campus consultation
+        - heading [level=1] [ref=e21]
+    - region "方案 B 词组逐个遮罩展开" [ref=e26]:
+      - generic [ref=e27]: B / 词组逐个遮罩展开
+      - generic [ref=e28]:
+        - generic [ref=e30]: AI-powered campus consultation
+        - heading "NCHU AI 让校园咨询服务拥有 清晰、可信、可演示的 AI 工作台。" [level=1] [ref=e31]:
+          - generic [ref=e33]: NCHU AI
+          - generic [ref=e35]: 让校园咨询服务拥有
+          - generic [ref=e37]: 清晰、
+          - generic [ref=e39]: 可信、
+          - generic [ref=e41]: 可演示的
+          - generic [ref=e43]: AI 工作台。
+        - paragraph [ref=e44]: 独立主站承载产品定位与能力叙事，登录后根据账号自动识别学生、老师、运维管理人员身份。 当前版本坚持 Demo 边界，并为后续真实知识库和 RAG 编排保留接口。
+        - generic [ref=e45]:
+          - link "进入登录" [ref=e46] [cursor=pointer]:
+            - /url: "#"
+          - link "查看产品叙事" [ref=e47] [cursor=pointer]:
+            - /url: "#"
+        - generic [ref=e48]:
+          - generic [ref=e49]:
+            - strong [ref=e50]: "3"
+            - text: 角色工作台
+          - generic [ref=e51]:
+            - strong [ref=e52]: Demo
+            - text: 模拟数据边界
+          - generic [ref=e53]:
+            - strong [ref=e54]: FastAPI
+            - text: 后端业务边界
+  - complementary [ref=e55]:
+    - generic [ref=e56]:
+      - strong [ref=e57]: A 适合：
+      - text: 更克制、更 Linear、更高级，正式首页首屏推荐作为默认基准。
+    - generic [ref=e58]:
+      - strong [ref=e59]: B 适合：
+      - text: 希望标题更有“AI 生成/系统启动”的显性动效，但需要控制节奏，避免炫技。

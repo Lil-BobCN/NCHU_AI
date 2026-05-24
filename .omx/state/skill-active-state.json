@@ -1,39 +1,25 @@
 {
   "version": 1,
-  "active": true,
+  "active": false,
   "skill": "ralph",
-  "keyword": "$deep-interview",
-  "phase": "executing",
-  "activated_at": "2026-05-23T14:14:45.330Z",
-  "updated_at": "2026-05-23T14:14:45.330Z",
+  "keyword": "$autoresearch",
+  "phase": "verifying",
+  "activated_at": "2026-05-24T02:19:45.908Z",
+  "updated_at": "2026-05-24T02:28:26.313Z",
   "source": "keyword-detector",
   "session_id": "019e2ad6-d60f-7131-a133-821b9bd51f85",
-  "turn_id": "019e3ac8-49df-7c81-ba64-3790c712e20a",
-  "active_skills": [
-    {
-      "skill": "ralph",
-      "phase": "executing",
-      "active": true,
-      "activated_at": "2026-05-23T14:14:45.330Z",
-      "updated_at": "2026-05-23T14:14:45.330Z"
-    }
+  "turn_id": "019e5779-c9e9-7710-9b55-2bb1557fe318",
+  "transition_message": "mode transiting: deep-interview -> autoresearch",
+  "transition_messages": [
+    "mode transiting: deep-interview -> autoresearch"
   ],
-  "input_lock": {
-    "active": true,
-    "scope": "deep-interview-auto-approval",
-    "acquired_at": "2026-05-17T06:55:04.596Z",
-    "blocked_inputs": [
-      "yes",
-      "y",
-      "proceed",
-      "continue",
-      "ok",
-      "sure",
-      "go ahead",
-      "next i should"
-    ],
-    "message": "Deep interview is active; auto-approval shortcuts are blocked until the interview finishes."
-  },
-  "initialized_mode": "deep-interview",
-  "initialized_state_path": ".omx/state/sessions/019e2ad6-d60f-7131-a133-821b9bd51f85/deep-interview-state.json"
+  "initialized_mode": "autoresearch",
+  "initialized_state_path": ".omx/state/sessions/019e2ad6-d60f-7131-a133-821b9bd51f85/autoresearch-state.json",
+  "current_phase": "completed",
+  "completed_at": "2026-05-24T09:22:00+08:00",
+  "run_outcome": "finish",
+  "lifecycle_outcome": "finished",
+  "task_description": "Closed autoresearch skill-active session after validator artifact passed",
+  "completion_artifact_path": ".omx/specs/autoresearch-homepage-dark-hud-components/result.json",
+  "active_skills": []
 }

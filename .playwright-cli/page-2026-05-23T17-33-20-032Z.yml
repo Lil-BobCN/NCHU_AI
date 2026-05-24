@@ -1,0 +1,51 @@
+- generic [ref=e2]:
+  - banner [ref=e3]:
+    - generic [ref=e4]:
+      - strong [ref=e5]: NCHU AI 文本进入动效 Demo
+      - generic [ref=e6]: 用于选择首页左侧文字的 Linear-like 动效方向，不是正式页面实现。
+    - generic [ref=e7]:
+      - generic [ref=e8]:
+        - checkbox "强制预览动效" [checked] [ref=e9]
+        - text: 强制预览动效
+      - button "重播 A" [ref=e10] [cursor=pointer]
+      - button "重播 B" [ref=e11] [cursor=pointer]
+      - button "全部重播" [ref=e12] [cursor=pointer]
+  - paragraph [ref=e14]: A 更接近“Linear 首屏整行层级 reveal”：每个层级从遮罩内向上出现，伴随轻微 blur 解除。 B 更强调标题内部词组逐个展开，存在更强的“被写出来”的感觉，但会更活跃。
+  - main "文本动效方案对比" [ref=e15]:
+    - region "方案 A 整行遮罩上浮" [ref=e16]:
+      - generic [ref=e17]: A / 整行遮罩上浮
+      - heading [level=1] [ref=e20]
+    - region "方案 B 词组逐个遮罩展开" [ref=e25]:
+      - generic [ref=e26]: B / 词组逐个遮罩展开
+      - generic [ref=e27]:
+        - generic [ref=e29]: AI-powered campus consultation
+        - heading "NCHU AI 让校园咨询服务拥有 清晰、可信、可演示的 AI 工作台。" [level=1] [ref=e30]:
+          - generic [ref=e32]: NCHU AI
+          - generic [ref=e34]: 让校园咨询服务拥有
+          - generic [ref=e36]: 清晰、
+          - generic [ref=e38]: 可信、
+          - generic [ref=e40]: 可演示的
+          - generic [ref=e42]: AI 工作台。
+        - paragraph [ref=e43]: 独立主站承载产品定位与能力叙事，登录后根据账号自动识别学生、老师、运维管理人员身份。 当前版本坚持 Demo 边界，并为后续真实知识库和 RAG 编排保留接口。
+        - generic [ref=e44]:
+          - link "进入登录" [ref=e45] [cursor=pointer]:
+            - /url: "#"
+          - link "查看产品叙事" [ref=e46] [cursor=pointer]:
+            - /url: "#"
+        - generic [ref=e47]:
+          - generic [ref=e48]:
+            - strong [ref=e49]: "3"
+            - text: 角色工作台
+          - generic [ref=e50]:
+            - strong [ref=e51]: Demo
+            - text: 模拟数据边界
+          - generic [ref=e52]:
+            - strong [ref=e53]: FastAPI
+            - text: 后端业务边界
+  - complementary [ref=e54]:
+    - generic [ref=e55]:
+      - strong [ref=e56]: A 适合：
+      - text: 更克制、更 Linear、更高级，正式首页首屏推荐作为默认基准。
+    - generic [ref=e57]:
+      - strong [ref=e58]: B 适合：
+      - text: 希望标题更有“AI 生成/系统启动”的显性动效，但需要控制节奏，避免炫技。

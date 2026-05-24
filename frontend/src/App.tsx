@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import gsap from 'gsap'
 import { useGSAP } from '@gsap/react'
@@ -13,7 +13,6 @@ import {
   SafetyCertificateOutlined,
   RobotOutlined,
   TeamOutlined,
-  ThunderboltOutlined,
   UserOutlined,
 } from '@ant-design/icons'
 import {
@@ -411,20 +410,15 @@ function LandingPage() {
             reduceMotion: boolean
             desktop: boolean
           }
+          const homeTopbar = document.querySelector<HTMLElement>('.home-shell .topbar')
+          const introTargets = [
+            homeTopbar,
+            ...gsap.utils.toArray<HTMLElement>(
+              '.hero-kicker, .hero-title-line, .hero-text, .hero-actions, .trust-item, .scroll-cue, .cinema-stage',
+            ),
+          ].filter(Boolean) as HTMLElement[]
 
-          gsap.set(
-            [
-              '.home-shell .topbar',
-              '.hero-kicker',
-              '.hero-title-line',
-              '.hero-text',
-              '.hero-actions',
-              '.trust-item',
-              '.scroll-cue',
-              '.cinema-stage',
-            ],
-            { autoAlpha: 1 },
-          )
+          gsap.set(introTargets, { autoAlpha: 1 })
 
           if (reduceMotion) {
             gsap.set('.chapter-card', { autoAlpha: 1, y: 0, scale: 1 })
@@ -435,7 +429,10 @@ function LandingPage() {
           const intro = gsap.timeline({ defaults: { ease: 'power3.out' } })
           intro
             .from('.cinema-stage', { autoAlpha: 0, scale: 1.08, duration: 1.35 })
-            .from('.home-shell .topbar', { y: -28, autoAlpha: 0, duration: 0.8 }, '<0.2')
+          if (homeTopbar) {
+            intro.from(homeTopbar, { y: -28, autoAlpha: 0, duration: 0.8 }, '<0.2')
+          }
+          intro
             .from('.hero-kicker', { y: 24, autoAlpha: 0, filter: 'blur(12px)', duration: 0.8 }, '<0.16')
             .from(
               '.hero-title-line',

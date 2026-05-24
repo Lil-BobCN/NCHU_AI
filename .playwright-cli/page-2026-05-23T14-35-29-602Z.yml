@@ -1,0 +1,78 @@
+- generic [ref=e4]:
+  - banner [ref=e5]:
+    - button "NCHU AI AI Counselor Demo" [ref=e6] [cursor=pointer]:
+      - img [ref=e8]:
+        - img [ref=e9]
+      - generic [ref=e11]:
+        - generic [ref=e12]: NCHU AI
+        - generic [ref=e13]: AI Counselor Demo
+    - menu [ref=e14]:
+      - menuitem "首页" [ref=e15] [cursor=pointer]
+      - menuitem "产品能力" [ref=e16] [cursor=pointer]
+      - menuitem "使用流程" [ref=e17] [cursor=pointer]
+      - menuitem "可信边界" [ref=e18] [cursor=pointer]
+      - menuitem [disabled]:
+        - img:
+          - img
+    - generic [ref=e19]:
+      - button "登录" [ref=e21] [cursor=pointer]:
+        - generic [ref=e22]: 登录
+      - button "开始体验" [ref=e24] [cursor=pointer]:
+        - generic [ref=e25]: 开始体验
+  - main [ref=e26]:
+    - main [ref=e88]:
+      - generic [ref=e90]:
+        - generic [ref=e91]:
+          - generic [ref=e92]:
+            - generic [ref=e94]: 学生
+            - generic [ref=e96]: 老师
+            - generic [ref=e98]: 运维管理人员
+          - heading "登录后自动识别身份，并进入对应工作台" [level=2] [ref=e99]
+          - generic [ref=e100]: 登录页承担读取 Demo 账号、身份判断和跳转。学生、老师、运维管理人员使用不同账号登录，系统根据后端返回的角色进入对应工作区。
+        - generic [ref=e102]:
+          - radiogroup "segmented control" [ref=e103]:
+            - generic [ref=e104]:
+              - generic [ref=e105] [cursor=pointer]:
+                - radio "学生" [checked]
+                - generic "学生" [ref=e106]
+              - generic [ref=e107] [cursor=pointer]:
+                - radio "老师"
+                - generic "老师" [ref=e108]
+              - generic [ref=e109] [cursor=pointer]:
+                - radio "运维管理人员"
+                - generic "运维管理人员" [ref=e110]
+          - separator [ref=e111]
+          - generic [ref=e112]:
+            - generic [ref=e113]:
+              - img "user" [ref=e115]:
+                - img [ref=e116]
+              - generic [ref=e118]:
+                - generic [ref=e119]: 学生 Demo
+                - generic [ref=e120]: 进入学生工作区，查看问答与来源卡片
+            - generic [ref=e121]:
+              - generic [ref=e122]:
+                - text: 账号
+                - generic [ref=e123]: student@example.edu
+              - generic [ref=e124]:
+                - text: 密码
+                - generic [ref=e125]: password
+            - button "lock 以 学生 Demo 登录" [ref=e126] [cursor=pointer]:
+              - img "lock" [ref=e128]:
+                - img [ref=e129]
+              - generic [ref=e131]: 以 学生 Demo 登录
+            - generic [ref=e132]: 该入口仅用于 Demo。登录成功后进入对应角色工作台。
+      - generic [ref=e133]:
+        - generic [ref=e135] [cursor=pointer]:
+          - generic [ref=e136]:
+            - generic [ref=e137]: 学生
+            - generic [ref=e138]: selected
+          - generic [ref=e139]: 学生 Demo
+          - generic [ref=e140]: 进入学生工作区，查看问答与来源卡片
+        - generic [ref=e142] [cursor=pointer]:
+          - generic [ref=e144]: 老师
+          - generic [ref=e145]: 老师 Demo
+          - generic [ref=e146]: 进入老师工作区，查看案例和建议
+        - generic [ref=e148] [cursor=pointer]:
+          - generic [ref=e150]: 运维管理人员
+          - generic [ref=e151]: 运维管理人员 Demo
+          - generic [ref=e152]: 进入运维管理区，查看知识、审计和统计
