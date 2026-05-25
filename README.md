@@ -1,5 +1,17 @@
 # NCHU AI Counselor
 
+## Project Workflow Contract
+
+All human-AI collaboration in this repository must follow
+[`docs/development-process.md`](docs/development-process.md). Before any future
+work starts, Codex or any other AI agent should read that document together with
+[`AGENTS.md`](AGENTS.md), this README, `PROJECT_STATE.md`, and the relevant
+`.omx` artifacts. The workflow document is the default baseline for context
+engineering, clarification, SDAR approval, small task execution, verification
+evidence, and acceptance logging.
+
+Changes to this workflow require a new SDAR or explicit process revision record.
+
 This repository is now scoped to the formal FastAPI backend plus a lightweight
 in-memory business Phase 1 surface.
 

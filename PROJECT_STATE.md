@@ -1,6 +1,19 @@
 # Project State
 
-Last updated: 2026-05-15
+Last updated: 2026-05-26
+
+## Workflow Baseline
+
+The mandatory project workflow baseline is now tracked in
+`docs/development-process.md`.
+
+Before any future implementation, review, planning, research, or verification
+work, Codex and other AI agents must read that workflow document and use it as
+the human-AI collaboration process for this repository. The operational entry
+point for agents is `AGENTS.md`, which points back to the workflow baseline and
+the required project context files.
+
+Workflow changes require a new SDAR or explicit process revision record.
 
 ## Current Runtime
 

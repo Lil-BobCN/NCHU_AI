@@ -39,6 +39,13 @@ graphify-out/
 .vscode/
 logs/
 
+# Project workflow artifacts
+!AGENTS.md
+!.omx/logs/
+.omx/logs/*
+!.omx/logs/.gitkeep
+!.omx/logs/*.md
+
 # Docker
 postgres-data/
 redis-data/
