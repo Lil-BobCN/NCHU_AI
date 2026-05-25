@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import AliasChoices, BaseModel, ConfigDict, Field
 
 
 class UserPublic(BaseModel):
@@ -72,6 +72,14 @@ class ConversationCreate(BaseModel):
 
 class ConversationMessageCreate(BaseModel):
     content: str = Field(min_length=1)
+
+
+class StudentChatRequest(BaseModel):
+    message: str = Field(min_length=1)
+    conversation_id: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices("conversation_id", "conversationId"),
+    )
 
 
 class ConversationResponse(BaseModel):

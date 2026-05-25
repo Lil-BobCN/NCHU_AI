@@ -4,7 +4,9 @@ from __future__ import annotations
 import pytest
 from httpx import AsyncClient
 
+from app.api.v1.deps import chat_model_provider
 from app.services.business import store
+from app.services.chat_model import ChatModelMessage
 
 
 async def _login(async_client: AsyncClient, username: str, password: str = "password") -> dict:
@@ -192,6 +194,111 @@ async def test_conversation_history_preserves_message_order(
     )
     assert listing.status_code == 200
     assert [item["id"] for item in listing.json()] == [conversation["id"]]
+
+
+class _FakeChatProvider:
+    def __init__(self, chunks: list[str], configured: bool = True) -> None:
+        self.chunks = chunks
+        self._configured = configured
+        self.calls: list[list[ChatModelMessage]] = []
+
+    @property
+    def configured(self) -> bool:
+        return self._configured
+
+    async def stream_reply(self, messages: list[ChatModelMessage]):
+        self.calls.append(messages)
+        for chunk in self.chunks:
+            yield chunk
+
+
+@pytest.mark.asyncio
+async def test_student_chat_stream_fails_clearly_without_model_config(
+    app,
+    async_client: AsyncClient,
+) -> None:
+    app.dependency_overrides[chat_model_provider] = lambda: _FakeChatProvider([], configured=False)
+    login = await _login(async_client, "student@example.edu")
+
+    response = await async_client.post(
+        "/api/v1/student/chat/stream",
+        headers=_bearer(login["access_token"]),
+        json={"message": "我最近学习压力很大。"},
+    )
+
+    assert response.status_code == 503
+    assert "Qwen model configuration is missing" in response.json()["detail"]
+    app.dependency_overrides.clear()
+
+
+@pytest.mark.asyncio
+async def test_student_chat_stream_writes_runtime_history(
+    app,
+    async_client: AsyncClient,
+) -> None:
+    provider = _FakeChatProvider(["可以先整理", "本周最紧急的任务。"])
+    app.dependency_overrides[chat_model_provider] = lambda: provider
+    login = await _login(async_client, "student@example.edu")
+
+    response = await async_client.post(
+        "/api/v1/student/chat/stream",
+        headers=_bearer(login["access_token"]),
+        json={"message": "我最近学习压力很大。"},
+    )
+
+    assert response.status_code == 200
+    assert "event: conversation" in response.text
+    assert "event: delta" in response.text
+    assert "event: done" in response.text
+
+    conversation = next(iter(store.conversations.values()))
+    assert [message.role for message in conversation.messages] == ["student", "assistant"]
+    assert conversation.messages[0].content == "我最近学习压力很大。"
+    assert conversation.messages[1].content == "可以先整理本周最紧急的任务。"
+    assert provider.calls[0][-1] == ChatModelMessage(
+        role="user",
+        content="我最近学习压力很大。",
+    )
+    app.dependency_overrides.clear()
+
+
+@pytest.mark.asyncio
+async def test_student_chat_stream_reuses_existing_conversation_context(
+    app,
+    async_client: AsyncClient,
+) -> None:
+    provider = _FakeChatProvider(["先把延期风险告诉任课老师。"])
+    app.dependency_overrides[chat_model_provider] = lambda: provider
+    login = await _login(async_client, "student@example.edu")
+
+    first = await async_client.post(
+        "/api/v1/student/chat/stream",
+        headers=_bearer(login["access_token"]),
+        json={"message": "我错过了一次作业截止时间。"},
+    )
+    assert first.status_code == 200
+    conversation_id = next(iter(store.conversations))
+
+    second = await async_client.post(
+        "/api/v1/student/chat/stream",
+        headers=_bearer(login["access_token"]),
+        json={"conversationId": conversation_id, "message": "我应该怎么补救？"},
+    )
+
+    assert second.status_code == 200
+    conversation = store.conversations[conversation_id]
+    assert [message.role for message in conversation.messages] == [
+        "student",
+        "assistant",
+        "student",
+        "assistant",
+    ]
+    assert provider.calls[-1] == [
+        ChatModelMessage(role="user", content="我错过了一次作业截止时间。"),
+        ChatModelMessage(role="assistant", content="先把延期风险告诉任课老师。"),
+        ChatModelMessage(role="user", content="我应该怎么补救？"),
+    ]
+    app.dependency_overrides.clear()
 
 
 @pytest.mark.asyncio

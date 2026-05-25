@@ -2,14 +2,16 @@
   "version": 1,
   "active": false,
   "skill": "ralph",
-  "keyword": "$ralph",
+  "keyword": "$autoresearch",
   "phase": "executing",
-  "activated_at": "2026-05-24T02:15:51.922Z",
-  "updated_at": "2026-05-24T06:08:05.064Z",
+  "activated_at": "2026-05-25T04:34:59.023Z",
+  "updated_at": "2026-05-25T04:57:22.433Z",
   "source": "keyword-detector",
-  "session_id": "019e2ad6-d60f-7131-a133-821b9bd51f85",
-  "turn_id": "019e5863-66ca-7921-b5ef-359143a85efc",
+  "thread_id": "019e5ce5-9beb-7160-a85b-ab0f891fa9eb",
+  "turn_id": "019e5ce8-553d-7851-a0aa-9d6af075ec77",
   "active_skills": [],
-  "initialized_mode": "ralph",
-  "initialized_state_path": ".omx/state/sessions/019e2ad6-d60f-7131-a133-821b9bd51f85/ralph-state.json"
+  "initialized_mode": "autoresearch",
+  "initialized_state_path": ".omx/state/autoresearch-state.json",
+  "iteration": 1,
+  "last_turn_at": "2026-05-25T02:38:18.221Z"
 }

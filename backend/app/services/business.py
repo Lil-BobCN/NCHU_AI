@@ -262,6 +262,37 @@ class BusinessStore:
         self.conversations[conversation.id] = conversation
         return conversation
 
+    def create_empty_conversation(self, student_id: str, title: str) -> Conversation:
+        now = utc_now()
+        conversation = Conversation(
+            id=f"conv-{uuid4().hex}",
+            student_id=student_id,
+            title=title,
+            messages=[],
+            created_at=now,
+            updated_at=now,
+        )
+        self.conversations[conversation.id] = conversation
+        return conversation
+
+    def append_conversation_message(
+        self,
+        conversation: Conversation,
+        role: str,
+        content: str,
+        resources: list[Resource] | None = None,
+    ) -> Message:
+        message = Message(
+            id=f"msg-{uuid4().hex}",
+            role=role,
+            content=content,
+            created_at=utc_now(),
+            resources=resources or [],
+        )
+        conversation.messages.append(message)
+        conversation.updated_at = utc_now()
+        return message
+
     def add_student_message(self, conversation: Conversation, content: str) -> Conversation:
         conversation.messages.append(
             Message(id=f"msg-{uuid4().hex}", role="student", content=content, created_at=utc_now())

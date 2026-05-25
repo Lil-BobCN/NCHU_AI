@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from functools import lru_cache
 
-from pydantic import Field, field_validator
+from pydantic import AliasChoices, Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=(".env.legacy-20260513T145513", ".env"),
         env_file_encoding="utf-8",
         case_sensitive=False,
         extra="ignore",
@@ -49,6 +49,31 @@ class Settings(BaseSettings):
 
     # CORS
     cors_origins: str = "http://localhost:3000,http://localhost:5173,http://localhost:8000"
+
+    # Qwen/DashScope real-model proxy (Phase 3R)
+    dashscope_api_key: str = Field(
+        default="",
+        validation_alias=AliasChoices("DASHSCOPE_API_KEY", "QWEN_API_KEY"),
+    )
+    dashscope_api_base_url: str = Field(
+        default="https://dashscope.aliyuncs.com/compatible-mode/v1",
+        validation_alias=AliasChoices("DASHSCOPE_API_BASE_URL", "QWEN_API_BASE_URL"),
+    )
+    dashscope_model: str = Field(
+        default="qwen-plus",
+        validation_alias=AliasChoices("DASHSCOPE_MODEL", "QWEN_MODEL"),
+    )
+    enable_thinking: bool = Field(
+        default=False,
+        validation_alias=AliasChoices("ENABLE_THINKING", "DASHSCOPE_ENABLE_THINKING"),
+    )
+    chat_model_timeout_seconds: float = Field(default=60.0, gt=0)
+    chat_model_system_prompt: str = (
+        "你是南昌航空大学 AI 辅导员 Demo 的学生端助手。"
+        "请用中文给出清晰、克制、可执行的支持建议；"
+        "不要声称已经接入真实学校数据库、RAG 知识库或真实学生档案。"
+        "遇到自伤、他伤或紧急危机风险时，优先建议立即联系紧急服务、校内值班老师或心理咨询中心。"
+    )
 
     @field_validator("log_level")
     @classmethod
