@@ -41,6 +41,7 @@ import {
   useNavigate,
 } from 'react-router-dom'
 import './App.css'
+import RealQaFlowDemo from './RealQaFlowDemo'
 import StudentChatboxPage from './StudentChatboxPage'
 
 gsap.registerPlugin(useGSAP, ScrollTrigger)
@@ -379,6 +380,7 @@ function RouterOutlet({
   return (
     <Routes>
       <Route path="/" element={<LandingPage />} />
+      <Route path="/prototype/real-qa-flow" element={<RealQaFlowDemo />} />
       <Route
         path="/login"
         element={<LoginPage session={session} onLogin={onLogin} loadingRole={loadingRole} />}

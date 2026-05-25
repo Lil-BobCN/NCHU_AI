@@ -1,0 +1,786 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>NCHU AI 真实答疑流程静态预览</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #faf9f5;
+        --bg-elevated: #fffdf8;
+        --surface: #f0eee7;
+        --surface-strong: #e7e3da;
+        --ink: #242321;
+        --ink-strong: #141413;
+        --muted: #53534f;
+        --subtle: #77766f;
+        --line: rgba(20, 20, 19, 0.14);
+        --line-strong: rgba(18, 46, 138, 0.24);
+        --primary: #122e8a;
+        --primary-ink: #fbf8f2;
+        --secondary: #d8dcea;
+        --shadow: 0 18px 58px rgba(28, 27, 25, 0.1);
+        --soft-shadow: 0 10px 28px rgba(28, 27, 25, 0.08);
+        --max: 1180px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        overflow-x: hidden;
+        background:
+          radial-gradient(circle at 82% 18%, color-mix(in srgb, var(--secondary), transparent 54%), transparent 32rem),
+          linear-gradient(180deg, color-mix(in srgb, var(--bg-elevated), var(--bg) 38%) 0%, var(--bg) 48%, color-mix(in srgb, var(--surface), var(--bg) 50%) 100%);
+        color: var(--ink);
+        font-family: "PingFang SC", "Microsoft YaHei UI", "Microsoft YaHei", "Segoe UI", Arial, system-ui, sans-serif;
+        letter-spacing: 0;
+      }
+
+      body::before {
+        position: fixed;
+        inset: 0;
+        z-index: -1;
+        pointer-events: none;
+        background-image:
+          linear-gradient(rgba(20, 20, 19, 0.026) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(20, 20, 19, 0.022) 1px, transparent 1px);
+        background-size: 64px 64px;
+        content: "";
+        mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.66), transparent 68%);
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      button,
+      input {
+        font: inherit;
+      }
+
+      .top-nav {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        border-bottom: 1px solid color-mix(in srgb, var(--line), transparent 18%);
+        background: color-mix(in srgb, var(--bg), transparent 10%);
+        backdrop-filter: blur(18px);
+      }
+
+      .nav-inner,
+      .product-strip,
+      .hero {
+        width: min(var(--max), calc(100vw - 48px));
+        margin: 0 auto;
+      }
+
+      .nav-inner {
+        display: grid;
+        grid-template-columns: auto minmax(360px, 1fr) auto;
+        gap: 34px;
+        align-items: center;
+        height: 64px;
+      }
+
+      .brand {
+        display: inline-flex;
+        gap: 10px;
+        align-items: center;
+        color: var(--ink-strong);
+        font-weight: 760;
+      }
+
+      .brand-mark {
+        display: grid;
+        width: 30px;
+        height: 30px;
+        place-items: center;
+        border: 1px solid var(--line-strong);
+        border-radius: 9px;
+        background: color-mix(in srgb, var(--primary), transparent 90%);
+      }
+
+      .brand-mark svg {
+        width: 19px;
+        height: 19px;
+      }
+
+      .primary-links {
+        display: flex;
+        justify-content: flex-end;
+        gap: 24px;
+        color: var(--muted);
+        font-size: 13px;
+        white-space: nowrap;
+      }
+
+      .nav-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .btn,
+      .nav-link {
+        display: inline-flex;
+        min-height: 36px;
+        align-items: center;
+        justify-content: center;
+        border-radius: 6px;
+        padding: 0 14px;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 660;
+      }
+
+      .nav-link {
+        border: 1px solid transparent;
+        background: transparent;
+        color: var(--muted);
+      }
+
+      .btn-ghost {
+        border: 1px solid var(--line);
+        background: color-mix(in srgb, var(--bg-elevated), transparent 14%);
+        color: var(--ink);
+      }
+
+      .btn-primary {
+        border: 1px solid var(--primary);
+        background: var(--primary);
+        color: var(--primary-ink);
+      }
+
+      .theme-toggle {
+        display: inline-flex;
+        align-items: center;
+        width: 104px;
+        height: 38px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: color-mix(in srgb, var(--bg-elevated), transparent 4%);
+        padding: 3px;
+      }
+
+      .theme-toggle button {
+        flex: 1;
+        height: 30px;
+        border: 0;
+        border-radius: 999px;
+        background: transparent;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .theme-toggle button:first-child {
+        background: var(--primary);
+        color: var(--primary-ink);
+      }
+
+      .product-bar {
+        border-bottom: 1px solid color-mix(in srgb, var(--line), transparent 18%);
+        background: color-mix(in srgb, var(--bg), transparent 7%);
+      }
+
+      .product-strip {
+        display: flex;
+        height: 48px;
+        align-items: center;
+        justify-content: space-between;
+        color: var(--ink-strong);
+        font-size: 13px;
+      }
+
+      .hero {
+        display: grid;
+        min-height: calc(100vh - 112px);
+        grid-template-columns: minmax(0, 0.96fr) minmax(420px, 1.04fr);
+        gap: clamp(34px, 6vw, 88px);
+        align-items: center;
+        padding: 82px 0 104px;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0 0 20px;
+        color: var(--subtle);
+        font-size: 13px;
+      }
+
+      .eyebrow::before {
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: var(--primary);
+        box-shadow: 0 0 0 6px color-mix(in srgb, var(--primary), transparent 86%);
+        content: "";
+      }
+
+      h1 {
+        margin: 0;
+        color: var(--ink-strong);
+        font-size: clamp(34px, 3.8vw, 54px);
+        font-weight: 500;
+        letter-spacing: 0;
+        line-height: 1.13;
+        white-space: nowrap;
+      }
+
+      .hero-copy {
+        max-width: 540px;
+        margin: 22px 0 24px;
+        color: var(--muted);
+        font-size: clamp(15px, 1.28vw, 17px);
+        line-height: 1.82;
+      }
+
+      .prompt-box {
+        max-width: 520px;
+        overflow: hidden;
+        border: 1px solid var(--line-strong);
+        border-radius: 9px;
+        background: color-mix(in srgb, var(--bg-elevated), transparent 2%);
+        box-shadow: 0 12px 30px rgba(28, 27, 25, 0.07);
+      }
+
+      .prompt-main {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 10px;
+        align-items: center;
+        padding: 8px 8px 8px 16px;
+      }
+
+      .prompt-main input {
+        min-width: 0;
+        border: 0;
+        outline: 0;
+        background: transparent;
+        color: var(--ink-strong);
+        font-size: 13px;
+      }
+
+      .prompt-main input::placeholder {
+        color: var(--subtle);
+      }
+
+      .prompt-pills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 0 12px 12px;
+      }
+
+      .prompt-pills button {
+        min-height: 26px;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: color-mix(in srgb, var(--surface), transparent 20%);
+        color: var(--muted);
+        padding: 0 10px;
+        cursor: pointer;
+        font-size: 12px;
+      }
+
+      .qa-preview {
+        border-top: 1px solid color-mix(in srgb, var(--line), transparent 24%);
+        background:
+          linear-gradient(180deg, color-mix(in srgb, var(--bg-elevated), transparent 0%), color-mix(in srgb, var(--surface), transparent 64%));
+        padding: 12px;
+      }
+
+      .qa-thread {
+        display: grid;
+        gap: 8px;
+      }
+
+      .qa-row {
+        display: grid;
+        grid-template-columns: 24px minmax(0, 1fr);
+        gap: 8px;
+        align-items: start;
+      }
+
+      .qa-avatar {
+        display: grid;
+        width: 24px;
+        height: 24px;
+        place-items: center;
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        background: color-mix(in srgb, var(--bg-elevated), transparent 0%);
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 760;
+      }
+
+      .qa-avatar.ai {
+        border-color: color-mix(in srgb, var(--primary), transparent 70%);
+        background: color-mix(in srgb, var(--primary), transparent 90%);
+        color: var(--primary);
+      }
+
+      .qa-bubble {
+        min-width: 0;
+        border: 1px solid color-mix(in srgb, var(--line), transparent 12%);
+        border-radius: 10px;
+        background: color-mix(in srgb, var(--bg-elevated), transparent 4%);
+        padding: 9px 10px;
+      }
+
+      .qa-bubble.user {
+        background: color-mix(in srgb, var(--surface), var(--bg-elevated) 58%);
+      }
+
+      .qa-bubble.ai {
+        border-color: color-mix(in srgb, var(--primary), transparent 78%);
+        background: color-mix(in srgb, var(--bg-elevated), transparent 0%);
+      }
+
+      .qa-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        align-items: center;
+        margin-bottom: 5px;
+        color: var(--subtle);
+        font-size: 11px;
+        line-height: 1.2;
+      }
+
+      .qa-meta strong {
+        color: var(--ink-strong);
+        font-size: 12px;
+      }
+
+      .qa-text {
+        margin: 0;
+        color: var(--ink);
+        font-size: 12px;
+        line-height: 1.58;
+      }
+
+      .qa-status {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 7px;
+      }
+
+      .qa-status span {
+        border: 1px solid color-mix(in srgb, var(--line), transparent 20%);
+        border-radius: 999px;
+        background: color-mix(in srgb, var(--surface), transparent 34%);
+        color: var(--muted);
+        padding: 4px 7px;
+        font-size: 10px;
+        line-height: 1;
+      }
+
+      .qa-answer-list {
+        display: grid;
+        gap: 5px;
+        margin: 6px 0 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .qa-answer-list li {
+        position: relative;
+        padding-left: 13px;
+        color: var(--ink);
+        font-size: 12px;
+        line-height: 1.55;
+      }
+
+      .qa-answer-list li::before {
+        position: absolute;
+        top: 0.66em;
+        left: 0;
+        width: 5px;
+        height: 5px;
+        border-radius: 999px;
+        background: var(--primary);
+        content: "";
+      }
+
+      .qa-handoff {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 8px;
+        align-items: center;
+        margin-top: 8px;
+        border: 1px solid color-mix(in srgb, var(--primary), transparent 78%);
+        border-radius: 8px;
+        background: color-mix(in srgb, var(--primary), transparent 94%);
+        padding: 7px 8px;
+      }
+
+      .qa-handoff span {
+        color: var(--muted);
+        font-size: 11px;
+        line-height: 1.35;
+      }
+
+      .qa-handoff button {
+        min-height: 26px;
+        border: 1px solid color-mix(in srgb, var(--primary), transparent 72%);
+        border-radius: 6px;
+        background: var(--bg-elevated);
+        color: var(--primary);
+        cursor: pointer;
+        padding: 0 9px;
+        font-size: 11px;
+        font-weight: 720;
+        white-space: nowrap;
+      }
+
+      .hero-visual {
+        position: relative;
+        min-height: 560px;
+      }
+
+      .orbital-panel {
+        position: absolute;
+        inset: 7% 0 8% 3%;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 40px;
+        background:
+          radial-gradient(circle at 74% 30%, color-mix(in srgb, var(--primary), transparent 78%), transparent 20rem),
+          linear-gradient(145deg, color-mix(in srgb, var(--bg-elevated), transparent 0%), color-mix(in srgb, var(--surface), transparent 20%));
+        box-shadow: var(--shadow);
+      }
+
+      .hero-svg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+      }
+
+      .hero-line {
+        fill: none;
+        stroke: var(--primary);
+        stroke-linecap: round;
+        stroke-width: 2;
+        opacity: 0.82;
+      }
+
+      .hero-line.soft {
+        opacity: 0.42;
+        stroke-width: 1.2;
+      }
+
+      .node {
+        fill: var(--bg-elevated);
+        stroke: var(--primary);
+        stroke-width: 2;
+      }
+
+      .flight-chip,
+      .latest-card {
+        position: absolute;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: color-mix(in srgb, var(--bg-elevated), transparent 4%);
+        box-shadow: var(--soft-shadow);
+      }
+
+      .flight-chip {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        width: 260px;
+        min-height: 68px;
+        padding: 12px 14px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .flight-chip strong {
+        display: block;
+        color: var(--ink-strong);
+        font-size: 14px;
+      }
+
+      .chip-dot {
+        flex: none;
+        width: 36px;
+        height: 36px;
+        border-radius: 12px;
+        background: var(--primary);
+      }
+
+      .chip-a {
+        top: 16%;
+        right: 4%;
+      }
+
+      .chip-b {
+        bottom: 9%;
+        left: -3%;
+      }
+
+      .latest-card {
+        right: 6%;
+        bottom: -4%;
+        width: 330px;
+        padding: 18px;
+      }
+
+      .latest-card small {
+        color: var(--subtle);
+      }
+
+      .latest-card strong {
+        display: block;
+        margin-top: 8px;
+        color: var(--ink-strong);
+        font-size: 23px;
+        line-height: 1.2;
+      }
+
+      .latest-card a {
+        display: inline-flex;
+        margin-top: 14px;
+        color: var(--primary);
+        font-size: 13px;
+      }
+
+      @media (max-width: 920px) {
+        .nav-inner {
+          grid-template-columns: auto 1fr auto;
+          gap: 14px;
+        }
+
+        .primary-links,
+        .nav-actions .nav-link,
+        .nav-actions .btn-ghost {
+          display: none;
+        }
+
+        .hero {
+          min-height: auto;
+          grid-template-columns: 1fr;
+          padding-top: 48px;
+        }
+
+        .hero-visual {
+          min-height: 460px;
+        }
+
+        .orbital-panel {
+          inset: 0;
+        }
+
+        .latest-card {
+          right: 18px;
+          width: min(330px, calc(100% - 36px));
+        }
+      }
+
+      @media (max-width: 640px) {
+        .nav-inner,
+        .product-strip,
+        .hero {
+          width: min(100% - 28px, var(--max));
+        }
+
+        .brand span:last-child {
+          display: none;
+        }
+
+        .theme-toggle {
+          width: 86px;
+        }
+
+        .hero {
+          padding: 34px 0 70px;
+        }
+
+        h1 {
+          font-size: clamp(32px, 9.2vw, 38px);
+          line-height: 1.15;
+          white-space: normal;
+        }
+
+        .prompt-main {
+          grid-template-columns: 1fr;
+          padding: 12px;
+        }
+
+        .prompt-main .btn {
+          width: 100%;
+        }
+
+        .qa-handoff {
+          grid-template-columns: 1fr;
+        }
+
+        .qa-handoff button {
+          width: 100%;
+        }
+
+        .hero-visual {
+          min-height: 390px;
+        }
+
+        .flight-chip {
+          width: min(240px, 70%);
+        }
+
+        .chip-a {
+          top: 10%;
+        }
+
+        .chip-b {
+          bottom: 10%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="top-nav">
+      <div class="nav-inner">
+        <a class="brand" href="#top" aria-label="NCHU AI 首页">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 32 32" fill="none">
+              <path d="M6 22 18 6l8 4-11 16-9-4Z" fill="currentColor" opacity="0.9" />
+              <path d="M9 22h15l-7 5-8-5Z" fill="currentColor" opacity="0.58" />
+            </svg>
+          </span>
+          <span>NCHU AI</span>
+        </a>
+        <nav class="primary-links" aria-label="主导航">
+          <a href="#meet">认识产品</a>
+          <a href="#platform">平台能力</a>
+          <a href="#roles">角色场景</a>
+          <a href="#governance">治理边界</a>
+          <a href="#resources">资源</a>
+        </nav>
+        <div class="nav-actions">
+          <button class="nav-link" type="button">登录</button>
+          <a class="btn btn-ghost" href="#resources">联系项目组</a>
+          <a class="btn btn-primary" href="#roles">进入体验</a>
+          <div class="theme-toggle" aria-label="主题切换">
+            <button type="button">Light</button>
+            <button type="button">Dark</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="product-bar">
+      <div class="product-strip">
+        <strong>产品概览</strong>
+        <a href="#platform">查看平台能力 →</a>
+      </div>
+    </div>
+
+    <main id="top">
+      <section class="hero" id="meet" aria-labelledby="hero-title">
+        <div class="hero-copy-block">
+          <p class="eyebrow">AI Counselor Demo, Phase 2</p>
+          <h1 id="hero-title">遇见你的 AI 辅导员</h1>
+          <p class="hero-copy">与 NCHU AI 同行，让校园信息触手可及。</p>
+
+          <div class="prompt-box">
+            <div class="prompt-main">
+              <input value="" placeholder="我想了解奖助学金、心理支持或学业预警流程" aria-label="示例问题" />
+              <button class="btn btn-primary" type="button">开始咨询</button>
+            </div>
+            <div class="prompt-pills" aria-label="常用入口">
+              <button type="button">学生问答</button>
+              <button type="button">辅导员协助</button>
+              <button type="button">知识维护</button>
+            </div>
+            <div class="qa-preview" aria-label="真实答疑流程预览">
+              <div class="qa-thread">
+                <div class="qa-row">
+                  <div class="qa-avatar" aria-hidden="true">学</div>
+                  <div class="qa-bubble user">
+                    <div class="qa-meta"><strong>学生提问</strong><span>已提交</span></div>
+                    <p class="qa-text">奖助学金申请失败后，我应该联系谁？</p>
+                  </div>
+                </div>
+                <div class="qa-row">
+                  <div class="qa-avatar ai" aria-hidden="true">AI</div>
+                  <div class="qa-bubble ai">
+                    <div class="qa-meta"><strong>AI 辅导员</strong><span>正在整理可执行路径</span></div>
+                    <p class="qa-text">已识别为奖助事务咨询，并关联到学院复核与资助管理流程。</p>
+                    <div class="qa-status" aria-label="处理状态">
+                      <span>识别意图</span>
+                      <span>匹配流程</span>
+                      <span>检查人工边界</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="qa-row">
+                  <div class="qa-avatar ai" aria-hidden="true">答</div>
+                  <div class="qa-bubble ai">
+                    <div class="qa-meta"><strong>答复预览</strong><span>建议 3 步处理</span></div>
+                    <ul class="qa-answer-list">
+                      <li>先核对系统中的退回原因和缺失材料。</li>
+                      <li>需要复核时，联系学院辅导员进入人工协助。</li>
+                    </ul>
+                    <div class="qa-handoff">
+                      <span>涉及困难认定变更时，同步咨询资助管理部门。</span>
+                      <button type="button">转人工</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="hero-visual" aria-label="NCHU AI 抽象能力图">
+          <div class="orbital-panel">
+            <svg class="hero-svg" viewBox="0 0 640 560" role="img" aria-label="AI 辅导员能力连线">
+              <path class="hero-line soft" d="M83 386 C186 296 243 238 354 244 S515 215 566 103" />
+              <path class="hero-line soft" d="M104 456 C192 396 270 374 390 382 S534 324 584 244" />
+              <path class="hero-line" d="M122 324 C234 218 334 172 496 142" />
+              <path class="hero-line" d="M210 452 C284 330 342 284 508 302" />
+              <g>
+                <path d="M270 268 404 116l56 28-124 164-66-40Z" fill="var(--primary)" opacity="0.94" />
+                <path d="M278 312h150l-70 52-80-52Z" fill="var(--primary)" opacity="0.55" />
+                <path d="M224 372 360 218l56 30-125 164-67-40Z" fill="var(--primary)" opacity="0.74" />
+              </g>
+              <circle class="node" cx="124" cy="324" r="13" />
+              <circle class="node" cx="210" cy="452" r="10" />
+              <circle class="node" cx="496" cy="142" r="12" />
+              <circle class="node" cx="566" cy="103" r="8" />
+              <circle class="node" cx="584" cy="244" r="10" />
+            </svg>
+          </div>
+          <div class="flight-chip chip-a">
+            <span class="chip-dot" aria-hidden="true"></span>
+            <span><strong>学生请求</strong><span>问题识别、资源匹配、历史连续性</span></span>
+          </div>
+          <div class="flight-chip chip-b">
+            <span class="chip-dot" aria-hidden="true"></span>
+            <span><strong>人工接管</strong><span>高风险场景交给辅导员处理</span></span>
+          </div>
+          <aside class="latest-card">
+            <small>Latest update</small>
+            <strong>Phase 2 正在打磨登录、角色识别和首页体验。</strong>
+            <a href="#resources">查看 Demo 路线 →</a>
+          </aside>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

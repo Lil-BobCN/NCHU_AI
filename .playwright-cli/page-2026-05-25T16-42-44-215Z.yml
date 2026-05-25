@@ -1,0 +1,50 @@
+- generic [ref=e4]:
+  - banner [ref=e5]:
+    - button "NCHU AI" [ref=e6] [cursor=pointer]:
+      - img [ref=e8]:
+        - img [ref=e9]
+      - generic [ref=e12]: NCHU AI
+    - generic [ref=e13]:
+      - generic [ref=e15]: 学生身份
+      - button "学生工作台" [ref=e17] [cursor=pointer]:
+        - generic [ref=e18]: 学生工作台
+      - button "logout 退出" [ref=e20] [cursor=pointer]:
+        - img "logout" [ref=e22]:
+          - img [ref=e23]
+        - generic [ref=e25]: 退出
+  - main [ref=e26]:
+    - main [ref=e27]:
+      - generic [ref=e28]:
+        - generic [ref=e29]:
+          - generic [ref=e30]:
+            - generic [ref=e32]: 学生工作台
+            - generic [ref=e34]: Demo
+          - heading "Demo Student" [level=2] [ref=e35]
+          - generic [ref=e36]: 学生问答、来源卡片、会话历史。当前只使用已批准的 Demo 契约，不包含真实学生数据或生产 SSO。
+        - button "message 打开 Chatbox" [ref=e37] [cursor=pointer]:
+          - img "message" [ref=e39]:
+            - img [ref=e40]
+          - generic [ref=e42]: 打开 Chatbox
+      - generic [ref=e43]:
+        - generic [ref=e46]:
+          - generic [ref=e48]: 会话状态
+          - generic [ref=e50]: authenticated
+        - generic [ref=e53]:
+          - generic [ref=e55]: Demo 账号
+          - generic [ref=e57]: "true"
+        - generic [ref=e60]:
+          - generic [ref=e62]: 当前角色
+          - generic [ref=e64]: 学生
+      - generic [ref=e65]:
+        - generic [ref=e66]:
+          - generic [ref=e69]: 交互结构
+          - list [ref=e71]:
+            - listitem [ref=e72]: 登录成功后进入角色专属工作台。
+            - listitem [ref=e73]: 学生、老师、运维管理人员各自只显示自己的主入口。
+            - listitem [ref=e74]: 未授权角色会被重定向回可访问路径。
+        - generic [ref=e75]:
+          - generic [ref=e78]: 下一阶段接口
+          - list [ref=e80]:
+            - listitem [ref=e81]: 学生 Chatbox 独立页。
+            - listitem [ref=e82]: 老师案例与建议。
+            - listitem [ref=e83]: 运维管理人员知识、审计和统计。

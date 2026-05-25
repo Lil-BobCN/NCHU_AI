@@ -1,0 +1,75 @@
+- generic [ref=e4]:
+  - banner [ref=e5]:
+    - button "NCHU AI AI Counselor Demo" [ref=e6] [cursor=pointer]:
+      - img [ref=e8]:
+        - img [ref=e9]
+      - generic [ref=e11]:
+        - generic [ref=e12]: NCHU AI
+        - generic [ref=e13]: AI Counselor Demo
+    - menu [ref=e14]:
+      - menuitem "首页" [ref=e15] [cursor=pointer]
+      - menuitem "产品能力" [ref=e16] [cursor=pointer]
+      - menuitem "使用流程" [ref=e17] [cursor=pointer]
+      - menuitem "可信边界" [ref=e18] [cursor=pointer]
+      - menuitem [disabled]:
+        - img:
+          - img
+    - generic [ref=e19]:
+      - generic [ref=e21]: 学生身份
+      - button "学生工作台" [ref=e23] [cursor=pointer]:
+        - generic [ref=e24]: 学生工作台
+      - button "logout 退出" [ref=e26] [cursor=pointer]:
+        - img "logout" [ref=e28]:
+          - img [ref=e29]
+        - generic [ref=e31]: 退出
+  - main [ref=e32]:
+    - main [ref=e33]:
+      - generic [ref=e34]:
+        - button "arrow-left 学生工作台" [ref=e35] [cursor=pointer]:
+          - img "arrow-left" [ref=e37]:
+            - img [ref=e38]
+          - generic [ref=e40]: 学生工作台
+        - generic [ref=e41]:
+          - generic [ref=e42]: Phase 3R
+          - heading "学生 Chatbox" [level=2] [ref=e43]
+          - generic [ref=e44]: 当前页面独立于学生工作台，回答由后端 Qwen/DashScope 流式代理生成。
+        - generic [ref=e45]:
+          - button "reload 重试" [disabled] [ref=e47]:
+            - generic:
+              - img "reload":
+                - img
+            - generic: 重试
+          - button "plus 新会话" [ref=e49] [cursor=pointer]:
+            - img "plus" [ref=e51]:
+              - img [ref=e52]
+            - generic [ref=e55]: 新会话
+      - region "学生 Chatbox" [ref=e56]:
+        - complementary [ref=e57]:
+          - generic [ref=e58]:
+            - img "message" [ref=e59]:
+              - img [ref=e60]
+            - generic [ref=e62]: 当前运行期记录
+          - generic [ref=e64]: 暂无会话
+        - generic [ref=e65]:
+          - generic [ref=e66]:
+            - generic [ref=e67]:
+              - strong [ref=e68]: 新会话
+              - generic [ref=e69]: Demo Student
+            - generic [ref=e70]: 就绪
+          - generic [ref=e72]:
+            - img "No data" [ref=e74]
+            - generic [ref=e80]: 开始一个学生端咨询会话
+            - generic [ref=e82]:
+              - button "我最近学习压力很大，应该怎么调整？" [ref=e83] [cursor=pointer]:
+                - generic [ref=e84]: 我最近学习压力很大，应该怎么调整？
+              - button "我和室友发生矛盾，不知道怎么开口沟通。" [ref=e85] [cursor=pointer]:
+                - generic [ref=e86]: 我和室友发生矛盾，不知道怎么开口沟通。
+              - button "我错过了一次作业截止时间，应该怎么补救？" [ref=e87] [cursor=pointer]:
+                - generic [ref=e88]: 我错过了一次作业截止时间，应该怎么补救？
+          - generic [ref=e89]:
+            - textbox "输入你想讨论的问题" [ref=e90]
+            - button "send 发送" [disabled] [ref=e92]:
+              - generic:
+                - img "send":
+                  - img
+              - generic: 发送

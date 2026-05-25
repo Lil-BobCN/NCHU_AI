@@ -1,17 +1,29 @@
 {
   "version": 1,
-  "active": false,
-  "skill": "ralph",
+  "active": true,
+  "skill": "autoresearch",
   "keyword": "$autoresearch",
   "phase": "executing",
-  "activated_at": "2026-05-25T04:34:59.023Z",
-  "updated_at": "2026-05-25T04:57:22.433Z",
+  "activated_at": "2026-05-25T18:50:56.131Z",
+  "updated_at": "2026-05-25T18:50:56.131Z",
   "source": "keyword-detector",
-  "thread_id": "019e5ce5-9beb-7160-a85b-ab0f891fa9eb",
-  "turn_id": "019e5ce8-553d-7851-a0aa-9d6af075ec77",
-  "active_skills": [],
+  "session_id": "",
+  "thread_id": "019e600c-f814-74d1-8518-de3c98716a56",
+  "turn_id": "019e606c-9c97-7272-8e39-6b0d1f0534dd",
+  "active_skills": [
+    {
+      "skill": "autoresearch",
+      "phase": "executing",
+      "active": true,
+      "activated_at": "2026-05-25T18:50:56.131Z",
+      "updated_at": "2026-05-25T18:50:56.131Z",
+      "session_id": "",
+      "thread_id": "019e600c-f814-74d1-8518-de3c98716a56",
+      "turn_id": "019e606c-9c97-7272-8e39-6b0d1f0534dd"
+    }
+  ],
   "initialized_mode": "autoresearch",
   "initialized_state_path": ".omx/state/autoresearch-state.json",
   "iteration": 1,
-  "last_turn_at": "2026-05-25T02:38:18.221Z"
+  "last_turn_at": "2026-05-25T19:31:56.573Z"
 }
