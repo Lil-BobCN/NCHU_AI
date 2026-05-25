@@ -1,0 +1,114 @@
+- generic [ref=e2]:
+  - banner "首页动效评审控制台" [ref=e3]:
+    - generic [ref=e4]:
+      - strong [ref=e5]: NCHU AI 首页动效评审
+      - generic [ref=e6]: 方案切换 / 播放 / 常驻动效
+    - generic [ref=e7]:
+      - generic "首页" [ref=e8]:
+        - generic [ref=e9]: 首页
+        - button "A1 黑曜指挥舱" [ref=e10] [cursor=pointer]
+        - button "A2 航空玻璃" [ref=e11] [cursor=pointer]
+        - button "A3 液态智能" [ref=e12] [cursor=pointer]
+      - generic "播放" [ref=e13]:
+        - generic [ref=e14]: 播放
+        - button "重播" [ref=e15] [cursor=pointer]
+        - button "轮播" [ref=e16] [cursor=pointer]
+        - button "0.5x" [ref=e17] [cursor=pointer]
+        - button "1x" [ref=e18] [cursor=pointer]
+      - generic "常驻动效" [ref=e19]:
+        - generic [ref=e20]: 常驻动效
+        - button "A 呼吸光" [ref=e21] [cursor=pointer]
+        - button "B 扫描边" [ref=e22] [cursor=pointer]
+        - button "C 信号闪" [ref=e23] [cursor=pointer]
+    - generic [ref=e25]: 准备播放
+  - main [ref=e27]:
+    - region "homepage hero preview" [ref=e28]:
+      - navigation [ref=e29]:
+        - link "NCHU AI" [ref=e30] [cursor=pointer]:
+          - /url: "#"
+          - generic [ref=e32]: NCHU AI
+        - generic "site links" [ref=e33]:
+          - link "产品能力" [ref=e34] [cursor=pointer]:
+            - /url: "#features"
+          - link "使用流程" [ref=e35] [cursor=pointer]:
+            - /url: "#features"
+          - link "适用角色" [ref=e36] [cursor=pointer]:
+            - /url: "#features"
+          - link "可信边界" [ref=e37] [cursor=pointer]:
+            - /url: "#features"
+        - generic [ref=e38]:
+          - link "登录" [ref=e39] [cursor=pointer]:
+            - /url: "#login"
+          - link "开始体验" [ref=e40] [cursor=pointer]:
+            - /url: "#login"
+      - article "黑曜指挥舱" [ref=e41]:
+        - generic [ref=e42]:
+          - generic [ref=e43]:
+            - generic [ref=e44]: NCHU AI / Demo 边界已开启
+            - heading "AI 赋能的校园辅导服务" [level=1] [ref=e46]:
+              - generic [ref=e48]: 让校园辅导服务
+              - generic [ref=e50]: 进入 AI 协同
+              - generic [ref=e52]: 清晰可控
+            - paragraph [ref=e53]: 面向学生问答、辅导员个案处理、管理员知识维护的独立 Demo 网站。所有数据均为模拟数据，回答来源、回退状态和角色权限都会在界面中明确呈现。
+            - generic [ref=e54]:
+              - generic [ref=e55]: 按角色进入工作台
+              - generic [ref=e56]: 回答可追溯来源
+              - generic [ref=e57]: 模拟数据边界清晰
+            - generic [ref=e58]:
+              - link "进入 Demo 登录" [ref=e59] [cursor=pointer]:
+                - /url: "#login"
+              - link "查看能力结构" [ref=e60] [cursor=pointer]:
+                - /url: "#features"
+            - generic [ref=e61]:
+              - generic [ref=e62]:
+                - strong [ref=e63]: 学生端
+                - text: 提问、来源卡片、未支持内容的安全回退。
+              - generic [ref=e64]:
+                - strong [ref=e65]: 辅导员端
+                - text: 个案状态、辅助建议、处理动作记录。
+              - generic [ref=e66]:
+                - strong [ref=e67]: 管理端
+                - text: 知识资源、Demo 重置、统计标签。
+          - generic [ref=e70]:
+            - generic [ref=e71]:
+              - generic [ref=e72]:
+                - generic [ref=e73]: 编排边界
+                - strong [ref=e74]: FastAPI
+              - generic [ref=e75]:
+                - generic [ref=e76]: 回答模式
+                - strong [ref=e77]: 确定性 Demo
+              - generic [ref=e78]:
+                - generic [ref=e79]: 数据类型
+                - strong [ref=e80]: 模拟数据
+            - img [ref=e82]
+            - generic [ref=e89]:
+              - generic [ref=e90]:
+                - generic [ref=e91]: AI 辅导控制台
+                - generic [ref=e92]: 就绪
+              - generic [ref=e100]:
+                - generic [ref=e101]:
+                  - strong [ref=e102]: 角色
+                  - text: "3"
+                - generic [ref=e103]:
+                  - strong [ref=e104]: 契约
+                  - text: "6"
+                - generic [ref=e105]:
+                  - strong [ref=e106]: 真实数据
+                  - text: "0"
+              - generic [ref=e107]:
+                - generic [ref=e108]:
+                  - emphasis [ref=e109]: 来源匹配
+                  - strong [ref=e110]: 就绪
+                - generic [ref=e111]:
+                  - emphasis [ref=e112]: 角色路由
+                  - strong [ref=e113]: 在线
+      - strong [ref=e116]: 向下查看交互结构
+    - region "点击式产品章节" [ref=e117]
+    - generic [ref=e122]:
+      - generic [ref=e123]: 参考：
+      - link "21st.dev components" [ref=e124] [cursor=pointer]:
+        - /url: https://21st.dev/community/components
+      - generic [ref=e125]: /
+      - link "MotionSites" [ref=e126] [cursor=pointer]:
+        - /url: https://motionsites.ai/
+      - generic [ref=e127]: 这是评审原型，不修改正式 React 首页。

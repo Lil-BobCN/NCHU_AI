@@ -6,7 +6,9 @@ from typing import Annotated
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
+from app.config import Settings, get_settings
 from app.services.business import User, store
+from app.services.chat_model import DashScopeChatModelProvider
 
 bearer_scheme = HTTPBearer(auto_error=False)
 
@@ -62,3 +64,10 @@ def require_counselor(user: Annotated[User, Depends(current_user)]) -> User:
             detail="Counselor role required",
         )
     return user
+
+
+def chat_model_provider(
+    settings: Annotated[Settings, Depends(get_settings)],
+) -> DashScopeChatModelProvider:
+    """Resolve the configured Qwen/DashScope provider for student Chatbox streaming."""
+    return DashScopeChatModelProvider(settings)

@@ -1,0 +1,120 @@
+- generic [ref=e2]:
+  - banner [ref=e3]:
+    - generic [ref=e4]:
+      - link "NCHU AI 首页" [ref=e5] [cursor=pointer]:
+        - /url: "#top"
+        - img [ref=e7]
+      - generic [ref=e10]:
+        - link "进入体验" [ref=e11] [cursor=pointer]:
+          - /url: "#roles"
+        - generic "主题切换" [ref=e12]:
+          - button "Light" [ref=e13] [cursor=pointer]
+          - button "Dark" [ref=e14] [cursor=pointer]
+  - generic [ref=e16]:
+    - strong [ref=e17]: 产品概览
+    - link "查看平台能力" [ref=e18] [cursor=pointer]:
+      - /url: "#platform"
+      - text: 查看平台能力
+      - generic [ref=e19]: →
+  - main [ref=e20]:
+    - region "遇见你的 AI 辅导员" [ref=e21]:
+      - generic [ref=e22]:
+        - paragraph [ref=e23]: AI Counselor Demo, Phase 2
+        - heading "遇见你的 AI 辅导员" [level=1] [ref=e24]:
+          - generic [ref=e25]: 遇见你的
+          - generic [ref=e26]: AI 辅导员
+        - paragraph [ref=e27]: 面向学生、辅导员和管理人员的校内支持系统。它把常见咨询、知识资源、会话记录和人工接管放在同一个清晰流程里。
+        - generic [ref=e28]:
+          - generic [ref=e29]:
+            - textbox "示例问题" [ref=e30]:
+              - /placeholder: 我想了解奖助学金、心理支持或学业预警流程
+            - button "开始咨询" [ref=e31] [cursor=pointer]
+          - generic "常用入口" [ref=e32]:
+            - button "学生问答" [ref=e33] [cursor=pointer]
+            - button "辅导员协助" [ref=e34] [cursor=pointer]
+            - button "知识维护" [ref=e35] [cursor=pointer]
+      - generic "NCHU AI 抽象能力图" [ref=e36]:
+        - img "AI 辅导员能力连线" [ref=e38]
+        - generic [ref=e54]:
+          - strong [ref=e55]: 学生请求
+          - generic [ref=e56]: 问题识别、资源匹配、历史连续性
+        - generic [ref=e59]:
+          - strong [ref=e60]: 人工接管
+          - generic [ref=e61]: 高风险场景交给辅导员处理
+        - complementary [ref=e62]:
+          - text: Latest update
+          - heading "Phase 2 正在打磨登录、角色识别和首页体验。" [level=3] [ref=e63]
+          - link "查看 Demo 路线 →" [ref=e64] [cursor=pointer]:
+            - /url: "#roles"
+    - region "面向学生支持的 AI 工作伙伴" [ref=e65]:
+      - generic [ref=e66]:
+        - heading "面向学生支持的 AI 工作伙伴" [level=2] [ref=e67]
+        - paragraph [ref=e68]: 它不是孤立的聊天窗口，而是一个可审计、可维护、可接管的校内服务入口。
+        - generic "角色入口" [ref=e69]:
+          - link "查看角色场景" [ref=e70] [cursor=pointer]:
+            - /url: "#roles"
+          - link "了解治理边界" [ref=e71] [cursor=pointer]:
+            - /url: "#governance"
+        - generic [ref=e72]:
+          - generic "平台能力列表" [ref=e73]:
+            - article [ref=e74]:
+              - generic [ref=e75]: "01"
+              - generic [ref=e76]:
+                - heading "确定性 Demo 回答" [level=3] [ref=e77]
+                - paragraph [ref=e78]: 先用可解释的知识匹配证明完整流程，避免在未审批阶段误称 RAG 能力已经上线。
+            - article [ref=e79]:
+              - generic [ref=e80]: "02"
+              - generic [ref=e81]:
+                - heading "角色化工作台" [level=3] [ref=e82]
+                - paragraph [ref=e83]: 学生、辅导员和管理员进入不同界面，操作路径和信息密度按真实职责拆开。
+            - article [ref=e84]:
+              - generic [ref=e85]: "03"
+              - generic [ref=e86]:
+                - heading "来源与审计" [level=3] [ref=e87]
+                - paragraph [ref=e88]: 答案、资源、操作记录和统计面板保留追踪线索，服务学校内部治理要求。
+            - article [ref=e89]:
+              - generic [ref=e90]: "04"
+              - generic [ref=e91]:
+                - heading "人工协同" [level=3] [ref=e92]
+                - paragraph [ref=e93]: 系统提供建议和上下文，关键判断仍由辅导员完成，边界清楚。
+          - generic "能力网络图" [ref=e94]:
+            - img "NCHU AI 能力网络" [ref=e95]
+            - generic [ref=e107]: NCHU AI
+            - generic [ref=e108]: 学生问答
+            - generic [ref=e109]: 知识资源
+            - generic [ref=e110]: 辅导员协助
+            - generic [ref=e111]: 审计统计
+    - region "如何使用 NCHU AI" [ref=e112]:
+      - generic [ref=e113]:
+        - generic [ref=e114]: Built for campus support workflows
+        - generic [ref=e115]: 把学生服务入口、辅导员处理链路和管理审计放到同一套 Demo 里。
+      - generic [ref=e116]:
+        - generic [ref=e117]:
+          - img [ref=e119]
+          - heading "如何使用 NCHU AI" [level=2] [ref=e122]
+          - paragraph [ref=e123]: 登录后由账号角色决定入口，不在首页暴露三个独立工作台按钮。
+        - generic "使用角色" [ref=e124]:
+          - generic [ref=e125]: 学生
+          - generic [ref=e126]: 辅导员
+          - generic [ref=e127]: 管理员
+          - generic [ref=e128]: 项目演示
+        - generic [ref=e129]:
+          - article [ref=e130]:
+            - heading "学生端" [level=3] [ref=e131]
+            - paragraph [ref=e132]: 提出问题、查看来源卡片、保存会话，并在需要时转人工支持。
+          - article [ref=e133]:
+            - heading "辅导员端" [level=3] [ref=e134]
+            - paragraph [ref=e135]: 查看模拟个案、获得辅助建议、更新状态并保留处理记录。
+          - article [ref=e136]:
+            - heading "管理端" [level=3] [ref=e137]
+            - paragraph [ref=e138]: 维护 Demo 知识资源、重置数据、查看统计和审计活动。
+    - region "清楚展示能力边界" [ref=e139]:
+      - generic [ref=e140]:
+        - heading "清楚展示能力边界" [level=2] [ref=e141]
+        - paragraph [ref=e142]: 当前阶段以 Demo 可信度为先：模拟数据明确标注，RAG、真实学生数据和公网部署都必须经过审批包。
+        - generic [ref=e143]:
+          - link "回到首页" [ref=e144] [cursor=pointer]:
+            - /url: "#top"
+          - link "查看后续计划" [ref=e145] [cursor=pointer]:
+            - /url: "#resources"
+  - contentinfo [ref=e146]: 原型说明：本页面参考 Claude 产品页的布局层级、按钮组合和动效节奏，但使用 NCHU AI 辅导员系统语境与项目审批色彩。

@@ -1,11 +1,15 @@
 """Student self-service routes for Q&A, resources, and conversations."""
 from __future__ import annotations
 
+import asyncio
+import json
+from collections.abc import AsyncIterator
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import StreamingResponse
 
-from app.api.v1.deps import current_user
+from app.api.v1.deps import chat_model_provider, current_user
 from app.schemas.business import (
     ConversationCreate,
     ConversationMessageCreate,
@@ -13,8 +17,15 @@ from app.schemas.business import (
     QuestionRequest,
     QuestionResponse,
     ResourceResponse,
+    StudentChatRequest,
 )
 from app.services.business import Conversation, User, store
+from app.services.chat_model import (
+    ChatModelConfigurationError,
+    ChatModelError,
+    ChatModelMessage,
+    ChatModelProvider,
+)
 
 router = APIRouter(prefix="/student", tags=["student"])
 
@@ -27,6 +38,41 @@ async def ask_question(
     """Ask the counselor assistant a student-facing question."""
     message = store.answer_question(user.id, payload.question)
     return QuestionResponse(answer=message.content, resources=message.resources)
+
+
+@router.post("/chat/stream")
+async def stream_student_chat(
+    payload: StudentChatRequest,
+    user: Annotated[User, Depends(current_user)],
+    provider: Annotated[ChatModelProvider, Depends(chat_model_provider)],
+) -> StreamingResponse:
+    """Stream a real-model assistant reply for the isolated student Chatbox."""
+    if user.role != "student":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Student chat is only available to student accounts",
+        )
+    if not provider.configured:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=(
+                "Qwen model configuration is missing. Set DASHSCOPE_API_KEY and "
+                "DASHSCOPE_MODEL, or the legacy QWEN_API_KEY and QWEN_MODEL aliases."
+            ),
+        )
+
+    conversation = _student_chat_conversation(payload, user)
+    store.append_conversation_message(conversation, "student", payload.message)
+    model_messages = _conversation_model_messages(conversation)
+
+    return StreamingResponse(
+        _stream_chat_events(conversation, user, provider, model_messages),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",
+        },
+    )
 
 
 @router.get("/resources", response_model=list[ResourceResponse])
@@ -107,3 +153,76 @@ def _visible_conversation(conversation_id: str, user: User) -> Conversation:
     if conversation.student_id != user.id and user.role not in {"counselor", "admin"}:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Conversation not found")
     return conversation
+
+
+def _student_chat_conversation(payload: StudentChatRequest, user: User) -> Conversation:
+    if payload.conversation_id:
+        conversation = _visible_conversation(payload.conversation_id, user)
+        if conversation.student_id != user.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Only the owning student can use this conversation",
+            )
+        return conversation
+    title = payload.message.strip().replace("\n", " ")[:32] or "New chat"
+    return store.create_empty_conversation(user.id, title)
+
+
+def _conversation_model_messages(conversation: Conversation) -> list[ChatModelMessage]:
+    role_map = {"student": "user", "assistant": "assistant"}
+    return [
+        ChatModelMessage(role=role_map[message.role], content=message.content)
+        for message in conversation.messages
+        if message.role in role_map and message.content.strip()
+    ]
+
+
+async def _stream_chat_events(
+    conversation: Conversation,
+    user: User,
+    provider: ChatModelProvider,
+    model_messages: list[ChatModelMessage],
+) -> AsyncIterator[str]:
+    chunks: list[str] = []
+    yield _sse("conversation", {"conversationId": conversation.id})
+    try:
+        async for chunk in provider.stream_reply(model_messages):
+            chunks.append(chunk)
+            yield _sse("delta", {"content": chunk})
+    except ChatModelConfigurationError as exc:
+        yield _sse("error", {"detail": str(exc)})
+        return
+    except ChatModelError as exc:
+        store.record_audit(
+            user.id,
+            "student.chat.stream.failure",
+            "conversation",
+            conversation.id,
+            result="failure",
+            event_tags=["chat:model:qwen"],
+            counter_key="student.chat.stream.failure.count",
+        )
+        yield _sse("error", {"detail": str(exc)})
+        return
+    except asyncio.CancelledError:
+        partial_reply = "".join(chunks).strip()
+        if partial_reply:
+            store.append_conversation_message(conversation, "assistant", partial_reply)
+        raise
+
+    reply = "".join(chunks).strip()
+    if reply:
+        store.append_conversation_message(conversation, "assistant", reply)
+    store.record_audit(
+        user.id,
+        "student.chat.stream.success",
+        "conversation",
+        conversation.id,
+        event_tags=["chat:model:qwen"],
+        counter_key="student.chat.stream.success.count",
+    )
+    yield _sse("done", {"conversationId": conversation.id})
+
+
+def _sse(event: str, data: dict[str, str]) -> str:
+    return f"event: {event}\ndata: {json.dumps(data, ensure_ascii=False)}\n\n"

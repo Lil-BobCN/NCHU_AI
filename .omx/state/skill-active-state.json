@@ -1,15 +1,29 @@
 {
   "version": 1,
-  "active": false,
-  "skill": "ralph",
-  "keyword": "$ralph",
+  "active": true,
+  "skill": "autoresearch",
+  "keyword": "$autoresearch",
   "phase": "executing",
-  "activated_at": "2026-05-24T02:15:51.922Z",
-  "updated_at": "2026-05-24T06:08:05.064Z",
+  "activated_at": "2026-05-25T18:50:56.131Z",
+  "updated_at": "2026-05-25T18:50:56.131Z",
   "source": "keyword-detector",
-  "session_id": "019e2ad6-d60f-7131-a133-821b9bd51f85",
-  "turn_id": "019e5863-66ca-7921-b5ef-359143a85efc",
-  "active_skills": [],
-  "initialized_mode": "ralph",
-  "initialized_state_path": ".omx/state/sessions/019e2ad6-d60f-7131-a133-821b9bd51f85/ralph-state.json"
+  "session_id": "",
+  "thread_id": "019e600c-f814-74d1-8518-de3c98716a56",
+  "turn_id": "019e606c-9c97-7272-8e39-6b0d1f0534dd",
+  "active_skills": [
+    {
+      "skill": "autoresearch",
+      "phase": "executing",
+      "active": true,
+      "activated_at": "2026-05-25T18:50:56.131Z",
+      "updated_at": "2026-05-25T18:50:56.131Z",
+      "session_id": "",
+      "thread_id": "019e600c-f814-74d1-8518-de3c98716a56",
+      "turn_id": "019e606c-9c97-7272-8e39-6b0d1f0534dd"
+    }
+  ],
+  "initialized_mode": "autoresearch",
+  "initialized_state_path": ".omx/state/autoresearch-state.json",
+  "iteration": 1,
+  "last_turn_at": "2026-05-25T19:31:56.573Z"
 }

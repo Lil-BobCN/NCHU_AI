@@ -3,6 +3,12 @@
 This repository is now scoped to the formal FastAPI backend plus a lightweight
 in-memory business Phase 1 surface.
 
+Project-level design context is defined in `PRODUCT.md` and `DESIGN.md`. The
+design entry point is configured to use
+[VoltAgent/awesome-design-md](https://github.com/VoltAgent/awesome-design-md)
+as an optional reference library; usage notes live in
+`docs/design/awesome-design-md.md`.
+
 The technical Phase 1 foundation still covers FastAPI, PostgreSQL, Redis,
 MinIO, Milvus, Docker local/private deployment, liveness, readiness, and the
 automated smoke gate. On top of that, the repo now exposes in-memory business

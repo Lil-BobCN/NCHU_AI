@@ -10,6 +10,7 @@ import {
   DashboardOutlined,
   LockOutlined,
   LogoutOutlined,
+  MessageOutlined,
   SafetyCertificateOutlined,
   RobotOutlined,
   TeamOutlined,
@@ -40,6 +41,8 @@ import {
   useNavigate,
 } from 'react-router-dom'
 import './App.css'
+import RealQaFlowDemo from './RealQaFlowDemo'
+import StudentChatboxPage from './StudentChatboxPage'
 
 gsap.registerPlugin(useGSAP, ScrollTrigger)
 
@@ -377,6 +380,7 @@ function RouterOutlet({
   return (
     <Routes>
       <Route path="/" element={<LandingPage />} />
+      <Route path="/prototype/real-qa-flow" element={<RealQaFlowDemo />} />
       <Route
         path="/login"
         element={<LoginPage session={session} onLogin={onLogin} loadingRole={loadingRole} />}
@@ -384,6 +388,10 @@ function RouterOutlet({
       <Route path="/app" element={<WorkspaceLayout session={session} />}>
         <Route index element={<Navigate to="/login" replace />} />
         <Route path="student" element={<WorkspacePage role="student" session={session} />} />
+        <Route
+          path="student/chatbox"
+          element={<StudentChatboxPage apiBase={API_BASE} session={session} />}
+        />
         <Route path="counselor" element={<WorkspacePage role="counselor" session={session} />} />
         <Route path="admin" element={<WorkspacePage role="admin" session={session} />} />
       </Route>
@@ -814,7 +822,17 @@ function WorkspacePage({
             {meta.subtitle}。当前只使用已批准的 Demo 契约，不包含真实学生数据或生产 SSO。
           </Typography.Paragraph>
         </div>
-        <Button onClick={() => navigate('/login')}>返回登录</Button>
+        {role === 'student' ? (
+          <Button
+            type="primary"
+            icon={<MessageOutlined />}
+            onClick={() => navigate('/app/student/chatbox')}
+          >
+            打开 Chatbox
+          </Button>
+        ) : (
+          <Button onClick={() => navigate('/login')}>返回登录</Button>
+        )}
       </section>
 
       <section className="metric-grid">
@@ -839,7 +857,7 @@ function WorkspacePage({
         </Card>
         <Card className="workspace-card" title="下一阶段接口">
           <ul className="bullet-list">
-            <li>学生问答。</li>
+            <li>学生 Chatbox 独立页。</li>
             <li>老师案例与建议。</li>
             <li>运维管理人员知识、审计和统计。</li>
           </ul>
