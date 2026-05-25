@@ -1,0 +1,41 @@
+# Frontend Page Structure Deep Interview Snapshot
+
+- Task statement: Define a reusable workflow for turning product requirements into a concrete frontend page structure for this AI Counselor Demo and future projects.
+- Desired outcome: Agree on a page-structure document that sits above routes and below PRD, so development can proceed page by page with clear scope.
+- Stated solution: Build a page-structure inventory that lists all pages, page groups, entry states, and phase order before implementation.
+- Probable intent hypothesis: The user wants a repeatable product-to-frontend translation process, not just this project's route map.
+- Known facts/evidence:
+  - `SDAR-0002` approved React + TypeScript + Vite + Ant Design / shadcn-ui.
+  - `SDAR-0003` approved homepage roles as student and teacher/counselor, with admin via independent link.
+  - `SDAR-0004` is pending review and focuses on visual direction and design tokens.
+  - The user explicitly wants a more granular page-structure artifact, similar to but above a route map.
+  - The user provided Linear screenshots as a style/structure reference.
+  - The page-structure artifact should be organized first by functional module.
+  - The user wants interaction sequence to be made visible through a simple page/prototype, not only described in text.
+  - Created discussion prototype: `.omx/prototypes/frontend-interaction-flow-demo.html`.
+  - 2026-05-19 PM feedback: student/teacher role selection should be handled inside the login page, with role-specific welcome and guidance copy.
+  - Codex accepted this feedback: homepage focuses on product trust and entering the system; `/login` handles formal role selection for student and counselor.
+  - 2026-05-19 PM feedback: homepage should be redesigned as a Linear-style product homepage with top navigation, product features, and login entry; role choices appear after login click.
+  - Codex accepted this feedback: homepage is not a role selection page; it is a product landing surface with top navigation and feature sections.
+  - 2026-05-19 PM approved SDAR-0005 direction, with the condition that current prototype style is not locked and can be tuned later.
+  - 2026-05-19 Codex aligned SDAR-0004 with SDAR-0005: homepage visual direction now follows product-homepage structure, `/login` owns role selection, and the prototype is explicitly non-final visual guidance.
+- Constraints:
+  - Do not implement code in this mode.
+  - Keep the process reusable for future projects.
+  - Keep desktop-first priority, while preserving mobile usability.
+  - Preserve explicit labels for Demo / simulated data.
+- Unknowns/open questions:
+  - What level of granularity is needed for the page-structure artifact?
+  - Which pages are mandatory in the first pass versus deferred?
+  - How should system states (login, empty, error, loading, unauthorized) be represented in the structure?
+  - SDAR-0004 visual direction and design token remain pending review, but have been aligned with SDAR-0005's homepage/login-page structure.
+- Decision-boundary unknowns:
+  - Whether the page-structure artifact should become a formal approval doc in `.omx/decisions/` or stay as a planning artifact in `.omx/plans/`.
+  - Whether the structure should include only user-facing pages or also supporting shells/modals/drawers.
+  - Whether the artifact should define phase order explicitly or only page inventory.
+- Likely codebase touchpoints:
+  - `.omx/plans/overall-development-plan-ai-counselor-demo.md`
+  - `.omx/decisions/SDAR-0003-frontend-ia-route-map.md`
+  - `.omx/decisions/SDAR-0004-frontend-visual-direction-design-tokens.md`
+  - future front-end route/page skeleton under `frontend/`
+- Prompt-safe initial-context summary status: recorded

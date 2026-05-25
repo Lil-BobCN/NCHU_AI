@@ -1,0 +1,977 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NCHU AI Advanced Text Motion Lab</title>
+    <link rel="icon" href="data:," />
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #02050d;
+        --ink: #f7fbff;
+        --muted: rgba(219, 231, 250, 0.72);
+        --faint: rgba(219, 231, 250, 0.48);
+        --line: rgba(142, 175, 232, 0.2);
+        --glass: rgba(8, 15, 31, 0.68);
+        --blue: #68a7ff;
+        --violet: #8270ff;
+        --cyan: #73f0ff;
+        --green: #8affcf;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        overflow-x: hidden;
+        color: var(--ink);
+        font-family:
+          Inter,
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          "Microsoft YaHei",
+          sans-serif;
+        background:
+          radial-gradient(circle at 84% 12%, rgba(104, 167, 255, 0.2), transparent 28%),
+          radial-gradient(circle at 8% 78%, rgba(115, 240, 255, 0.13), transparent 30%),
+          linear-gradient(135deg, #060d1b 0%, #02050d 56%, #060814 100%);
+      }
+
+      body::before {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        pointer-events: none;
+        content: "";
+        background:
+          linear-gradient(120deg, rgba(255, 255, 255, 0.06), transparent 12%, transparent 82%, rgba(118, 167, 255, 0.06)),
+          linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.028) 1px, transparent 1px);
+        background-size: 100% 100%, 64px 64px, 64px 64px;
+        mask-image: linear-gradient(to bottom, #000 0%, rgba(0, 0, 0, 0.7) 55%, transparent 100%);
+      }
+
+      .lab-shell {
+        position: relative;
+        z-index: 1;
+        width: min(1560px, calc(100vw - 44px));
+        margin: 0 auto;
+        padding: 28px 0 54px;
+      }
+
+      .lab-topbar {
+        display: flex;
+        gap: 16px;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 72px;
+        margin-bottom: 22px;
+        padding: 12px 14px 12px 18px;
+        border: 1px solid rgba(255, 255, 255, 0.13);
+        border-radius: 24px;
+        background: rgba(8, 15, 31, 0.62);
+        box-shadow:
+          0 24px 90px rgba(0, 0, 0, 0.3),
+          inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(24px);
+      }
+
+      .lab-title {
+        display: grid;
+        gap: 2px;
+      }
+
+      .lab-title strong {
+        font-size: 15px;
+        letter-spacing: 0;
+      }
+
+      .lab-title span {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 9px;
+        justify-content: flex-end;
+      }
+
+      button {
+        min-height: 38px;
+        padding: 0 15px;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        border-radius: 999px;
+        color: var(--ink);
+        background: rgba(255, 255, 255, 0.07);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        cursor: pointer;
+        font: inherit;
+        font-size: 13px;
+        font-weight: 800;
+      }
+
+      button.primary {
+        border-color: rgba(104, 167, 255, 0.68);
+        background: linear-gradient(135deg, rgba(104, 167, 255, 0.96), rgba(130, 112, 255, 0.96));
+      }
+
+      button.is-active {
+        border-color: rgba(115, 240, 255, 0.72);
+        background: rgba(115, 240, 255, 0.14);
+        box-shadow:
+          0 0 0 1px rgba(115, 240, 255, 0.08),
+          0 12px 36px rgba(104, 167, 255, 0.18),
+          inset 0 1px 0 rgba(255, 255, 255, 0.14);
+      }
+
+      .toggle {
+        display: inline-flex;
+        gap: 8px;
+        align-items: center;
+        min-height: 38px;
+        padding: 0 13px;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        border-radius: 999px;
+        color: rgba(236, 244, 255, 0.84);
+        background: rgba(255, 255, 255, 0.07);
+        font-size: 13px;
+        font-weight: 800;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      }
+
+      .toggle input {
+        accent-color: var(--blue);
+      }
+
+      .playback-status {
+        display: grid;
+        gap: 6px;
+        min-width: 180px;
+        color: rgba(236, 244, 255, 0.78);
+        font-size: 12px;
+        font-weight: 900;
+      }
+
+      .progress-track {
+        position: relative;
+        width: 100%;
+        height: 3px;
+        overflow: hidden;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.12);
+      }
+
+      .progress-bar {
+        position: absolute;
+        inset: 0 auto 0 0;
+        width: 0%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, var(--cyan), var(--blue), var(--violet));
+        box-shadow: 0 0 18px rgba(115, 240, 255, 0.46);
+      }
+
+      .lab-intro {
+        max-width: 1080px;
+        margin: 0 0 22px;
+        color: var(--muted);
+        line-height: 1.8;
+      }
+
+      .variant-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 16px;
+      }
+
+      .variant {
+        position: relative;
+        min-height: 710px;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 30px;
+        background:
+          radial-gradient(circle at 92% 10%, rgba(104, 167, 255, 0.16), transparent 26%),
+          radial-gradient(circle at 8% 88%, rgba(115, 240, 255, 0.08), transparent 26%),
+          linear-gradient(145deg, rgba(8, 15, 31, 0.97), rgba(2, 5, 13, 0.98));
+        box-shadow: 0 38px 130px rgba(0, 0, 0, 0.32);
+      }
+
+      .variant::before,
+      .variant::after {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        content: "";
+      }
+
+      .variant::before {
+        background:
+          linear-gradient(105deg, rgba(255, 255, 255, 0.08), transparent 16%, transparent 78%, rgba(115, 240, 255, 0.08)),
+          repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.025) 0 1px, transparent 1px 8px);
+        opacity: 0.8;
+      }
+
+      .variant::after {
+        background: radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.1), transparent 32%);
+        mix-blend-mode: screen;
+      }
+
+      .variant-label {
+        position: absolute;
+        top: 18px;
+        left: 18px;
+        z-index: 4;
+        display: inline-flex;
+        gap: 8px;
+        align-items: center;
+        min-height: 32px;
+        padding: 0 12px;
+        border: 1px solid rgba(255, 255, 255, 0.13);
+        border-radius: 999px;
+        color: rgba(234, 242, 255, 0.78);
+        background: rgba(255, 255, 255, 0.06);
+        font-size: 12px;
+        font-weight: 900;
+        backdrop-filter: blur(18px);
+      }
+
+      .stage-copy {
+        position: relative;
+        z-index: 3;
+        padding: 82px clamp(24px, 4vw, 46px) 36px;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        gap: 8px;
+        align-items: center;
+        min-height: 40px;
+        padding: 0 15px;
+        border: 1px solid rgba(132, 171, 236, 0.36);
+        border-radius: 999px;
+        color: rgba(235, 244, 255, 0.9);
+        background: rgba(13, 29, 55, 0.66);
+        font-size: 13px;
+        font-weight: 900;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.09);
+        will-change: transform, opacity, filter;
+      }
+
+      .hero-title {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0 0.22em;
+        margin: 30px 0 22px;
+        color: #fbfdff;
+        font-size: clamp(38px, 4.2vw, 60px);
+        line-height: 1.06;
+        letter-spacing: 0;
+      }
+
+      .word-mask,
+      .line-mask {
+        display: inline-block;
+        overflow: hidden;
+      }
+
+      .line-mask {
+        display: block;
+      }
+
+      .word,
+      .line {
+        position: relative;
+        display: inline-block;
+        will-change: transform, opacity, filter, clip-path;
+      }
+
+      .scan-word::after {
+        position: absolute;
+        inset: -0.06em -0.08em;
+        pointer-events: none;
+        content: "";
+        background: linear-gradient(90deg, transparent, rgba(142, 226, 255, 0.86), transparent);
+        opacity: 0;
+        transform: translateX(-120%);
+        mix-blend-mode: screen;
+      }
+
+      .scan-word.scan-active::after {
+        animation: scan-flare 1.2s cubic-bezier(0.16, 0.82, 0.26, 1) both;
+      }
+
+      @keyframes scan-flare {
+        0% {
+          opacity: 0;
+          transform: translateX(-130%);
+        }
+
+        32% {
+          opacity: 0.88;
+        }
+
+        100% {
+          opacity: 0;
+          transform: translateX(135%);
+        }
+      }
+
+      .body {
+        margin: 0;
+        color: rgba(222, 232, 247, 0.74);
+        font-size: 17px;
+        line-height: 1.76;
+        will-change: transform, opacity, filter;
+      }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 11px;
+        margin-top: 30px;
+        will-change: transform, opacity, filter;
+      }
+
+      .cta {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 46px;
+        padding: 0 18px;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        border-radius: 999px;
+        color: white;
+        background: rgba(255, 255, 255, 0.07);
+        font-size: 15px;
+        font-weight: 900;
+        text-decoration: none;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      }
+
+      .cta.primary {
+        background: linear-gradient(135deg, #68a7ff, #8270ff);
+        box-shadow:
+          0 18px 48px rgba(104, 167, 255, 0.24),
+          inset 0 1px 0 rgba(255, 255, 255, 0.18);
+      }
+
+      .metric-row {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: 34px;
+      }
+
+      .metric {
+        min-height: 86px;
+        padding: 14px;
+        border: 1px solid rgba(132, 171, 236, 0.24);
+        border-radius: 12px;
+        background: rgba(2, 8, 19, 0.46);
+        will-change: transform, opacity, filter;
+      }
+
+      .metric strong {
+        display: block;
+        margin-bottom: 4px;
+        color: white;
+        font-size: 24px;
+        line-height: 1;
+      }
+
+      .metric span {
+        color: rgba(214, 226, 245, 0.66);
+        font-size: 12px;
+      }
+
+      .hud-rail {
+        position: absolute;
+        right: 22px;
+        bottom: 24px;
+        left: 22px;
+        z-index: 2;
+        display: grid;
+        gap: 9px;
+      }
+
+      .hud-line {
+        height: 1px;
+        transform-origin: left center;
+        background: linear-gradient(90deg, rgba(115, 240, 255, 0.0), rgba(115, 240, 255, 0.45), rgba(104, 167, 255, 0.0));
+      }
+
+      .hud-tag {
+        display: flex;
+        justify-content: space-between;
+        color: rgba(210, 226, 250, 0.46);
+        font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .notes {
+        display: grid;
+        gap: 10px;
+        margin-top: 18px;
+        padding: 18px;
+        border: 1px solid rgba(255, 255, 255, 0.11);
+        border-radius: 22px;
+        color: var(--muted);
+        background: rgba(255, 255, 255, 0.045);
+        line-height: 1.72;
+      }
+
+      .notes strong {
+        color: white;
+      }
+
+      @media (max-width: 1180px) {
+        .variant-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .variant {
+          min-height: 610px;
+        }
+
+        .hero-title {
+          max-width: 780px;
+        }
+      }
+
+      @media (max-width: 680px) {
+        .lab-shell {
+          width: min(100% - 26px, 1560px);
+          padding-top: 15px;
+        }
+
+        .lab-topbar {
+          align-items: flex-start;
+          flex-direction: column;
+          border-radius: 18px;
+        }
+
+        .controls {
+          justify-content: flex-start;
+        }
+
+        .stage-copy {
+          padding: 74px 20px 30px;
+        }
+
+        .hero-title {
+          font-size: 36px;
+        }
+
+        .metric-row {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="lab-shell">
+      <header class="lab-topbar">
+        <div class="lab-title">
+          <strong>NCHU AI 高级文字动效 Lab</strong>
+          <span>B 方向增强版：更科技感、更像产品启动/AI 解码，但仍保持可读。</span>
+        </div>
+        <div class="controls">
+          <label class="toggle">
+            <input id="force-motion" type="checkbox" checked />
+            强制预览动效
+          </label>
+          <button type="button" data-play="decode">重播 1 解码</button>
+          <button type="button" data-play="scan">重播 2 光扫</button>
+          <button type="button" data-play="hud">重播 3 HUD</button>
+          <button class="primary" type="button" data-play="all">全部重播</button>
+          <button class="is-active" type="button" data-speed="slow">0.5x 慢速</button>
+          <button type="button" data-speed="normal">1x 正常</button>
+          <div class="playback-status" aria-live="polite">
+            <span id="playback-label">准备播放</span>
+            <span class="progress-track"><span class="progress-bar" id="playback-progress"></span></span>
+          </div>
+        </div>
+      </header>
+
+      <p class="lab-intro">
+        这版不是正式首页，只用于选择“B 方案再高级化”的动效语言。三种都以词组级进入为核心，分别叠加 AI 解码、玻璃光扫、HUD 系统启动的科技感。
+      </p>
+
+      <main class="variant-grid" aria-label="高级文字动效方案">
+        <section class="variant" data-variant="decode" aria-label="方案 1 AI 解码式">
+          <span class="variant-label">1 / AI Decode</span>
+          <div class="stage-copy">
+            <div class="eyebrow" data-decode-block data-scramble="AI-powered campus consultation">AI-powered campus consultation</div>
+            <h1 class="hero-title">
+              <span class="word-mask"><span class="word" data-decode-word>NCHU AI</span></span>
+              <span class="word-mask"><span class="word" data-decode-word>让校园咨询服务拥有</span></span>
+              <span class="word-mask"><span class="word" data-decode-word>清晰、</span></span>
+              <span class="word-mask"><span class="word" data-decode-word>可信、</span></span>
+              <span class="word-mask"><span class="word" data-decode-word>可演示的</span></span>
+              <span class="word-mask"><span class="word" data-decode-word>AI 工作台。</span></span>
+            </h1>
+            <p class="body" data-decode-block data-scramble="Demo boundary preserved. FastAPI orchestration ready.">
+              独立主站承载产品定位与能力叙事，登录后根据账号自动识别学生、老师、运维管理人员身份。
+            </p>
+            <div class="actions" data-decode-block>
+              <a class="cta primary" href="#">进入登录</a>
+              <a class="cta" href="#">查看产品叙事</a>
+            </div>
+            <div class="metric-row">
+              <div class="metric" data-decode-card><strong>3</strong><span>角色工作台</span></div>
+              <div class="metric" data-decode-card><strong>Demo</strong><span>模拟数据边界</span></div>
+              <div class="metric" data-decode-card><strong>FastAPI</strong><span>后端业务边界</span></div>
+            </div>
+          </div>
+          <div class="hud-rail" aria-hidden="true">
+            <div class="hud-line" data-decode-hud></div>
+            <div class="hud-tag"><span>AI ROUTE 01</span><span>READY</span></div>
+          </div>
+        </section>
+
+        <section class="variant" data-variant="scan" aria-label="方案 2 光扫遮罩式">
+          <span class="variant-label">2 / Glass Scan</span>
+          <div class="stage-copy">
+            <div class="line-mask"><div class="eyebrow" data-scan-line>AI-powered campus consultation</div></div>
+            <h1 class="hero-title">
+              <span class="word-mask"><span class="word scan-word" data-scan-word>NCHU AI</span></span>
+              <span class="word-mask"><span class="word scan-word" data-scan-word>让校园咨询服务拥有</span></span>
+              <span class="word-mask"><span class="word scan-word" data-scan-word>清晰、</span></span>
+              <span class="word-mask"><span class="word scan-word" data-scan-word>可信、</span></span>
+              <span class="word-mask"><span class="word scan-word" data-scan-word>可演示的</span></span>
+              <span class="word-mask"><span class="word scan-word" data-scan-word>AI 工作台。</span></span>
+            </h1>
+            <p class="body" data-scan-line>
+              左侧文字像被玻璃光束扫过后逐词显影，适合“苹果式玻璃 + 航空科技”的方向。
+            </p>
+            <div class="actions" data-scan-line>
+              <a class="cta primary" href="#">进入登录</a>
+              <a class="cta" href="#">查看产品叙事</a>
+            </div>
+            <div class="metric-row">
+              <div class="metric" data-scan-card><strong>3</strong><span>角色工作台</span></div>
+              <div class="metric" data-scan-card><strong>Demo</strong><span>模拟数据边界</span></div>
+              <div class="metric" data-scan-card><strong>FastAPI</strong><span>后端业务边界</span></div>
+            </div>
+          </div>
+          <div class="hud-rail" aria-hidden="true">
+            <div class="hud-line" data-scan-hud></div>
+            <div class="hud-tag"><span>LIGHT FIELD</span><span>SYNCED</span></div>
+          </div>
+        </section>
+
+        <section class="variant" data-variant="hud" aria-label="方案 3 HUD 分层启动式">
+          <span class="variant-label">3 / HUD Boot</span>
+          <div class="stage-copy">
+            <div class="line-mask"><div class="eyebrow" data-hud-line>AI-powered campus consultation</div></div>
+            <h1 class="hero-title">
+              <span class="line-mask"><span class="line" data-hud-title>NCHU AI</span></span>
+              <span class="line-mask"><span class="line" data-hud-title>让校园咨询服务拥有</span></span>
+              <span class="line-mask"><span class="line" data-hud-title>清晰、可信、可演示的 AI 工作台。</span></span>
+            </h1>
+            <p class="body" data-hud-line>
+              内容层不是单纯淡入，而是像驾驶舱 HUD 一样依次上电：标签、标题、说明、行动按钮和状态卡逐层锁定。
+            </p>
+            <div class="actions" data-hud-line>
+              <a class="cta primary" href="#">进入登录</a>
+              <a class="cta" href="#">查看产品叙事</a>
+            </div>
+            <div class="metric-row">
+              <div class="metric" data-hud-card><strong>3</strong><span>角色工作台</span></div>
+              <div class="metric" data-hud-card><strong>Demo</strong><span>模拟数据边界</span></div>
+              <div class="metric" data-hud-card><strong>FastAPI</strong><span>后端业务边界</span></div>
+            </div>
+          </div>
+          <div class="hud-rail" aria-hidden="true">
+            <div class="hud-line" data-hud-rail></div>
+            <div class="hud-tag"><span>COUNSELOR OS</span><span>BOOT OK</span></div>
+          </div>
+        </section>
+      </main>
+
+      <aside class="notes">
+        <div><strong>推荐判断：</strong>如果想“高级但不炫技”，优先选 2；如果想突出 AI，选 1；如果想强化航空/驾驶舱科技感，选 3。</div>
+        <div><strong>正式实现边界：</strong>仍建议只移植一个方向到 React 首页，避免三个动效叠加导致首屏乱、慢、不可控。</div>
+      </aside>
+    </div>
+
+    <script src="../../frontend/node_modules/gsap/dist/gsap.min.js"></script>
+    <script src="../../frontend/node_modules/gsap/dist/CustomEase.min.js"></script>
+    <script src="../../frontend/node_modules/gsap/dist/ScrambleTextPlugin.min.js"></script>
+    <script src="../../frontend/node_modules/gsap/dist/SplitText.min.js"></script>
+    <script>
+      gsap.registerPlugin(CustomEase, ScrambleTextPlugin, SplitText);
+
+      CustomEase.create("nchu-soft", "M0,0 C0.16,0.82 0.26,1 1,1");
+      CustomEase.create("nchu-snap", "M0,0 C0.18,0.9 0.2,1 1,1");
+
+      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const forceMotionControl = document.querySelector("#force-motion");
+      const playbackLabel = document.querySelector("#playback-label");
+      const playbackProgress = document.querySelector("#playback-progress");
+      const speedButtons = document.querySelectorAll("[data-speed]");
+      let playbackSpeed = 0.5;
+      let activeTimeline = null;
+      let autoplayTimer = null;
+
+      function toArray(nodes) {
+        return Array.from(nodes).filter(Boolean);
+      }
+
+      function shouldAnimate() {
+        return !reduceMotion || forceMotionControl.checked;
+      }
+
+      function setPlaybackStatus(label, progress = 0) {
+        playbackLabel.textContent = label;
+        gsap.set(playbackProgress, { width: `${Math.round(progress * 100)}%` });
+      }
+
+      function setSpeed(speed) {
+        playbackSpeed = speed === "normal" ? 1 : 0.5;
+        speedButtons.forEach((button) => {
+          button.classList.toggle(
+            "is-active",
+            (button.dataset.speed === "normal" && playbackSpeed === 1) ||
+              (button.dataset.speed === "slow" && playbackSpeed === 0.5),
+          );
+        });
+      }
+
+      function d(value) {
+        return value / playbackSpeed;
+      }
+
+      function createTimeline(label, ease = "nchu-soft", report = true) {
+        const options = { defaults: { ease } };
+
+        if (report) {
+          options.onUpdate = function () {
+            setPlaybackStatus(`播放中：${label}`, this.progress());
+          };
+          options.onComplete = function () {
+            setPlaybackStatus(`已完成：${label}`, 1);
+          };
+        }
+
+        return gsap.timeline(options);
+      }
+
+      function clearPlayback() {
+        if (autoplayTimer) {
+          clearTimeout(autoplayTimer);
+          autoplayTimer = null;
+        }
+
+        if (activeTimeline) {
+          activeTimeline.kill();
+          activeTimeline = null;
+        }
+
+        gsap.killTweensOf("*");
+        document.querySelectorAll(".scan-word").forEach((el) => {
+          el.classList.remove("scan-active");
+          void el.offsetWidth;
+        });
+      }
+
+      function setVisible(root) {
+        gsap.set(toArray(root.querySelectorAll("[data-decode-word], [data-decode-block], [data-decode-card], [data-decode-hud], [data-scan-word], [data-scan-line], [data-scan-card], [data-scan-hud], [data-hud-line], [data-hud-title], [data-hud-card], [data-hud-rail]")), {
+          x: 0,
+          y: 0,
+          yPercent: 0,
+          scale: 1,
+          autoAlpha: 1,
+          filter: "blur(0px)",
+          clipPath: "inset(0% 0% 0% 0%)",
+          textShadow: "none",
+        });
+      }
+
+      function resetAllVariants() {
+        resetDecode();
+        resetScan();
+        resetHud();
+      }
+
+      function resetDecode() {
+        const root = document.querySelector('[data-variant="decode"]');
+        const words = toArray(root.querySelectorAll("[data-decode-word]"));
+        const blocks = toArray(root.querySelectorAll("[data-decode-block]"));
+        const cards = toArray(root.querySelectorAll("[data-decode-card]"));
+        const hud = root.querySelector("[data-decode-hud]");
+
+        gsap.set(words, { yPercent: 145, autoAlpha: 0, filter: "blur(22px)" });
+        gsap.set(blocks, { y: 42, autoAlpha: 0, filter: "blur(18px)" });
+        gsap.set(cards, { y: 38, autoAlpha: 0, filter: "blur(14px)" });
+        gsap.set(hud, { scaleX: 0, autoAlpha: 0, transformOrigin: "left center" });
+      }
+
+      function decodeTimeline(report = true) {
+        const root = document.querySelector('[data-variant="decode"]');
+        if (!shouldAnimate()) {
+          setVisible(root);
+          setPlaybackStatus("已显示静态画面", 1);
+          return null;
+        }
+
+        resetDecode();
+        const words = toArray(root.querySelectorAll("[data-decode-word]"));
+        const blocks = toArray(root.querySelectorAll("[data-decode-block]"));
+        const cards = toArray(root.querySelectorAll("[data-decode-card]"));
+        const hud = root.querySelector("[data-decode-hud]");
+
+        const tl = createTimeline("1 解码", "nchu-soft", report);
+        tl.to(blocks[0], {
+          y: 0,
+          autoAlpha: 1,
+          filter: "blur(0px)",
+          duration: d(0.68),
+          scrambleText: {
+            text: blocks[0].dataset.scramble,
+            chars: "01AI-NCHU",
+            revealDelay: d(0.12),
+            speed: 0.45,
+          },
+        })
+          .to(
+            words,
+            {
+              yPercent: 0,
+              autoAlpha: 1,
+              filter: "blur(0px)",
+              duration: d(1.05),
+              stagger: d(0.105),
+            },
+            `-=${d(0.1)}`,
+          )
+          .to(
+            words,
+            {
+              duration: d(0.48),
+              stagger: d(0.065),
+              scrambleText: {
+                text: (i, target) => target.textContent,
+                chars: "01AI-NCHU",
+                speed: 0.55,
+              },
+            },
+            "<0.06",
+          )
+          .to(
+            [blocks[1], blocks[2]],
+            {
+              y: 0,
+              autoAlpha: 1,
+              filter: "blur(0px)",
+              duration: d(0.82),
+              stagger: d(0.12),
+            },
+            `-=${d(0.2)}`,
+          )
+          .to(cards, { y: 0, autoAlpha: 1, filter: "blur(0px)", duration: d(0.74), stagger: d(0.095) }, `-=${d(0.16)}`)
+          .to(hud, { scaleX: 1, autoAlpha: 1, duration: d(0.9) }, `-=${d(0.42)}`);
+
+        return tl;
+      }
+
+      function resetScan() {
+        const root = document.querySelector('[data-variant="scan"]');
+        const words = toArray(root.querySelectorAll("[data-scan-word]"));
+        const lines = toArray(root.querySelectorAll("[data-scan-line]"));
+        const cards = toArray(root.querySelectorAll("[data-scan-card]"));
+        const hud = root.querySelector("[data-scan-hud]");
+
+        root.querySelectorAll(".scan-word").forEach((el) => el.classList.remove("scan-active"));
+        gsap.set(words, { yPercent: 145, autoAlpha: 0, filter: "blur(24px)", clipPath: "inset(0% 100% 0% 0%)", textShadow: "none" });
+        gsap.set(lines, { y: 42, autoAlpha: 0, filter: "blur(18px)" });
+        gsap.set(cards, { y: 38, autoAlpha: 0, filter: "blur(14px)" });
+        gsap.set(hud, { scaleX: 0, autoAlpha: 0, transformOrigin: "left center" });
+      }
+
+      function scanTimeline(report = true) {
+        const root = document.querySelector('[data-variant="scan"]');
+        if (!shouldAnimate()) {
+          setVisible(root);
+          setPlaybackStatus("已显示静态画面", 1);
+          return null;
+        }
+
+        resetScan();
+        const words = toArray(root.querySelectorAll("[data-scan-word]"));
+        const lines = toArray(root.querySelectorAll("[data-scan-line]"));
+        const cards = toArray(root.querySelectorAll("[data-scan-card]"));
+        const hud = root.querySelector("[data-scan-hud]");
+
+        const tl = createTimeline("2 光扫", "nchu-snap", report);
+        tl.to(lines[0], { y: 0, autoAlpha: 1, filter: "blur(0px)", duration: d(0.72) })
+          .to(
+            words,
+            {
+              yPercent: 0,
+              autoAlpha: 1,
+              filter: "blur(0px)",
+              clipPath: "inset(0% 0% 0% 0%)",
+              duration: d(1.12),
+              stagger: d(0.105),
+            },
+            `-=${d(0.08)}`,
+          )
+          .to(
+            words,
+            {
+              "--scan": 1,
+              duration: 0.001,
+              stagger: d(0.075),
+              onStart() {
+                this.targets().forEach((el) => el.classList.add("scan-active"));
+              },
+            },
+            "<",
+          )
+          .to(
+            toArray(root.querySelectorAll(".scan-word")),
+            {
+              textShadow: "0 0 22px rgba(115,240,255,0.42)",
+              duration: d(0.32),
+              yoyo: true,
+              repeat: 1,
+              stagger: d(0.075),
+            },
+            "<0.04",
+          )
+          .to([lines[1], lines[2]], { y: 0, autoAlpha: 1, filter: "blur(0px)", duration: d(0.82), stagger: d(0.12) }, `-=${d(0.18)}`)
+          .to(cards, { y: 0, autoAlpha: 1, filter: "blur(0px)", duration: d(0.74), stagger: d(0.095) }, `-=${d(0.16)}`)
+          .to(hud, { scaleX: 1, autoAlpha: 1, duration: d(0.88) }, `-=${d(0.35)}`);
+
+        return tl;
+      }
+
+      function resetHud() {
+        const root = document.querySelector('[data-variant="hud"]');
+        const lines = toArray(root.querySelectorAll("[data-hud-line]"));
+        const title = toArray(root.querySelectorAll("[data-hud-title]"));
+        const cards = toArray(root.querySelectorAll("[data-hud-card]"));
+        const rail = root.querySelector("[data-hud-rail]");
+
+        gsap.set(lines, { x: -32, autoAlpha: 0, filter: "blur(18px)" });
+        gsap.set(title, { yPercent: 145, autoAlpha: 0, filter: "blur(22px)", skewY: 1.4 });
+        gsap.set(cards, { x: -22, y: 30, autoAlpha: 0, filter: "blur(14px)" });
+        gsap.set(rail, { scaleX: 0, autoAlpha: 0, transformOrigin: "left center" });
+      }
+
+      function hudTimeline(report = true) {
+        const root = document.querySelector('[data-variant="hud"]');
+        if (!shouldAnimate()) {
+          setVisible(root);
+          setPlaybackStatus("已显示静态画面", 1);
+          return null;
+        }
+
+        resetHud();
+        const lines = toArray(root.querySelectorAll("[data-hud-line]"));
+        const title = toArray(root.querySelectorAll("[data-hud-title]"));
+        const cards = toArray(root.querySelectorAll("[data-hud-card]"));
+        const rail = root.querySelector("[data-hud-rail]");
+
+        const tl = createTimeline("3 HUD", "nchu-soft", report);
+        tl.to(lines[0], { x: 0, autoAlpha: 1, filter: "blur(0px)", duration: d(0.62) })
+          .to(
+            title,
+            {
+              yPercent: 0,
+              autoAlpha: 1,
+              filter: "blur(0px)",
+              skewY: 0,
+              duration: d(1.0),
+              stagger: d(0.16),
+            },
+            `-=${d(0.1)}`,
+          )
+          .to([lines[1], lines[2]], { x: 0, autoAlpha: 1, filter: "blur(0px)", duration: d(0.74), stagger: d(0.12) }, `-=${d(0.22)}`)
+          .to(cards, { x: 0, y: 0, autoAlpha: 1, filter: "blur(0px)", duration: d(0.7), stagger: d(0.095) }, `-=${d(0.16)}`)
+          .to(rail, { scaleX: 1, autoAlpha: 1, duration: d(0.82) }, `-=${d(0.35)}`);
+
+        return tl;
+      }
+
+      function runTimeline(label, factory) {
+        clearPlayback();
+        resetAllVariants();
+        setPlaybackStatus(`播放中：${label}`, 0);
+        activeTimeline = factory();
+        return activeTimeline;
+      }
+
+      function playDecode() {
+        return runTimeline("1 解码", decodeTimeline);
+      }
+
+      function playScan() {
+        return runTimeline("2 光扫", scanTimeline);
+      }
+
+      function playHud() {
+        return runTimeline("3 HUD", hudTimeline);
+      }
+
+      function playAll() {
+        clearPlayback();
+        resetAllVariants();
+        setPlaybackStatus("播放中：全部重播", 0);
+        activeTimeline = gsap.timeline({
+          onUpdate() {
+            setPlaybackStatus("播放中：全部重播", this.progress());
+          },
+          onComplete() {
+            setPlaybackStatus("已完成：全部重播", 1);
+          },
+        });
+
+        const decode = decodeTimeline(false);
+        const scan = scanTimeline(false);
+        const hud = hudTimeline(false);
+
+        if (decode) activeTimeline.add(decode, 0);
+        if (scan) activeTimeline.add(scan, d(0.28));
+        if (hud) activeTimeline.add(hud, d(0.56));
+        return activeTimeline;
+      }
+
+      document.querySelectorAll("[data-play]").forEach((button) => {
+        button.addEventListener("click", () => {
+          const key = button.dataset.play;
+          if (key === "decode") playDecode();
+          if (key === "scan") playScan();
+          if (key === "hud") playHud();
+          if (key === "all") playAll();
+        });
+      });
+
+      speedButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          setSpeed(button.dataset.speed);
+          playAll();
+        });
+      });
+
+      forceMotionControl.addEventListener("change", () => playAll());
+
+      resetAllVariants();
+      setPlaybackStatus("0.5 秒后自动播放", 0);
+      autoplayTimer = setTimeout(playAll, 500);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,24 @@
+{
+  "status": "passed",
+  "passed": true,
+  "validator_prompt": "Review whether the report uses live-page/browser evidence to classify the Ant Design X hero animation type, separates fact from inference, and gives actionable implications for the NCHU wing hero.",
+  "architect_review": {
+    "verdict": "approved",
+    "summary": "The report uses Playwright live-page evidence, DOM inspection, network response headers and response body evidence to classify the Ant Design X hero robot as a Lottie JSON animation rendered as SVG with PNG image layers. It corrects the earlier static-screenshot inference and gives actionable project routes."
+  },
+  "output_artifact_path": ".omx/specs/autoresearch-ant-design-x-hero-motion/report.md",
+  "completion_artifact_path": ".omx/specs/autoresearch-ant-design-x-hero-motion/result.json",
+  "evidence_artifacts": [
+    "output/ant-design-x-motion/antx-hero-motion.webm",
+    "output/ant-design-x-motion/antx-hero-t0.png",
+    "output/ant-design-x-motion/antx-hero-t2.png",
+    "output/ant-design-x-motion/antx-hero-t4.png",
+    "output/ant-design-x-motion/focused-transform-samples.json",
+    "output/ant-design-x-motion/lottie-svg-evidence.json",
+    "output/ant-design-x-motion/network-requests.txt",
+    "output/ant-design-x-motion/request-52-body.txt",
+    "output/ant-design-x-motion/robot-dom-excerpt.json",
+    "output/ant-design-x-motion/visible-bg-samples.txt"
+  ],
+  "completed_at": "2026-05-23"
+}

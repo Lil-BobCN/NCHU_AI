@@ -1,0 +1,5 @@
+﻿{
+  "validator_prompt": "Review whether the research output separates public evidence from required private integration data and gives an implementable SSO direction.",
+  "architect_review": { "verdict": "approved" },
+  "output_artifact_path": ".omx/specs/autoresearch-nchu-sso/report.md"
+}

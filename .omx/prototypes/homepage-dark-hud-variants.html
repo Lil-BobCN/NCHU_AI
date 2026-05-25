@@ -1,0 +1,1776 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NCHU AI 辅导员系统首页原型</title>
+    <link rel="icon" href="data:," />
+    <script>
+      document.documentElement.classList.add("motion-boot");
+    </script>
+    <style>
+      :root {
+        color-scheme: light;
+        --font-sans: "PingFang SC", "Microsoft YaHei UI", "Microsoft YaHei", "Segoe UI", Arial, system-ui, sans-serif;
+        --font-display: "PingFang SC", "Microsoft YaHei UI", "Microsoft YaHei", "Segoe UI", Arial, system-ui, sans-serif;
+        --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+        --bg: #faf9f5;
+        --bg-elevated: #fffdf8;
+        --surface: #f0eee7;
+        --surface-strong: #e7e3da;
+        --ink: #242321;
+        --ink-strong: #141413;
+        --muted: #53534f;
+        --subtle: #77766f;
+        --line: rgba(20, 20, 19, 0.14);
+        --line-strong: rgba(18, 46, 138, 0.24);
+        --primary: #122e8a;
+        --primary-ink: #fbf8f2;
+        --secondary: #d8dcea;
+        --shadow: 0 18px 58px rgba(28, 27, 25, 0.1);
+        --soft-shadow: 0 10px 28px rgba(28, 27, 25, 0.08);
+        --radius: 22px;
+        --max: 1180px;
+        --ease: cubic-bezier(0.19, 1, 0.22, 1);
+      }
+
+      body[data-theme="dark"] {
+        color-scheme: dark;
+        --bg: #0d131a;
+        --bg-elevated: #121a23;
+        --surface: #17212d;
+        --surface-strong: #1e2a36;
+        --ink: #efd6c0;
+        --ink-strong: #fff0df;
+        --muted: #d69a72;
+        --subtle: #a86d4c;
+        --line: rgba(171, 89, 36, 0.24);
+        --line-strong: rgba(171, 89, 36, 0.48);
+        --primary: #ab5924;
+        --primary-ink: #0d131a;
+        --secondary: #c27645;
+        --shadow: 0 26px 80px rgba(3, 7, 12, 0.58);
+        --soft-shadow: 0 12px 36px rgba(3, 7, 12, 0.46);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        overflow-x: hidden;
+        background:
+          radial-gradient(circle at 82% 18%, color-mix(in srgb, var(--secondary), transparent 54%), transparent 32rem),
+          linear-gradient(180deg, color-mix(in srgb, var(--bg-elevated), var(--bg) 38%) 0%, var(--bg) 46%, color-mix(in srgb, var(--surface), var(--bg) 45%) 72%, var(--bg) 100%);
+        background-color: var(--bg);
+        color: var(--ink);
+        font-family: var(--font-sans);
+        letter-spacing: 0;
+      }
+
+      body::before {
+        position: fixed;
+        inset: 0;
+        z-index: -1;
+        pointer-events: none;
+        content: "";
+        background-image:
+          linear-gradient(rgba(20, 20, 19, 0.026) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(20, 20, 19, 0.022) 1px, transparent 1px);
+        background-size: 64px 64px;
+        mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.66), transparent 68%);
+      }
+
+      body[data-theme="dark"]::before {
+        background-image:
+          linear-gradient(rgba(171, 89, 36, 0.06) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(171, 89, 36, 0.045) 1px, transparent 1px);
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      button,
+      input {
+        font: inherit;
+      }
+
+      .site-shell {
+        min-height: 100vh;
+      }
+
+      main {
+        position: relative;
+      }
+
+      body[data-theme="light"] main {
+        background:
+          linear-gradient(
+            180deg,
+            transparent 0,
+            transparent 30rem,
+            rgba(226, 224, 216, 0.7) 43rem,
+            rgba(250, 249, 245, 0.98) 56rem,
+            rgba(238, 234, 225, 0.92) 76rem,
+            transparent 102rem
+          );
+      }
+
+      .sticky-header {
+        position: sticky;
+        top: 0;
+        z-index: 40;
+        background: color-mix(in srgb, var(--bg), transparent 10%);
+        backdrop-filter: blur(18px);
+      }
+
+      .top-nav {
+        border-bottom: 1px solid color-mix(in srgb, var(--line), transparent 18%);
+      }
+
+      .nav-inner,
+      .product-strip,
+      .hero,
+      .section-inner,
+      .cta-band {
+        width: min(var(--max), calc(100vw - 48px));
+        margin: 0 auto;
+      }
+
+      .nav-inner {
+        display: grid;
+        grid-template-columns: auto minmax(360px, 1fr) auto;
+        gap: 34px;
+        align-items: center;
+        height: 64px;
+      }
+
+      .brand {
+        display: inline-flex;
+        gap: 10px;
+        align-items: center;
+        font-weight: 760;
+        color: var(--ink-strong);
+      }
+
+      .brand-mark {
+        display: grid;
+        width: 30px;
+        height: 30px;
+        place-items: center;
+        border: 1px solid var(--line-strong);
+        border-radius: 9px;
+        background: color-mix(in srgb, var(--primary), transparent 90%);
+        box-shadow: inset 0 1px 0 color-mix(in srgb, var(--bg-elevated), transparent 20%);
+      }
+
+      .brand-mark svg {
+        width: 19px;
+        height: 19px;
+      }
+
+      .primary-links {
+        display: flex;
+        justify-self: end;
+        justify-content: flex-end;
+        gap: 24px;
+        color: var(--muted);
+        font-size: 13px;
+        white-space: nowrap;
+      }
+
+      .primary-links a {
+        transition: color 180ms ease;
+      }
+
+      .primary-links a:hover {
+        color: var(--ink-strong);
+      }
+
+      .nav-actions {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 12px;
+      }
+
+      .nav-link {
+        display: inline-flex;
+        min-height: 36px;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid transparent;
+        border-radius: 6px;
+        background: transparent;
+        color: var(--muted);
+        cursor: pointer;
+        padding: 0 10px;
+        transition:
+          background-color 180ms ease,
+          border-color 180ms ease,
+          color 180ms ease;
+      }
+
+      .nav-link:hover {
+        border-color: var(--line);
+        background: color-mix(in srgb, var(--bg-elevated), transparent 18%);
+        color: var(--ink-strong);
+      }
+
+      .btn {
+        display: inline-flex;
+        min-height: 36px;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        border: 1px solid transparent;
+        border-radius: 6px;
+        padding: 0 15px;
+        cursor: pointer;
+        font-size: 13px;
+        transition:
+          transform 180ms ease,
+          border-color 180ms ease,
+          background-color 180ms ease,
+          color 180ms ease,
+          box-shadow 180ms ease;
+      }
+
+      .btn:hover {
+        transform: translateY(-1px);
+      }
+
+      .btn-primary {
+        background: var(--primary);
+        color: var(--primary-ink);
+        box-shadow: var(--soft-shadow);
+      }
+
+      .btn-ghost {
+        border-color: var(--line);
+        background: color-mix(in srgb, var(--bg-elevated), transparent 16%);
+        color: var(--ink-strong);
+      }
+
+      .theme-toggle {
+        position: relative;
+        display: inline-grid;
+        grid-template-columns: 1fr 1fr;
+        width: 106px;
+        height: 38px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: color-mix(in srgb, var(--bg-elevated), transparent 12%);
+        padding: 3px;
+      }
+
+      .theme-toggle button {
+        position: relative;
+        z-index: 1;
+        border: 0;
+        border-radius: 999px;
+        background: transparent;
+        color: var(--muted);
+        cursor: pointer;
+        font-size: 12px;
+      }
+
+      .theme-toggle::before {
+        position: absolute;
+        top: 3px;
+        bottom: 3px;
+        left: 3px;
+        width: calc(50% - 3px);
+        border-radius: 999px;
+        background: var(--primary);
+        content: "";
+        transition: transform 260ms var(--ease);
+      }
+
+      body[data-theme="dark"] .theme-toggle::before {
+        transform: translateX(100%);
+      }
+
+      body[data-theme="light"] .theme-toggle button:first-child,
+      body[data-theme="dark"] .theme-toggle button:last-child {
+        color: var(--primary-ink);
+      }
+
+      .product-bar {
+        border-bottom: 1px solid var(--line);
+        background: color-mix(in srgb, var(--bg), transparent 10%);
+      }
+
+      .product-strip {
+        display: flex;
+        height: 48px;
+        align-items: center;
+        justify-content: space-between;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .product-strip strong {
+        color: var(--ink-strong);
+      }
+
+      .product-strip a {
+        display: inline-flex;
+        gap: 8px;
+        align-items: center;
+        color: var(--ink-strong);
+      }
+
+      .hero {
+        position: relative;
+        display: grid;
+        min-height: calc(100vh - 118px);
+        grid-template-columns: minmax(0, 0.96fr) minmax(420px, 1.04fr);
+        gap: clamp(34px, 6vw, 88px);
+        align-items: center;
+        padding: 82px 0 104px;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0 0 20px;
+        color: var(--subtle);
+        font-size: 13px;
+      }
+
+      .eyebrow::before {
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: var(--primary);
+        box-shadow: 0 0 0 6px color-mix(in srgb, var(--primary), transparent 86%);
+        content: "";
+      }
+
+      h1,
+      h2,
+      .cta-title {
+        margin: 0;
+        color: var(--ink-strong);
+        font-family: var(--font-display);
+        font-weight: 500;
+        letter-spacing: 0;
+      }
+
+      h1 {
+        max-width: 720px;
+        font-size: clamp(34px, 3.8vw, 54px);
+        line-height: 1.13;
+        white-space: nowrap;
+      }
+
+      h1 span {
+        display: inline-block;
+      }
+
+      h1 > span + span {
+        margin-left: 0.18em;
+      }
+
+      .motion-token {
+        display: inline-block;
+        will-change: transform, opacity;
+      }
+
+      .hero-copy {
+        max-width: 540px;
+        margin: 22px 0 24px;
+        color: var(--muted);
+        font-size: clamp(15px, 1.28vw, 17px);
+        line-height: 1.82;
+      }
+
+      .prompt-box {
+        max-width: 520px;
+        border: 1px solid var(--line-strong);
+        border-radius: 9px;
+        background: color-mix(in srgb, var(--bg-elevated), transparent 2%);
+        box-shadow: 0 12px 30px rgba(28, 27, 25, 0.07);
+        overflow: hidden;
+      }
+
+      .prompt-main {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 10px;
+        align-items: center;
+        padding: 8px 8px 8px 16px;
+      }
+
+      .prompt-main input {
+        min-width: 0;
+        border: 0;
+        outline: 0;
+        background: transparent;
+        color: var(--ink-strong);
+        font-size: 13px;
+      }
+
+      .prompt-main input::placeholder {
+        color: var(--subtle);
+      }
+
+      .prompt-pills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 0 12px 12px;
+      }
+
+      .prompt-pills button {
+        min-height: 26px;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: color-mix(in srgb, var(--surface), transparent 20%);
+        color: var(--muted);
+        padding: 0 10px;
+        cursor: pointer;
+        font-size: 12px;
+      }
+
+      .hero-visual {
+        position: relative;
+        min-height: 560px;
+      }
+
+      .orbital-panel {
+        position: absolute;
+        inset: 7% 0 8% 3%;
+        border: 1px solid var(--line);
+        border-radius: 40px;
+        background:
+          radial-gradient(circle at 74% 30%, color-mix(in srgb, var(--primary), transparent 78%), transparent 20rem),
+          linear-gradient(145deg, color-mix(in srgb, var(--bg-elevated), transparent 0%), color-mix(in srgb, var(--surface), transparent 20%));
+        box-shadow: var(--shadow);
+        overflow: hidden;
+      }
+
+      .orbital-panel::after {
+        position: absolute;
+        inset: auto 12% 12% auto;
+        width: 180px;
+        height: 180px;
+        border: 1px solid var(--line);
+        border-radius: 50%;
+        content: "";
+      }
+
+      .hero-svg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+      }
+
+      .hero-line {
+        fill: none;
+        stroke: var(--primary);
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        stroke-width: 1.6;
+      }
+
+      .hero-line.soft {
+        stroke: color-mix(in srgb, var(--primary), transparent 42%);
+        stroke-width: 1.1;
+      }
+
+      .node {
+        fill: var(--bg-elevated);
+        stroke: var(--primary);
+        stroke-width: 1.4;
+      }
+
+      .wing-symbol {
+        filter: drop-shadow(0 18px 28px rgba(18, 46, 138, 0.16));
+      }
+
+      .flight-chip {
+        position: absolute;
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 12px;
+        align-items: center;
+        width: min(260px, 54%);
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        background: color-mix(in srgb, var(--bg-elevated), transparent 6%);
+        box-shadow: var(--soft-shadow);
+        padding: 14px;
+      }
+
+      .flight-chip .dot {
+        width: 36px;
+        height: 36px;
+        border-radius: 12px;
+        background: var(--primary);
+      }
+
+      .flight-chip strong {
+        display: block;
+        color: var(--ink-strong);
+        font-size: 13px;
+      }
+
+      .flight-chip span {
+        display: block;
+        margin-top: 4px;
+        color: var(--subtle);
+        font-size: 12px;
+      }
+
+      .chip-a {
+        top: 16%;
+        right: 4%;
+      }
+
+      .chip-b {
+        bottom: 16%;
+        left: 0;
+      }
+
+      .latest-card {
+        position: absolute;
+        right: min(3vw, 36px);
+        bottom: 0;
+        width: min(330px, 72%);
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        background: color-mix(in srgb, var(--bg-elevated), transparent 3%);
+        box-shadow: var(--shadow);
+        padding: 20px;
+      }
+
+      .latest-card small {
+        color: var(--subtle);
+      }
+
+      .latest-card h3 {
+        margin: 10px 0 12px;
+        color: var(--ink-strong);
+        font-size: 20px;
+        line-height: 1.35;
+      }
+
+      .latest-card a {
+        color: var(--primary);
+        font-size: 14px;
+      }
+
+      section {
+        position: relative;
+        scroll-margin-top: 128px;
+        padding: 110px 0;
+      }
+
+      body[data-theme="light"] #platform {
+        background:
+          radial-gradient(ellipse at 52% 0%, rgba(18, 46, 138, 0.1), transparent 44%),
+          linear-gradient(180deg, rgba(225, 223, 216, 0.94) 0%, rgba(250, 249, 245, 0.98) 24%, rgba(241, 237, 228, 0.96) 64%, rgba(232, 229, 221, 0.9) 100%);
+        box-shadow:
+          inset 0 1px 0 rgba(20, 20, 19, 0.11),
+          inset 0 -1px 0 rgba(20, 20, 19, 0.08);
+      }
+
+      body[data-theme="light"] #platform::before {
+        position: absolute;
+        inset: 0 0 auto;
+        height: 220px;
+        pointer-events: none;
+        content: "";
+        background: linear-gradient(180deg, rgba(250, 249, 245, 0), rgba(225, 223, 216, 0.88) 58%, rgba(250, 249, 245, 0.55));
+        transform: translateY(-100%);
+      }
+
+      .section-centered {
+        text-align: center;
+      }
+
+      h2 {
+        max-width: 720px;
+        margin: 0 auto;
+        font-size: clamp(34px, 4vw, 56px);
+        line-height: 1.12;
+      }
+
+      .section-lead {
+        max-width: 670px;
+        margin: 20px auto 28px;
+        color: var(--muted);
+        font-size: 15px;
+        line-height: 1.8;
+      }
+
+      .download-actions,
+      .tabs {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 12px;
+      }
+
+      .problem-grid {
+        display: grid;
+        grid-template-columns: minmax(290px, 0.86fr) minmax(360px, 1.14fr);
+        gap: clamp(34px, 6vw, 80px);
+        align-items: center;
+        margin-top: 68px;
+        text-align: left;
+      }
+
+      .feature-list {
+        border-top: 1px solid var(--line);
+      }
+
+      .feature-item {
+        display: grid;
+        grid-template-columns: 52px 1fr;
+        gap: 16px;
+        border-bottom: 1px solid var(--line);
+        padding: 22px 0;
+      }
+
+      .feature-num {
+        color: var(--subtle);
+        font-family: var(--font-mono);
+        font-size: 13px;
+      }
+
+      .feature-item h3 {
+        margin: 0;
+        color: var(--ink-strong);
+        font-size: 19px;
+      }
+
+      .feature-item p {
+        margin: 9px 0 0;
+        color: var(--muted);
+        font-size: 15px;
+        line-height: 1.72;
+      }
+
+      .network-card {
+        position: relative;
+        min-height: 560px;
+        border: 1px solid var(--line);
+        border-radius: 42px;
+        background:
+          radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--primary), transparent 80%), transparent 18rem),
+          linear-gradient(160deg, color-mix(in srgb, var(--bg-elevated), transparent 0%), color-mix(in srgb, var(--surface), transparent 20%));
+        box-shadow: var(--shadow);
+        overflow: hidden;
+      }
+
+      .network-svg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+      }
+
+      .network-center {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        display: grid;
+        width: 138px;
+        height: 138px;
+        place-items: center;
+        border: 1px solid var(--line-strong);
+        border-radius: 34px;
+        background: color-mix(in srgb, var(--bg), transparent 10%);
+        color: var(--primary);
+        transform: translate(-50%, -50%);
+        box-shadow: var(--soft-shadow);
+      }
+
+      .network-center span {
+        max-width: 76px;
+        text-align: center;
+        font-family: var(--font-display);
+        font-weight: 560;
+        font-size: 24px;
+        line-height: 1.05;
+      }
+
+      .orbit-label {
+        position: absolute;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: color-mix(in srgb, var(--bg-elevated), transparent 6%);
+        color: var(--muted);
+        padding: 9px 13px;
+        font-size: 13px;
+      }
+
+      .label-1 {
+        top: 18%;
+        left: 13%;
+      }
+
+      .label-2 {
+        top: 22%;
+        right: 11%;
+      }
+
+      .label-3 {
+        right: 16%;
+        bottom: 18%;
+      }
+
+      .label-4 {
+        bottom: 20%;
+        left: 10%;
+      }
+
+      .use-section {
+        padding-top: 72px;
+      }
+
+      .cta-band {
+        border: 1px solid var(--line);
+        border-radius: 34px;
+        background:
+          linear-gradient(135deg, color-mix(in srgb, var(--primary), transparent 8%), color-mix(in srgb, var(--primary), var(--surface) 16%));
+        color: var(--primary-ink);
+        box-shadow: var(--shadow);
+        padding: clamp(30px, 6vw, 64px);
+      }
+
+      body[data-theme="dark"] .cta-band {
+        background:
+          radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.08), transparent 22rem),
+          linear-gradient(135deg, #ab5924, #7f3d18);
+      }
+
+      .cta-band small {
+        display: block;
+        margin-bottom: 14px;
+        opacity: 0.72;
+      }
+
+      .cta-title {
+        max-width: 840px;
+        color: var(--primary-ink);
+        font-size: clamp(38px, 5vw, 68px);
+        line-height: 1.02;
+      }
+
+      .use-heading {
+        display: grid;
+        justify-items: center;
+        gap: 18px;
+        margin-top: 88px;
+        text-align: center;
+      }
+
+      .use-icon {
+        display: grid;
+        width: 58px;
+        height: 58px;
+        place-items: center;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: color-mix(in srgb, var(--bg-elevated), transparent 8%);
+        color: var(--primary);
+      }
+
+      .tabs {
+        margin-top: 34px;
+      }
+
+      .tab {
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: color-mix(in srgb, var(--bg-elevated), transparent 8%);
+        color: var(--muted);
+        padding: 12px 18px;
+      }
+
+      .tab.is-active {
+        background: var(--primary);
+        color: var(--primary-ink);
+      }
+
+      .role-preview {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 16px;
+        margin-top: 38px;
+      }
+
+      .role-card {
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        background: color-mix(in srgb, var(--bg-elevated), transparent 8%);
+        padding: 22px;
+        box-shadow: var(--soft-shadow);
+      }
+
+      .role-card h3 {
+        margin: 0 0 10px;
+        color: var(--ink-strong);
+      }
+
+      .role-card p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.68;
+      }
+
+      .review-note {
+        width: min(var(--max), calc(100vw - 48px));
+        margin: 0 auto;
+        padding: 0 0 34px;
+        color: var(--subtle);
+        font-size: 13px;
+      }
+
+      .motion-prep,
+      .reveal {
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(22px);
+        will-change: transform, opacity;
+      }
+
+      html.motion-boot:not(.motion-reduced) [data-motion="nav"],
+      html.motion-boot:not(.motion-reduced) [data-motion="product-bar"],
+      html.motion-boot:not(.motion-reduced) .hero-visual {
+        opacity: 0;
+        visibility: hidden;
+        will-change: transform, opacity;
+      }
+
+      html.motion-boot:not(.motion-reduced) [data-motion="nav"] {
+        transform: translate3d(0, -24px, 0);
+      }
+
+      html.motion-boot:not(.motion-reduced) [data-motion="product-bar"],
+      html.motion-boot:not(.motion-reduced) .hero-visual {
+        transform: translate3d(0, 28px, 0);
+      }
+
+      .reveal {
+        clip-path: inset(10% 0 0 0);
+        will-change: transform, opacity, clip-path;
+      }
+
+      .draw-line {
+        stroke-dasharray: 1;
+        stroke-dashoffset: 1;
+      }
+
+      .ambient-float {
+        animation: ambientFloat 6.4s ease-in-out infinite;
+      }
+
+      .pulse-ring {
+        animation: pulseRing 3.8s ease-in-out infinite;
+        transform-origin: center;
+      }
+
+      @keyframes ambientFloat {
+        0%,
+        100% {
+          transform: translate3d(0, 0, 0);
+        }
+        50% {
+          transform: translate3d(0, -10px, 0);
+        }
+      }
+
+      @keyframes pulseRing {
+        0%,
+        100% {
+          opacity: 0.36;
+          transform: scale(1);
+        }
+        50% {
+          opacity: 0.74;
+          transform: scale(1.035);
+        }
+      }
+
+      @media (max-width: 920px) {
+        .nav-inner {
+          grid-template-columns: 1fr auto;
+        }
+
+        .primary-links {
+          display: none;
+        }
+
+        .nav-actions {
+          gap: 8px;
+        }
+
+        .nav-actions .nav-link,
+        .nav-actions .btn-ghost {
+          display: none;
+        }
+
+        .hero,
+        .problem-grid,
+        .role-preview {
+          grid-template-columns: 1fr;
+        }
+
+        .hero {
+          min-height: auto;
+          padding-top: 48px;
+        }
+
+        .hero-visual {
+          min-height: 460px;
+        }
+
+        .orbital-panel {
+          inset: 0;
+        }
+
+        .latest-card {
+          right: 18px;
+          width: min(330px, calc(100% - 36px));
+        }
+      }
+
+      @media (max-width: 640px) {
+        .nav-inner,
+        .product-strip,
+        .hero,
+        .section-inner,
+        .cta-band,
+        .review-note {
+          width: min(100% - 28px, var(--max));
+        }
+
+        .nav-inner {
+          height: 62px;
+        }
+
+        .brand span:last-child {
+          display: none;
+        }
+
+        .theme-toggle {
+          width: 86px;
+        }
+
+        .hero {
+          padding: 34px 0 70px;
+        }
+
+        h1 {
+          font-size: clamp(32px, 9.2vw, 38px);
+          line-height: 1.15;
+        }
+
+        h2 {
+          font-size: clamp(28px, 8.2vw, 38px);
+        }
+
+        .prompt-main {
+          grid-template-columns: 1fr;
+          padding: 12px;
+        }
+
+        .prompt-main .btn {
+          width: 100%;
+        }
+
+        .hero-visual {
+          min-height: 390px;
+        }
+
+        .flight-chip {
+          width: min(240px, 70%);
+        }
+
+        .chip-a {
+          top: 10%;
+        }
+
+        .chip-b {
+          bottom: 18%;
+        }
+
+        .network-card {
+          min-height: 420px;
+          border-radius: 28px;
+        }
+
+        .feature-item {
+          grid-template-columns: 1fr;
+          gap: 8px;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          scroll-behavior: auto !important;
+          animation-duration: 0.001ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.001ms !important;
+        }
+
+        .motion-prep,
+        .reveal,
+        .motion-token {
+          opacity: 1;
+          visibility: visible;
+          transform: none;
+          clip-path: inset(0);
+        }
+      }
+    </style>
+  </head>
+  <body data-theme="light">
+    <div class="site-shell">
+      <div class="sticky-header">
+        <header class="top-nav motion-prep" data-motion="nav">
+          <div class="nav-inner">
+            <a class="brand" href="#top" aria-label="NCHU AI 首页">
+              <span class="brand-mark" aria-hidden="true">
+                <svg viewBox="0 0 32 32" fill="none">
+                  <path d="M6 22 18 6l8 4-11 16-9-4Z" fill="currentColor" opacity="0.9" />
+                  <path d="M9 22h15l-7 5-8-5Z" fill="currentColor" opacity="0.58" />
+                </svg>
+              </span>
+              <span>NCHU AI</span>
+            </a>
+
+            <nav class="primary-links" aria-label="主导航">
+              <a href="#meet">认识产品</a>
+              <a href="#platform">平台能力</a>
+              <a href="#roles">角色场景</a>
+              <a href="#governance">治理边界</a>
+              <a href="#resources">资源</a>
+            </nav>
+
+            <div class="nav-actions">
+              <button class="nav-link" type="button">登录</button>
+              <a class="btn btn-ghost" href="#resources">联系项目组</a>
+              <a class="btn btn-primary" href="#roles">进入体验</a>
+              <div class="theme-toggle" aria-label="主题切换">
+                <button type="button" data-theme-choice="light">Light</button>
+                <button type="button" data-theme-choice="dark">Dark</button>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <div class="product-bar motion-prep" data-motion="product-bar">
+          <div class="product-strip">
+            <strong>产品概览</strong>
+            <a href="#platform">查看平台能力 <span aria-hidden="true">→</span></a>
+          </div>
+        </div>
+      </div>
+
+      <main id="top">
+        <section class="hero" id="meet" aria-labelledby="hero-title">
+          <div class="hero-copy-block">
+            <p class="eyebrow motion-prep" data-motion="hero-eyebrow">AI Counselor Demo, Phase 2</p>
+            <h1 id="hero-title">
+              <span class="motion-prep" data-motion="hero-line">遇见你的</span>
+              <span class="motion-prep" data-motion="hero-line">AI 辅导员</span>
+            </h1>
+            <p class="hero-copy motion-prep" data-motion="hero-copy">
+              与NCHU AI同行，让校园信息触手可及
+            </p>
+
+            <div class="prompt-box motion-prep" data-motion="prompt">
+              <div class="prompt-main">
+                <input value="" placeholder="我想了解奖助学金、心理支持或学业预警流程" aria-label="示例问题" />
+                <button class="btn btn-primary" type="button">开始咨询</button>
+              </div>
+              <div class="prompt-pills" aria-label="常用入口">
+                <button type="button">学生问答</button>
+                <button type="button">辅导员协助</button>
+                <button type="button">知识维护</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="hero-visual" aria-label="NCHU AI 抽象能力图">
+            <div class="orbital-panel motion-prep" data-motion="visual-panel">
+              <svg class="hero-svg" viewBox="0 0 640 560" role="img" aria-label="AI 辅导员能力连线">
+                <defs>
+                  <linearGradient id="lineGradient" x1="0" x2="1" y1="0" y2="1">
+                    <stop offset="0%" stop-color="var(--primary)" stop-opacity="0.28" />
+                    <stop offset="100%" stop-color="var(--primary)" stop-opacity="0.9" />
+                  </linearGradient>
+                </defs>
+                <path class="hero-line soft draw-line" pathLength="1" d="M83 386 C186 296 243 238 354 244 S515 215 566 103" />
+                <path class="hero-line soft draw-line" pathLength="1" d="M104 456 C192 396 270 374 390 382 S534 324 584 244" />
+                <path class="hero-line draw-line" pathLength="1" d="M122 324 C234 218 334 172 496 142" />
+                <path class="hero-line draw-line" pathLength="1" d="M210 452 C284 330 342 284 508 302" />
+                <g class="wing-symbol ambient-float">
+                  <path d="M270 268 404 116l56 28-124 164-66-40Z" fill="var(--primary)" opacity="0.94" />
+                  <path d="M278 312h150l-70 52-80-52Z" fill="var(--primary)" opacity="0.55" />
+                  <path d="M224 372 360 218l56 30-125 164-67-40Z" fill="var(--primary)" opacity="0.74" />
+                </g>
+                <circle class="node pulse-ring" cx="124" cy="324" r="13" />
+                <circle class="node pulse-ring" cx="210" cy="452" r="10" />
+                <circle class="node pulse-ring" cx="496" cy="142" r="12" />
+                <circle class="node pulse-ring" cx="566" cy="103" r="8" />
+                <circle class="node pulse-ring" cx="584" cy="244" r="10" />
+              </svg>
+            </div>
+
+            <div class="flight-chip chip-a motion-prep" data-motion="chip">
+              <span class="dot" aria-hidden="true"></span>
+              <span><strong>学生请求</strong><span>问题识别、资源匹配、历史连续性</span></span>
+            </div>
+            <div class="flight-chip chip-b motion-prep" data-motion="chip">
+              <span class="dot" aria-hidden="true"></span>
+              <span><strong>人工接管</strong><span>高风险场景交给辅导员处理</span></span>
+            </div>
+
+            <aside class="latest-card motion-prep" data-motion="latest-card">
+              <small>Latest update</small>
+              <h3>Phase 2 正在打磨登录、角色识别和首页体验。</h3>
+              <a href="#roles">查看 Demo 路线 →</a>
+            </aside>
+          </div>
+        </section>
+
+        <section id="platform" aria-labelledby="problem-title" data-replay-scope="previous-page-gated">
+          <div class="section-inner section-centered">
+            <h2 id="problem-title" class="reveal">面向学生支持的 AI 工作伙伴</h2>
+            <p class="section-lead reveal">
+              它不是孤立的聊天窗口，而是一个可审计、可维护、可接管的校内服务入口。
+            </p>
+            <div class="download-actions reveal" aria-label="角色入口">
+              <a class="btn btn-primary" href="#roles">查看角色场景</a>
+              <a class="btn btn-ghost" href="#governance">了解治理边界</a>
+            </div>
+
+            <div class="problem-grid">
+              <div class="feature-list" aria-label="平台能力列表">
+                <article class="feature-item reveal">
+                  <span class="feature-num">01</span>
+                  <div>
+                    <h3>确定性 Demo 回答</h3>
+                    <p>先用可解释的知识匹配证明完整流程，避免在未审批阶段误称 RAG 能力已经上线。</p>
+                  </div>
+                </article>
+                <article class="feature-item reveal">
+                  <span class="feature-num">02</span>
+                  <div>
+                    <h3>角色化工作台</h3>
+                    <p>学生、辅导员和管理员进入不同界面，操作路径和信息密度按真实职责拆开。</p>
+                  </div>
+                </article>
+                <article class="feature-item reveal">
+                  <span class="feature-num">03</span>
+                  <div>
+                    <h3>来源与审计</h3>
+                    <p>答案、资源、操作记录和统计面板保留追踪线索，服务学校内部治理要求。</p>
+                  </div>
+                </article>
+                <article class="feature-item reveal">
+                  <span class="feature-num">04</span>
+                  <div>
+                    <h3>人工协同</h3>
+                    <p>系统提供建议和上下文，关键判断仍由辅导员完成，边界清楚。</p>
+                  </div>
+                </article>
+              </div>
+
+              <div class="network-card reveal" aria-label="能力网络图">
+                <svg class="network-svg" viewBox="0 0 700 560" role="img" aria-label="NCHU AI 能力网络">
+                  <circle class="hero-line soft pulse-ring" cx="350" cy="280" r="178" />
+                  <circle class="hero-line soft pulse-ring" cx="350" cy="280" r="238" />
+                  <path class="hero-line draw-line" pathLength="1" d="M350 280 188 132" />
+                  <path class="hero-line draw-line" pathLength="1" d="M350 280 536 126" />
+                  <path class="hero-line draw-line" pathLength="1" d="M350 280 560 406" />
+                  <path class="hero-line draw-line" pathLength="1" d="M350 280 158 420" />
+                  <circle class="node" cx="188" cy="132" r="11" />
+                  <circle class="node" cx="536" cy="126" r="11" />
+                  <circle class="node" cx="560" cy="406" r="11" />
+                  <circle class="node" cx="158" cy="420" r="11" />
+                </svg>
+                <div class="network-center" aria-hidden="true"><span>NCHU AI</span></div>
+                <span class="orbit-label label-1">学生问答</span>
+                <span class="orbit-label label-2">知识资源</span>
+                <span class="orbit-label label-3">辅导员协助</span>
+                <span class="orbit-label label-4">审计统计</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="use-section" id="roles" aria-labelledby="use-title">
+          <div class="cta-band reveal">
+            <small>Built for campus support workflows</small>
+            <div class="cta-title">把学生服务入口、辅导员处理链路和管理审计放到同一套 Demo 里。</div>
+          </div>
+
+          <div class="section-inner">
+            <div class="use-heading">
+              <div class="use-icon reveal" aria-hidden="true">
+                <svg width="30" height="30" viewBox="0 0 32 32" fill="none">
+                  <path d="M7 22 18 7l7 4-11 14-7-3Z" fill="currentColor" />
+                  <path d="M10 23h13l-6 4-7-4Z" fill="currentColor" opacity="0.55" />
+                </svg>
+              </div>
+              <h2 id="use-title" class="reveal">如何使用 NCHU AI</h2>
+              <p class="section-lead reveal">登录后由账号角色决定入口，不在首页暴露三个独立工作台按钮。</p>
+            </div>
+
+            <div class="tabs reveal" aria-label="使用角色">
+              <span class="tab is-active">学生</span>
+              <span class="tab">辅导员</span>
+              <span class="tab">管理员</span>
+              <span class="tab">项目演示</span>
+            </div>
+
+            <div class="role-preview">
+              <article class="role-card reveal">
+                <h3>学生端</h3>
+                <p>提出问题、查看来源卡片、保存会话，并在需要时转人工支持。</p>
+              </article>
+              <article class="role-card reveal">
+                <h3>辅导员端</h3>
+                <p>查看模拟个案、获得辅助建议、更新状态并保留处理记录。</p>
+              </article>
+              <article class="role-card reveal">
+                <h3>管理端</h3>
+                <p>维护 Demo 知识资源、重置数据、查看统计和审计活动。</p>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        <section id="governance" aria-labelledby="govern-title">
+          <div class="section-inner section-centered">
+            <h2 id="govern-title" class="reveal">清楚展示能力边界</h2>
+            <p class="section-lead reveal">
+              当前阶段以 Demo 可信度为先：模拟数据明确标注，RAG、真实学生数据和公网部署都必须经过审批包。
+            </p>
+            <div class="download-actions reveal">
+              <a class="btn btn-primary" href="#top">回到首页</a>
+              <a class="btn btn-ghost" href="#resources">查看后续计划</a>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer class="review-note" id="resources">
+        原型说明：本页面参考 Claude 产品页的布局层级、按钮组合和动效节奏，但使用 NCHU AI 辅导员系统语境与项目审批色彩。
+      </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+    <script>
+      (function () {
+        const root = document.body;
+        const docEl = document.documentElement;
+        const themeButtons = document.querySelectorAll("[data-theme-choice]");
+        const savedTheme = localStorage.getItem("nchu-ai-home-theme");
+
+        if ("scrollRestoration" in window.history) {
+          window.history.scrollRestoration = "manual";
+        }
+
+        if (!window.location.hash) {
+          window.scrollTo({ top: 0, left: 0 });
+        }
+
+        if (savedTheme === "dark" || savedTheme === "light") {
+          root.dataset.theme = savedTheme;
+        }
+
+        themeButtons.forEach((button) => {
+          button.addEventListener("click", () => {
+            root.dataset.theme = button.dataset.themeChoice;
+            localStorage.setItem("nchu-ai-home-theme", root.dataset.theme);
+          });
+        });
+
+        function tokenizeMotionText(text) {
+          return text.match(/\s+|[A-Za-z0-9]+|[\u4e00-\u9fff]|[^\s]/gu) || [];
+        }
+
+        function splitTextForMotion(elements) {
+          const motionTokens = [];
+
+          elements.forEach((el) => {
+            if (el.dataset.motionSplit === "true") {
+              motionTokens.push(...el.querySelectorAll(".motion-token"));
+              return;
+            }
+
+            const parts = tokenizeMotionText(el.textContent || "");
+            if (!parts.length) return;
+
+            const fragment = document.createDocumentFragment();
+            parts.forEach((part) => {
+              if (/^\s+$/.test(part)) {
+                fragment.appendChild(document.createTextNode(part));
+                return;
+              }
+
+              const token = document.createElement("span");
+              token.className = "motion-token";
+              token.textContent = part;
+              fragment.appendChild(token);
+              motionTokens.push(token);
+            });
+
+            el.textContent = "";
+            el.appendChild(fragment);
+            el.dataset.motionSplit = "true";
+          });
+
+          return motionTokens;
+        }
+
+        const heroTokens = splitTextForMotion(document.querySelectorAll('h1 [data-motion="hero-line"]'));
+        const revealHeadingTokens = splitTextForMotion(document.querySelectorAll("h2.reveal, .cta-title.reveal"));
+        const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        const hasGsap = window.gsap && !reduceMotion;
+
+        if (reduceMotion) {
+          docEl.classList.add("motion-reduced");
+        }
+
+        function showImmediately() {
+          docEl.classList.remove("motion-boot");
+          document.querySelectorAll(".motion-prep, .reveal, .motion-token, .hero-visual").forEach((el) => {
+            el.style.opacity = "1";
+            el.style.visibility = "visible";
+            el.style.transform = "none";
+            el.style.clipPath = "inset(0)";
+          });
+          document.querySelectorAll(".draw-line").forEach((line) => {
+            line.style.strokeDashoffset = "0";
+          });
+        }
+
+        function animateNative() {
+          if (!Element.prototype.animate) {
+            showImmediately();
+            return;
+          }
+
+          const animateIn = (el, delay, duration) => {
+            el.style.opacity = "0";
+            el.style.visibility = "visible";
+            const player = el.animate(
+              [
+                { opacity: 0, transform: "translateY(28px) scale(0.985)", clipPath: "inset(12% 0 0 0)" },
+                { opacity: 1, transform: "translateY(0) scale(1)", clipPath: "inset(0% 0 0 0)" }
+              ],
+              {
+                duration,
+                delay,
+                easing: "cubic-bezier(0.19, 1, 0.22, 1)",
+                fill: "forwards"
+              }
+            );
+            player.onfinish = () => {
+              el.style.opacity = "1";
+              el.style.visibility = "visible";
+              el.style.transform = "none";
+              el.style.clipPath = "inset(0)";
+            };
+          };
+
+          document
+            .querySelectorAll('[data-motion="nav"], [data-motion="product-bar"], .hero-visual')
+            .forEach((el) => {
+              el.style.opacity = "0";
+              el.style.visibility = "hidden";
+            });
+          docEl.classList.remove("motion-boot");
+
+          [
+            ['[data-motion="nav"]', 0, 980],
+            ['[data-motion="product-bar"]', 260, 900],
+            ['[data-motion="hero-eyebrow"]', 620, 880],
+            ['[data-motion="hero-line"]', 780, 1180],
+            ['[data-motion="hero-copy"]', 1220, 980],
+            ['[data-motion="prompt"]', 1480, 980],
+            [".hero-visual", 1560, 1080],
+            ['[data-motion="visual-panel"]', 1720, 1120],
+            ['[data-motion="chip"]', 2140, 860],
+            ['[data-motion="latest-card"]', 2320, 920]
+          ].forEach(([selector, delay, duration]) => {
+            document.querySelectorAll(selector).forEach((el, index) => animateIn(el, delay + index * 110, duration));
+          });
+
+          document.querySelectorAll(".hero .draw-line").forEach((line, index) => {
+            line.animate([{ strokeDashoffset: 1 }, { strokeDashoffset: 0 }], {
+              duration: 1350,
+              delay: 800 + index * 80,
+              easing: "cubic-bezier(0.19, 1, 0.22, 1)",
+              fill: "forwards"
+            });
+            line.style.strokeDashoffset = "0";
+          });
+
+          const nativePageGatedReplayScope = document.querySelector('[data-replay-scope="previous-page-gated"]');
+          const nativePageGatedRevealItems = nativePageGatedReplayScope
+            ? Array.from(nativePageGatedReplayScope.querySelectorAll(".reveal"))
+            : [];
+          const isNativePageGatedReveal = (el) => nativePageGatedReplayScope && nativePageGatedReplayScope.contains(el);
+          const nativeStandaloneRevealItems = Array.from(document.querySelectorAll(".reveal")).filter(
+            (el) => !isNativePageGatedReveal(el)
+          );
+
+          const resetNativeReveal = (el) => {
+            el.getAnimations().forEach((animation) => animation.cancel());
+            el.style.opacity = "0";
+            el.style.visibility = "hidden";
+            el.style.transform = "translateY(28px)";
+            el.style.clipPath = "inset(12% 0 0 0)";
+            el.querySelectorAll(".draw-line").forEach((line) => {
+              line.style.strokeDashoffset = "1";
+            });
+          };
+
+          const resetNativePageGatedReplayIfOnPreviousPage = () => {
+            if (!nativePageGatedReplayScope || !nativePageGatedRevealItems.length) return;
+
+            const rect = nativePageGatedReplayScope.getBoundingClientRect();
+            const isFullyBackOnPreviousPage = rect.top >= window.innerHeight * 0.9;
+
+            if (!isFullyBackOnPreviousPage || nativePageGatedReplayScope.dataset.replayArmed === "true") return;
+
+            nativePageGatedRevealItems.forEach(resetNativeReveal);
+            nativePageGatedReplayScope.dataset.replayArmed = "true";
+            nativePageGatedReplayScope.dataset.replayPlayed = "false";
+          };
+
+          const playNativePageGatedReplay = () => {
+            if (!nativePageGatedReplayScope || nativePageGatedReplayScope.dataset.replayPlayed === "true") return;
+
+            nativePageGatedReplayScope.dataset.replayPlayed = "true";
+            nativePageGatedReplayScope.dataset.replayArmed = "false";
+            nativePageGatedRevealItems.forEach((el, index) => {
+              animateIn(el, index * 70, 820);
+              if (el.classList.contains("network-card")) {
+                el.querySelectorAll(".draw-line").forEach((line, lineIndex) => {
+                  line.animate([{ strokeDashoffset: 1 }, { strokeDashoffset: 0 }], {
+                    duration: 1100,
+                    delay: 180 + lineIndex * 80,
+                    easing: "cubic-bezier(0.19, 1, 0.22, 1)",
+                    fill: "forwards"
+                  });
+                  line.style.strokeDashoffset = "0";
+                });
+              }
+            });
+          };
+
+          const revealObserver = new IntersectionObserver(
+            (entries) => {
+              entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                  animateIn(entry.target, 0, 820);
+                  if (entry.target.classList.contains("network-card")) {
+                    entry.target.querySelectorAll(".draw-line").forEach((line, index) => {
+                      line.animate([{ strokeDashoffset: 1 }, { strokeDashoffset: 0 }], {
+                        duration: 1100,
+                        delay: 180 + index * 80,
+                        easing: "cubic-bezier(0.19, 1, 0.22, 1)",
+                        fill: "forwards"
+                      });
+                      line.style.strokeDashoffset = "0";
+                    });
+                  }
+                } else {
+                  resetNativeReveal(entry.target);
+                }
+              });
+            },
+            { threshold: 0.22, rootMargin: "0px 0px -10% 0px" }
+          );
+
+          nativeStandaloneRevealItems.forEach((el) => revealObserver.observe(el));
+          if (nativePageGatedReplayScope) {
+            const nativePageGatedObserver = new IntersectionObserver(
+              (entries) => {
+                entries.forEach((entry) => {
+                  if (entry.isIntersecting) playNativePageGatedReplay();
+                });
+              },
+              { threshold: 0.18, rootMargin: "-4% 0px -12% 0px" }
+            );
+            nativePageGatedObserver.observe(nativePageGatedReplayScope);
+          }
+          window.addEventListener("scroll", resetNativePageGatedReplayIfOnPreviousPage, { passive: true });
+          resetNativePageGatedReplayIfOnPreviousPage();
+        }
+
+        if (hasGsap) {
+          gsap.set('[data-motion="nav"]', { autoAlpha: 0, y: -26 });
+          gsap.set('[data-motion="product-bar"]', { autoAlpha: 0, y: 18 });
+          gsap.set(
+            '[data-motion="hero-eyebrow"], [data-motion="hero-line"], [data-motion="hero-copy"], [data-motion="prompt"]',
+            { autoAlpha: 0, y: 28 }
+          );
+          gsap.set(".hero-visual", { autoAlpha: 0, y: 34 });
+          gsap.set('[data-motion="visual-panel"]', { autoAlpha: 0, y: 28, scale: 0.985 });
+          gsap.set('[data-motion="chip"], [data-motion="latest-card"]', { autoAlpha: 0, y: 24 });
+          gsap.set(heroTokens, { autoAlpha: 0, y: 22 });
+          gsap.set(revealHeadingTokens, { autoAlpha: 0, y: 14 });
+          gsap.defaults({ ease: "power3.out", duration: 0.92 });
+          docEl.classList.remove("motion-boot");
+
+          let ambientMotionStarted = false;
+          function startAmbientMotion() {
+            if (ambientMotionStarted) return;
+            ambientMotionStarted = true;
+            document.querySelectorAll(".flight-chip, .latest-card, .network-center").forEach((el, index) => {
+              gsap.to(el, {
+                y: index % 2 === 0 ? -8 : 8,
+                duration: 3.4 + index * 0.2,
+                repeat: -1,
+                yoyo: true,
+                ease: "sine.inOut"
+              });
+            });
+          }
+
+          const intro = gsap.timeline({
+            defaults: { ease: "power3.out" },
+            delay: 0.06,
+            onComplete: () => {
+              docEl.classList.add("motion-ready");
+              startAmbientMotion();
+            }
+          });
+          intro
+            .addLabel("top", 0)
+            .to('[data-motion="nav"]', { autoAlpha: 1, y: 0, duration: 1.05 }, "top")
+            .to('[data-motion="product-bar"]', { autoAlpha: 1, y: 0, duration: 0.96 }, "top+=0.24")
+            .addLabel("hero", "top+=0.62")
+            .to('[data-motion="hero-eyebrow"]', { autoAlpha: 1, y: 0, duration: 0.86 }, "hero")
+            .set('[data-motion="hero-line"]', { autoAlpha: 1, y: 0 }, "hero+=0.1")
+            .to(heroTokens, { autoAlpha: 1, y: 0, duration: 1.18, stagger: { amount: 0.42 } }, "hero+=0.12")
+            .to('[data-motion="hero-copy"]', { autoAlpha: 1, y: 0, duration: 1.02 }, "hero+=0.76")
+            .to('[data-motion="prompt"]', { autoAlpha: 1, y: 0, scale: 1, duration: 0.98 }, "hero+=1.02")
+            .addLabel("visual", "hero+=1.16")
+            .to(".hero-visual", { autoAlpha: 1, y: 0, duration: 1.02 }, "visual")
+            .to('[data-motion="visual-panel"]', { autoAlpha: 1, y: 0, scale: 1, duration: 1.08 }, "visual+=0.12")
+            .to(".hero .draw-line", { strokeDashoffset: 0, duration: 1.38, stagger: 0.09 }, "visual+=0.34")
+            .to('[data-motion="chip"]', { autoAlpha: 1, y: 0, duration: 0.84, stagger: 0.12 }, "visual+=0.56")
+            .to('[data-motion="latest-card"]', { autoAlpha: 1, y: 0, duration: 0.9 }, "visual+=0.78");
+
+          window.__nchuMotionPolish = {
+            mode: "gsap",
+            introStyle: "top-down",
+            scrollReplay: true,
+            platformReplayGate: "previous-page",
+            heroTokens: heroTokens.length,
+            revealHeadingTokens: revealHeadingTokens.length
+          };
+
+          const revealItems = Array.from(document.querySelectorAll(".reveal"));
+          const childRevealSelector = ".feature-item, .role-card, .download-actions, .tabs";
+          const pageGatedReplayScope = document.querySelector('[data-replay-scope="previous-page-gated"]');
+          const pageGatedRevealItems = pageGatedReplayScope
+            ? revealItems.filter((el) => pageGatedReplayScope.contains(el))
+            : [];
+          let pageGatedReplayTimeline = null;
+          let previousScrollY = window.scrollY;
+          let scrollDirectionY = 1;
+          window.addEventListener(
+            "scroll",
+            () => {
+              const currentScrollY = window.scrollY;
+              scrollDirectionY = currentScrollY < previousScrollY ? -1 : 1;
+              previousScrollY = currentScrollY;
+            },
+            { passive: true }
+          );
+          const getRevealY = (entry) => {
+            if (entry.isIntersecting) return scrollDirectionY < 0 ? -24 : 28;
+            const rootTop = entry.rootBounds ? entry.rootBounds.top : 0;
+            return entry.boundingClientRect.top < rootTop ? -24 : 28;
+          };
+          const getChildY = (y) => (y < 0 ? -12 : 12);
+          const isPageGatedReveal = (el) => pageGatedReplayScope && pageGatedReplayScope.contains(el);
+          const standaloneRevealItems = revealItems.filter((el) => !isPageGatedReveal(el));
+
+          function getRevealChildren(el) {
+            if (!el.matches(childRevealSelector)) return [];
+            return el.matches(".download-actions, .tabs")
+              ? Array.from(el.children)
+              : Array.from(el.querySelectorAll(".feature-num, h3, p"));
+          }
+
+          function resetReveal(el, y = 28) {
+            const textTokens = Array.from(el.querySelectorAll(".motion-token"));
+            const children = getRevealChildren(el);
+            gsap.killTweensOf([el, ...textTokens, ...children]);
+            gsap.set(el, { autoAlpha: 0, y, clipPath: "inset(12% 0 0 0)" });
+
+            if (textTokens.length) {
+              gsap.set(textTokens, { autoAlpha: 0, y: getChildY(y) });
+            }
+
+            if (children.length) {
+              gsap.set(children, { autoAlpha: 0, y: getChildY(y) });
+            }
+
+            if (el.classList.contains("network-card")) {
+              gsap.set(el.querySelectorAll(".draw-line"), { strokeDashoffset: 1 });
+              gsap.set(el.querySelectorAll(".orbit-label"), { autoAlpha: 0, y: getChildY(y) });
+            }
+
+            el.dataset.revealActive = "false";
+          }
+
+          function playReveal(el, y = 28) {
+            if (el.dataset.revealActive === "true") return;
+            el.dataset.revealActive = "true";
+
+            const textTokens = Array.from(el.querySelectorAll(".motion-token"));
+            const children = getRevealChildren(el);
+            gsap.killTweensOf([el, ...textTokens, ...children]);
+
+            if (textTokens.length) {
+              gsap.set(el, { autoAlpha: 1, y: 0, clipPath: "inset(0% 0% 0% 0%)" });
+              gsap.fromTo(
+                textTokens,
+                { autoAlpha: 0, y: getChildY(y) },
+                {
+                  autoAlpha: 1,
+                  y: 0,
+                  duration: 0.9,
+                  stagger: { amount: 0.22 },
+                  ease: "power2.out",
+                  overwrite: "auto"
+                }
+              );
+            } else {
+              gsap.fromTo(
+                el,
+                { autoAlpha: 0, y, clipPath: "inset(12% 0 0 0)" },
+                {
+                  autoAlpha: 1,
+                  y: 0,
+                  clipPath: "inset(0% 0% 0% 0%)",
+                  duration: 0.78,
+                  ease: "power2.out",
+                  overwrite: "auto"
+                }
+              );
+            }
+
+            if (children.length) {
+              gsap.fromTo(
+                children,
+                { autoAlpha: 0, y: getChildY(y) },
+                { autoAlpha: 1, y: 0, duration: 0.58, stagger: 0.055, ease: "power2.out", delay: 0.08, overwrite: "auto" }
+              );
+            }
+
+            if (el.classList.contains("network-card")) {
+              gsap.fromTo(
+                el.querySelectorAll(".draw-line"),
+                { strokeDashoffset: 1 },
+                { strokeDashoffset: 0, duration: 1.08, stagger: 0.08, ease: "power3.out", overwrite: "auto" }
+              );
+              gsap.fromTo(
+                el.querySelectorAll(".orbit-label"),
+                { autoAlpha: 0, y: getChildY(y) },
+                { autoAlpha: 1, y: 0, duration: 0.58, stagger: 0.08, ease: "power3.out", delay: 0.18, overwrite: "auto" }
+              );
+            }
+          }
+
+          revealItems.forEach((el) => resetReveal(el, 28));
+
+          function resetPageGatedReplayIfOnPreviousPage() {
+            if (!pageGatedReplayScope || !pageGatedRevealItems.length) return;
+
+            const rect = pageGatedReplayScope.getBoundingClientRect();
+            const isFullyBackOnPreviousPage = rect.top >= window.innerHeight * 0.9;
+
+            if (!isFullyBackOnPreviousPage || pageGatedReplayScope.dataset.replayArmed === "true") return;
+
+            if (pageGatedReplayTimeline) {
+              pageGatedReplayTimeline.kill();
+              pageGatedReplayTimeline = null;
+            }
+            pageGatedRevealItems.forEach((el) => resetReveal(el, 28));
+            pageGatedReplayScope.dataset.replayArmed = "true";
+            pageGatedReplayScope.dataset.replayPlayed = "false";
+          }
+
+          function playPageGatedReplay(y = 28) {
+            if (!pageGatedReplayScope || pageGatedReplayScope.dataset.replayPlayed === "true") return;
+
+            pageGatedReplayScope.dataset.replayPlayed = "true";
+            pageGatedReplayScope.dataset.replayArmed = "false";
+
+            pageGatedReplayTimeline = gsap.timeline({ defaults: { ease: "power2.out" } });
+            pageGatedRevealItems.forEach((el, index) => {
+              pageGatedReplayTimeline.call(() => playReveal(el, y), [], index * 0.07);
+            });
+          }
+
+          const revealObserver = new IntersectionObserver(
+            (entries) => {
+              entries.forEach((entry) => {
+                const el = entry.target;
+                const y = getRevealY(entry);
+
+                if (entry.isIntersecting) {
+                  playReveal(el, y);
+                } else {
+                  resetReveal(el, y);
+                }
+              });
+            },
+            { threshold: 0.22, rootMargin: "-4% 0px -12% 0px" }
+          );
+
+          standaloneRevealItems.forEach((el) => revealObserver.observe(el));
+          if (pageGatedReplayScope) {
+            // Keep the platform section as one replay unit so the last row cannot jitter at the viewport edge.
+            const pageGatedObserver = new IntersectionObserver(
+              (entries) => {
+                entries.forEach((entry) => {
+                  if (entry.isIntersecting && scrollDirectionY >= 0) {
+                    playPageGatedReplay(28);
+                  }
+                });
+              },
+              { threshold: 0.18, rootMargin: "-4% 0px -12% 0px" }
+            );
+            pageGatedObserver.observe(pageGatedReplayScope);
+          }
+          window.addEventListener("scroll", resetPageGatedReplayIfOnPreviousPage, { passive: true });
+          resetPageGatedReplayIfOnPreviousPage();
+
+        } else {
+          animateNative();
+        }
+      })();
+    </script>
+  </body>
+</html>

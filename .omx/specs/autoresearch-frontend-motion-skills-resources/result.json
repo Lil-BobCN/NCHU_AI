@@ -1,0 +1,36 @@
+{
+  "status": "passed",
+  "passed": true,
+  "mode": "autoresearch",
+  "topic": "frontend motion skills and resource needs for NCHU AI homepage hero",
+  "output_artifact_path": ".omx/specs/autoresearch-frontend-motion-skills-resources/report.md",
+  "completion_artifact_path": ".omx/specs/autoresearch-frontend-motion-skills-resources/result.json",
+  "architect_review": {
+    "verdict": "approved",
+    "reason": "The report distinguishes Codex skills, runtime packages, UI component resources, and human-provided production assets; it recommends only one optional new skill and defers runtime installs until route approval."
+  },
+  "recommended_skill_downloads": [
+    {
+      "name": "LottieFiles/motion-design-skill",
+      "url": "https://github.com/LottieFiles/motion-design-skill",
+      "priority": "recommended-if-lottie-route-continues",
+      "purpose": "Improve AI-assisted motion specs, Lottie asset review, and animation direction quality."
+    }
+  ],
+  "deferred_runtime_dependencies": [
+    "@lottiefiles/dotlottie-react",
+    "lottie-react",
+    "gsap",
+    "@gsap/react",
+    "@rive-app/react-canvas"
+  ],
+  "required_assets": [
+    "official school emblem vector source",
+    "three wing symbols as separate vector layers",
+    "final-frame reference image",
+    "motion reference video/gif",
+    "approved brand colors",
+    "usage/license confirmation"
+  ],
+  "created_at": "2026-05-23"
+}

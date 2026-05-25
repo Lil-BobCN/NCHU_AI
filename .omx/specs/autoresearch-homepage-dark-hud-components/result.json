@@ -1,0 +1,11 @@
+{
+  "status": "passed",
+  "passed": true,
+  "validation_mode": "prompt-architect-artifact",
+  "output_artifact_path": ".omx/specs/autoresearch-homepage-dark-hud-components/report.md",
+  "architect_review": {
+    "verdict": "approved",
+    "notes": "Research maps 21st.dev and MotionSites references into local component patterns, avoids unapproved dependencies, and scopes implementation to a prototype artifact."
+  },
+  "prototype_artifact_path": ".omx/prototypes/homepage-dark-hud-variants.html"
+}

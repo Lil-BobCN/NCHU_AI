@@ -1,0 +1,124 @@
+{
+  "version": 1,
+  "team_name": "ai-counselor-technical-phase1",
+  "generated_at": "2026-05-12T14:09:57.904Z",
+  "lore_commit_protocol_required": true,
+  "runtime_commits_are_scaffolding": true,
+  "vocabulary": {
+    "operational_commit_kinds": [
+      {
+        "value": "auto_checkpoint",
+        "label": "auto-checkpoint",
+        "description": "A worker-local checkpoint commit created by the team runtime to preserve dirty worktree changes."
+      },
+      {
+        "value": "integration_merge",
+        "label": "integration merge",
+        "description": "A leader-side runtime merge commit that integrates a worker branch or checkpoint into the team branch."
+      },
+      {
+        "value": "integration_cherry_pick",
+        "label": "integration cherry-pick",
+        "description": "A leader-side runtime cherry-pick used when the normal worker merge path cannot be used cleanly."
+      },
+      {
+        "value": "cross_rebase",
+        "label": "cross-rebase",
+        "description": "A runtime rebase operation that moves worker work across the current leader branch baseline."
+      },
+      {
+        "value": "worker_clean_rebase",
+        "label": "worker clean rebase",
+        "description": "A runtime rebase that refreshes a clean worker branch onto the current leader branch baseline."
+      },
+      {
+        "value": "leader_integration_attempt",
+        "label": "leader integration attempt",
+        "description": "A leader-side integration attempt recorded for auditability even when it does not create a final semantic commit."
+      },
+      {
+        "value": "shutdown_checkpoint",
+        "label": "shutdown checkpoint",
+        "description": "A shutdown-time checkpoint commit that preserves remaining worker worktree changes before cleanup."
+      },
+      {
+        "value": "shutdown_merge",
+        "label": "shutdown merge",
+        "description": "A shutdown-time runtime merge that preserves worker changes on the leader branch before teardown."
+      }
+    ],
+    "operational_commit_statuses": [
+      {
+        "value": "applied",
+        "label": "applied",
+        "description": "The runtime operation changed repository history or preserved worker changes as intended."
+      },
+      {
+        "value": "noop",
+        "label": "no-op",
+        "description": "The runtime operation was unnecessary because there was no relevant change to preserve or integrate."
+      },
+      {
+        "value": "conflict",
+        "label": "conflict",
+        "description": "The runtime operation encountered conflicts that require human or leader-side reconciliation."
+      },
+      {
+        "value": "skipped",
+        "label": "skipped",
+        "description": "The runtime intentionally skipped the operation because prerequisites or safety checks were not met."
+      }
+    ]
+  },
+  "task_summary": [
+    {
+      "id": "1",
+      "subject": "AI counselor technical phase1 support. Worker 1: inspect backend Docker/env/conf",
+      "owner": "worker-1",
+      "status": "pending",
+      "description": "AI counselor technical phase1 support. Worker 1: inspect backend Docker/env/config/readiness/smoke requirements and report implementation risks. Worker 2: inspect README/docs/test expectations and report documentation/test risks. Do not edit files or commit"
+    },
+    {
+      "id": "2",
+      "subject": "read-only support only. Leader is implementing in main workspace.",
+      "owner": "worker-1",
+      "status": "pending",
+      "description": "read-only support only. Leader is implementing in main workspace."
+    }
+  ],
+  "operational_entries": [
+    {
+      "recorded_at": "2026-05-12T14:09:57.897Z",
+      "operation": "shutdown_merge",
+      "worker_name": "worker-1",
+      "task_id": "1",
+      "status": "noop",
+      "operational_commit": null,
+      "source_commit": "96748b73841d345ebaf65f083a8ea07a6bd7fabf",
+      "leader_head_before": "96748b73841d345ebaf65f083a8ea07a6bd7fabf",
+      "leader_head_after": "96748b73841d345ebaf65f083a8ea07a6bd7fabf",
+      "worktree_path": "C:\\Users\\liuqi\\Desktop\\agentproject\\.omx\\team\\ai-counselor-technical-phase1\\worktrees\\worker-1",
+      "report_path": "C:\\Users\\liuqi\\Desktop\\agentproject\\.omx\\team\\ai-counselor-technical-phase1\\worktrees\\worker-1\\.omx\\diff.md",
+      "detail": "source already reachable from leader HEAD"
+    },
+    {
+      "recorded_at": "2026-05-12T14:09:57.897Z",
+      "operation": "shutdown_merge",
+      "worker_name": "worker-2",
+      "status": "noop",
+      "operational_commit": null,
+      "source_commit": "96748b73841d345ebaf65f083a8ea07a6bd7fabf",
+      "leader_head_before": "96748b73841d345ebaf65f083a8ea07a6bd7fabf",
+      "leader_head_after": "96748b73841d345ebaf65f083a8ea07a6bd7fabf",
+      "worktree_path": "C:\\Users\\liuqi\\Desktop\\agentproject\\.omx\\team\\ai-counselor-technical-phase1\\worktrees\\worker-2",
+      "report_path": "C:\\Users\\liuqi\\Desktop\\agentproject\\.omx\\team\\ai-counselor-technical-phase1\\worktrees\\worker-2\\.omx\\diff.md",
+      "detail": "source already reachable from leader HEAD"
+    }
+  ],
+  "recommended_next_steps": [
+    "Inspect the current branch diff/log and identify which runtime-originated commits should be squashed or rewritten.",
+    "Derive semantic commit boundaries from completed task subjects, code diffs, and shutdown reports rather than from omx(team) operational commit subjects.",
+    "Create final commit messages in Lore format with intent-first subjects and only the trailers that add decision context."
+  ],
+  "leader_finalization_prompt": "Team \"ai-counselor-technical-phase1\" is ready for commit finalization. Treat runtime-originated commits (auto-checkpoints, merge/cherry-picks, cross-rebases, worker clean rebase scaffolds, leader integration signals, shutdown checkpoints) as temporary scaffolding rather than final history. Do not reuse operational commit subjects verbatim. Use the completed task descriptions and resulting diffs to infer semantic commit boundaries. Rewrite or squash the operational history into clean Lore-format final commit(s) with intent-first subjects and relevant trailers. Use task subjects/results and shutdown diff reports to choose semantic commit boundaries and rationale."
+}

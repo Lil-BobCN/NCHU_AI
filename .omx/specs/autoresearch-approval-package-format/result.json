@@ -1,0 +1,13 @@
+{
+  "status": "passed",
+  "passed": true,
+  "summary": "Researched ADR, MADR, Structured MADR, AWS, Microsoft, and Thoughtworks guidance. Recommended SDAR: Structured Decision Approval Record for this project.",
+  "output_artifact_path": ".omx/specs/autoresearch-approval-package-format/report.md",
+  "sources": [
+    "https://learn.microsoft.com/en-ie/azure/well-architected/architect-role/architecture-decision-record",
+    "https://docs.aws.amazon.com/prescriptive-guidance/latest/architectural-decision-records/welcome.html",
+    "https://adr.github.io/adr-templates/",
+    "https://smadr.dev/reference/specification/overview/",
+    "https://www.thoughtworks.com/en-au/radar/techniques/lightweight-architecture-decision-records"
+  ]
+}

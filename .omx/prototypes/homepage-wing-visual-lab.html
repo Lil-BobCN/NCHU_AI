@@ -1,0 +1,617 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>NCHU AI Wing Visual Lab</title>
+    <style>
+      :root {
+        --bg: #070b10;
+        --line: rgba(219, 253, 255, 0.14);
+        --text: #f6fbff;
+        --muted: rgba(236, 247, 250, 0.66);
+        --cyan: #73fff1;
+        --blue: #86c9ff;
+        --teal-deep: #0a4851;
+        --curve: cubic-bezier(0.19, 1, 0.22, 1);
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        color-scheme: dark;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        overflow: hidden;
+        color: var(--text);
+        background:
+          radial-gradient(circle at 72% 48%, rgba(115, 255, 241, 0.22), transparent 31rem),
+          radial-gradient(circle at 44% 26%, rgba(134, 201, 255, 0.14), transparent 26rem),
+          linear-gradient(124deg, #0b1018 0%, #0a1218 48%, #05090d 100%);
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background:
+          linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+          linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+        background-size: 92px 92px;
+        mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.78), transparent 84%);
+      }
+
+      .lab {
+        position: relative;
+        display: grid;
+        grid-template-columns: minmax(300px, 0.44fr) minmax(680px, 1.16fr);
+        align-items: center;
+        gap: 14px;
+        min-height: 100vh;
+        padding: 38px clamp(24px, 4vw, 70px);
+      }
+
+      .brief {
+        position: relative;
+        z-index: 4;
+        max-width: 510px;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        min-height: 34px;
+        padding: 0 13px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        color: rgba(236, 252, 255, 0.9);
+        background: rgba(255, 255, 255, 0.064);
+        font-size: 13px;
+        font-weight: 760;
+      }
+
+      .badge::before {
+        content: "";
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: var(--cyan);
+        box-shadow: 0 0 18px var(--cyan);
+      }
+
+      h1 {
+        margin: 26px 0 0;
+        font-size: clamp(48px, 5.7vw, 88px);
+        line-height: 0.98;
+        letter-spacing: 0;
+      }
+
+      h1 span {
+        display: block;
+        color: transparent;
+        background: linear-gradient(94deg, #fff 0%, #dff9ff 46%, #8ffef3 100%);
+        background-clip: text;
+        -webkit-background-clip: text;
+      }
+
+      .brief p {
+        margin: 24px 0 0;
+        color: var(--muted);
+        font-size: 16px;
+        line-height: 1.85;
+      }
+
+      .checks {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: 30px;
+      }
+
+      .check {
+        min-height: 76px;
+        padding: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.052);
+        backdrop-filter: blur(18px);
+      }
+
+      .check strong {
+        display: block;
+        font-size: 13px;
+      }
+
+      .check span {
+        display: block;
+        margin-top: 7px;
+        color: rgba(245, 248, 251, 0.5);
+        font-size: 12px;
+        line-height: 1.5;
+      }
+
+      .stage {
+        position: relative;
+        min-height: min(82vh, 790px);
+      }
+
+      .field {
+        position: absolute;
+        inset: 0 -3% -1% 2%;
+        border-radius: 52% 48% 48% 52%;
+        background:
+          radial-gradient(circle at 61% 46%, rgba(115, 255, 241, 0.22), transparent 21rem),
+          radial-gradient(circle at 55% 54%, rgba(255, 255, 255, 0.07), transparent 31rem);
+        filter: blur(0.5px);
+        animation: fieldBreathe 7s ease-in-out infinite;
+      }
+
+      .orbit,
+      .orbit::before {
+        position: absolute;
+        content: "";
+        inset: 13% 3% 12% 2%;
+        border: 1px solid rgba(115, 255, 241, 0.13);
+        border-radius: 50%;
+        transform: rotate(-13deg);
+      }
+
+      .orbit::before {
+        inset: 12% 12% 13% 11%;
+        border-color: rgba(134, 201, 255, 0.11);
+        transform: rotate(27deg);
+      }
+
+      .flight-line {
+        position: absolute;
+        inset: 30% 0 19% 1%;
+        opacity: 0.38;
+      }
+
+      .flight-line svg,
+      .wing svg {
+        width: 100%;
+        height: 100%;
+        overflow: visible;
+      }
+
+      .flight-line path {
+        fill: none;
+        stroke: url(#trail);
+        stroke-width: 2;
+        stroke-dasharray: 10 18;
+        animation: dash 6s linear infinite;
+      }
+
+      .wing {
+        position: absolute;
+        inset: -6% 2% -1% 2%;
+        perspective: 1200px;
+      }
+
+      .vehicle {
+        width: 100%;
+        height: 100%;
+        overflow: visible;
+        filter:
+          drop-shadow(24px 34px 24px rgba(0, 0, 0, 0.36))
+          drop-shadow(0 0 46px rgba(115, 255, 241, 0.18));
+        transform-origin: 60% 49%;
+        transform: rotateX(6deg) rotateY(-10deg) rotateZ(-1deg);
+        animation: vehicleIdle 6.6s 3.35s ease-in-out infinite;
+      }
+
+      .symbol-layer {
+        opacity: 1;
+        transform-box: fill-box;
+        transform-origin: 62% 52%;
+        will-change: transform, opacity;
+      }
+
+      .lower {
+        animation: lowerIn 2.15s 0.12s var(--curve) both;
+      }
+
+      .middle {
+        animation: middleIn 2.08s 0.44s var(--curve) both;
+      }
+
+      .upper {
+        animation: upperIn 2s 0.76s var(--curve) both;
+      }
+
+      .thickness {
+        fill: url(#depth);
+        opacity: 0.46;
+      }
+
+      .face-shape {
+        vector-effect: non-scaling-stroke;
+        stroke: rgba(255, 255, 255, 0.3);
+        stroke-width: 3;
+        stroke-linejoin: round;
+      }
+
+      .lower-face {
+        fill: url(#lowerFace);
+      }
+
+      .middle-face {
+        fill: url(#middleFace);
+      }
+
+      .upper-face {
+        fill: url(#upperFace);
+      }
+
+      .ridge {
+        opacity: 0;
+        fill: none;
+        stroke: rgba(255, 255, 255, 0.72);
+        stroke-width: 4;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        stroke-dasharray: 1180;
+        stroke-dashoffset: 1180;
+        vector-effect: non-scaling-stroke;
+        animation: edgeDraw 1.15s 2.42s ease forwards;
+      }
+
+      .cyan-ridge {
+        stroke: rgba(115, 255, 241, 0.36);
+        stroke-width: 3;
+      }
+
+      .glint {
+        opacity: 0;
+        animation: glint 3.4s 2.95s ease-in-out infinite;
+      }
+
+      .spark {
+        position: absolute;
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #fff;
+        box-shadow: 0 0 18px #fff, 0 0 34px var(--cyan);
+        animation: spark 4s ease-in-out infinite;
+      }
+
+      .spark.one {
+        left: 31%;
+        top: 68%;
+      }
+
+      .spark.two {
+        left: 63%;
+        top: 34%;
+        animation-delay: 0.8s;
+      }
+
+      .spark.three {
+        right: 12%;
+        top: 23%;
+        animation-delay: 1.5s;
+      }
+
+      @keyframes fieldBreathe {
+        0%,
+        100% {
+          opacity: 0.72;
+          transform: scale(1);
+        }
+
+        50% {
+          opacity: 1;
+          transform: scale(1.03);
+        }
+      }
+
+      @keyframes dash {
+        to {
+          stroke-dashoffset: -180;
+        }
+      }
+
+      @keyframes vehicleIdle {
+        0%,
+        100% {
+          transform: translate3d(0, 0, 0) rotateX(6deg) rotateY(-10deg) rotateZ(-1deg);
+        }
+
+        50% {
+          transform: translate3d(0, -16px, 0) rotateX(7deg) rotateY(-8deg) rotateZ(-0.35deg);
+        }
+      }
+
+      @keyframes lowerIn {
+        0% {
+          opacity: 0;
+          transform: translate3d(-610px, 128px, 0) rotate(-4deg) scale(0.985);
+        }
+
+        72% {
+          opacity: 1;
+          transform: translate3d(14px, -8px, 0) rotate(0.35deg) scale(1.004);
+        }
+
+        100% {
+          opacity: 1;
+          transform: translate3d(0, 0, 0) rotate(0) scale(1);
+        }
+      }
+
+      @keyframes middleIn {
+        0% {
+          opacity: 0;
+          transform: translate3d(-660px, 72px, 0) rotate(-3.5deg) scale(0.985);
+        }
+
+        72% {
+          opacity: 1;
+          transform: translate3d(12px, -6px, 0) rotate(0.3deg) scale(1.004);
+        }
+
+        100% {
+          opacity: 1;
+          transform: translate3d(0, 0, 0) rotate(0) scale(1);
+        }
+      }
+
+      @keyframes upperIn {
+        0% {
+          opacity: 0;
+          transform: translate3d(-710px, 18px, 0) rotate(-3deg) scale(0.985);
+        }
+
+        72% {
+          opacity: 1;
+          transform: translate3d(10px, -5px, 0) rotate(0.3deg) scale(1.004);
+        }
+
+        100% {
+          opacity: 1;
+          transform: translate3d(0, 0, 0) rotate(0) scale(1);
+        }
+      }
+
+      @keyframes edgeDraw {
+        to {
+          opacity: 0.78;
+          stroke-dashoffset: 0;
+        }
+      }
+
+      @keyframes glint {
+        0%,
+        32% {
+          opacity: 0;
+          transform: translateX(-86px);
+        }
+
+        49% {
+          opacity: 0.62;
+        }
+
+        80%,
+        100% {
+          opacity: 0;
+          transform: translateX(146px);
+        }
+      }
+
+      @keyframes spark {
+        0%,
+        100% {
+          opacity: 0.24;
+          transform: scale(0.84);
+        }
+
+        50% {
+          opacity: 0.95;
+          transform: scale(1.2);
+        }
+      }
+
+      @media (max-width: 900px) {
+        body {
+          overflow: auto;
+        }
+
+        .lab {
+          grid-template-columns: 1fr;
+          padding: 28px 18px 42px;
+        }
+
+        .stage {
+          order: -1;
+          min-height: 450px;
+        }
+
+        .wing {
+          inset: -4% -26% -9% -18%;
+        }
+
+        .checks {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 0.001ms !important;
+          animation-iteration-count: 1 !important;
+          scroll-behavior: auto !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="lab">
+      <section class="brief" aria-labelledby="lab-title">
+        <div class="badge">飞翼主视觉实验页 · SVG v3</div>
+        <h1 id="lab-title">
+          NCHU AI
+          <span>校徽飞翼重绘</span>
+        </h1>
+        <p>
+          本页只验证首页右侧飞翼主视觉。v3 使用校徽提取图的 alpha 轮廓作为 SVG 面片约束，
+          先校准三层飞翼、右上指向、层叠关系和飞入定格，再决定是否回填到 React 首页。
+        </p>
+        <div class="checks" aria-label="验收关注点">
+          <div class="check"><strong>结构</strong><span>上 / 中 / 下三层飞翼以校徽轮廓为基准。</span></div>
+          <div class="check"><strong>方向</strong><span>机头保持右上，部件从左侧依次飞入。</span></div>
+          <div class="check"><strong>质感</strong><span>矢量面片、厚度、高光和阴影，不依赖 PNG mask。</span></div>
+          <div class="check"><strong>边界</strong><span>当前仍是视觉实验页，不进入主站实现。</span></div>
+        </div>
+      </section>
+
+      <section class="stage" aria-label="飞翼主视觉舞台">
+        <div class="field" aria-hidden="true"></div>
+        <div class="orbit" aria-hidden="true"></div>
+        <div class="flight-line" aria-hidden="true">
+          <svg viewBox="0 0 900 360">
+            <defs>
+              <linearGradient id="trail" x1="0" x2="1" y1="1" y2="0">
+                <stop offset="0" stop-color="#73fff1" stop-opacity="0" />
+                <stop offset="0.52" stop-color="#73fff1" stop-opacity="0.72" />
+                <stop offset="1" stop-color="#fff" stop-opacity="0.18" />
+              </linearGradient>
+            </defs>
+            <path d="M 12 306 C 208 216, 330 244, 468 156 S 690 54, 886 26" />
+          </svg>
+        </div>
+
+        <div class="wing">
+          <svg
+            class="vehicle"
+            viewBox="0 0 1040 1120"
+            preserveAspectRatio="xMidYMid meet"
+            role="img"
+            aria-label="南昌航空大学校徽飞翼符号产品化矢量重绘"
+          >
+            <defs>
+              <linearGradient id="lowerFace" x1="0.08" x2="0.94" y1="0.94" y2="0.12">
+                <stop offset="0" stop-color="#efffff" />
+                <stop offset="0.5" stop-color="#c8fff8" />
+                <stop offset="1" stop-color="#70efe6" />
+              </linearGradient>
+              <linearGradient id="middleFace" x1="0.04" x2="0.98" y1="0.82" y2="0.1">
+                <stop offset="0" stop-color="#dcfbff" />
+                <stop offset="0.52" stop-color="#ffffff" />
+                <stop offset="1" stop-color="#93fff2" />
+              </linearGradient>
+              <linearGradient id="upperFace" x1="0" x2="1" y1="0.8" y2="0.02">
+                <stop offset="0" stop-color="#d2f5fb" />
+                <stop offset="0.54" stop-color="#ffffff" />
+                <stop offset="1" stop-color="#b9fff7" />
+              </linearGradient>
+              <linearGradient id="depth" x1="0" x2="1" y1="0" y2="1">
+                <stop offset="0" stop-color="#48e4dc" stop-opacity="0.44" />
+                <stop offset="1" stop-color="#063541" stop-opacity="0.68" />
+              </linearGradient>
+              <linearGradient id="shine" x1="0" x2="1" y1="0" y2="0">
+                <stop offset="0" stop-color="#fff" stop-opacity="0" />
+                <stop offset="0.5" stop-color="#fff" stop-opacity="0.8" />
+                <stop offset="1" stop-color="#fff" stop-opacity="0" />
+              </linearGradient>
+            </defs>
+
+            <g>
+              <g class="symbol-layer lower">
+                <polygon
+                  class="thickness"
+                  transform="translate(18 22)"
+                  points="975.0,1058.5 852.5,868.0 731.0,754.5 611.0,690.5 475.0,658.5 300.0,658.5 148.0,682.5 79.0,706.5 62.0,705.5 60.5,696.0 379.0,540.5 408.0,516.5 644.0,515.5 645.0,604.5 970.0,604.5 975.0,1058.5"
+                />
+                <polygon
+                  class="face-shape lower-face"
+                  points="975.0,1058.5 852.5,868.0 731.0,754.5 611.0,690.5 475.0,658.5 300.0,658.5 148.0,682.5 79.0,706.5 62.0,705.5 60.5,696.0 379.0,540.5 408.0,516.5 644.0,515.5 645.0,604.5 970.0,604.5 975.0,1058.5"
+                />
+                <path
+                  class="ridge cyan-ridge"
+                  d="M 62 696 C 228 626, 339 565, 408 516 L 644 516 L 645 604 L 970 604"
+                />
+              </g>
+
+              <g class="symbol-layer middle">
+                <polygon
+                  class="thickness"
+                  transform="translate(16 20)"
+                  points="971.0,828.5 813.0,828.5 763.0,778.5 667.0,714.5 563.0,674.5 475.0,658.5 300.0,658.5 142.0,690.5 61.5,694.0 808.0,316.5 954.0,313.5 971.0,828.5"
+                />
+                <polygon
+                  class="face-shape middle-face"
+                  points="971.0,828.5 813.0,828.5 763.0,778.5 667.0,714.5 563.0,674.5 475.0,658.5 300.0,658.5 142.0,690.5 61.5,694.0 808.0,316.5 954.0,313.5 971.0,828.5"
+                />
+                <polygon
+                  class="thickness"
+                  transform="translate(12 15)"
+                  points="551.0,434.5 467.0,386.5 339.0,354.5 236.0,354.5 126.0,378.5 95.0,378.5 92.5,367.0 206.0,313.5 722.5,314.0 720.0,346.5 668.0,362.5 551.0,434.5"
+                />
+                <polygon
+                  class="face-shape middle-face"
+                  points="551.0,434.5 467.0,386.5 339.0,354.5 236.0,354.5 126.0,378.5 95.0,378.5 92.5,367.0 206.0,313.5 722.5,314.0 720.0,346.5 668.0,362.5 551.0,434.5"
+                />
+                <path
+                  class="ridge"
+                  d="M 62 694 C 268 598, 517 464, 808 316 L 954 314 L 971 829"
+                />
+              </g>
+
+              <g class="symbol-layer upper">
+                <polygon
+                  class="thickness"
+                  transform="translate(14 18)"
+                  points="559.0,425.5 527.0,425.5 467.0,386.5 339.0,354.5 236.0,354.5 126.0,378.5 95.0,378.5 92.5,367.0 675.0,76.5 689.0,60.5 711.0,60.5 722.5,343.0 559.0,425.5"
+                />
+                <polygon
+                  class="face-shape upper-face"
+                  points="559.0,425.5 527.0,425.5 467.0,386.5 339.0,354.5 236.0,354.5 126.0,378.5 95.0,378.5 92.5,367.0 675.0,76.5 689.0,60.5 711.0,60.5 722.5,343.0 559.0,425.5"
+                />
+                <polygon
+                  class="thickness"
+                  transform="translate(16 20)"
+                  points="970.0,649.5 729.0,649.5 728.5,426.0 598.5,422.0 952.0,244.5 970.0,649.5"
+                />
+                <polygon
+                  class="face-shape upper-face"
+                  points="970.0,649.5 729.0,649.5 728.5,426.0 598.5,422.0 952.0,244.5 970.0,649.5"
+                />
+                <path
+                  class="ridge"
+                  d="M 93 367 L 675 77 L 711 61 L 723 343 L 559 426"
+                />
+              </g>
+
+              <path
+                class="glint"
+                d="M 108 678 C 250 612, 438 536, 626 438 C 758 369, 865 300, 952 246"
+                fill="none"
+                stroke="url(#shine)"
+                stroke-width="30"
+                stroke-linecap="round"
+              />
+            </g>
+          </svg>
+        </div>
+
+        <span class="spark one" aria-hidden="true"></span>
+        <span class="spark two" aria-hidden="true"></span>
+        <span class="spark three" aria-hidden="true"></span>
+      </section>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,932 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI 辅导员 Demo｜前端交互顺序原型</title>
+  <style>
+    :root {
+      --bg: #f6f8fb;
+      --panel: #ffffff;
+      --panel-soft: #f9fbff;
+      --line: #d9e2ef;
+      --text: #172033;
+      --muted: #667085;
+      --primary: #2563eb;
+      --primary-soft: #e8f0ff;
+      --accent: #0f766e;
+      --warn: #b45309;
+      --radius: 8px;
+      --shadow: 0 12px 30px rgba(23, 32, 51, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Microsoft YaHei", "PingFang SC", Arial, sans-serif;
+      line-height: 1.55;
+    }
+
+    header {
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .topbar {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 700;
+      letter-spacing: 0;
+    }
+
+    .brand-mark {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      background: #172033;
+      color: #fff;
+      font-size: 14px;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 4px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--muted);
+      background: #fff;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    main {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 24px;
+      display: grid;
+      grid-template-columns: 310px minmax(0, 1fr);
+      gap: 20px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .sidebar {
+      padding: 18px;
+      align-self: start;
+      position: sticky;
+      top: 78px;
+    }
+
+    .sidebar h1 {
+      font-size: 18px;
+      margin: 0 0 8px;
+    }
+
+    .sidebar p {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .flow-tabs {
+      display: grid;
+      gap: 8px;
+      margin-bottom: 18px;
+    }
+
+    button {
+      font: inherit;
+      cursor: pointer;
+    }
+
+    .flow-tab,
+    .step-button,
+    .role-card,
+    .ghost-link {
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--text);
+      border-radius: var(--radius);
+      text-align: left;
+      transition: border-color 160ms ease, background 160ms ease, color 160ms ease;
+    }
+
+    .flow-tab {
+      padding: 10px 12px;
+      font-weight: 650;
+    }
+
+    .flow-tab.active {
+      border-color: var(--primary);
+      background: var(--primary-soft);
+      color: #1746a2;
+    }
+
+    .module-list {
+      display: grid;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .module-item {
+      padding: 10px 12px;
+      border-radius: var(--radius);
+      background: var(--panel-soft);
+      border: 1px solid #e8eef8;
+      font-size: 13px;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      min-height: calc(100vh - 120px);
+      overflow: hidden;
+    }
+
+    .workspace-head {
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      background: #fff;
+    }
+
+    .workspace-head h2 {
+      margin: 0 0 6px;
+      font-size: 22px;
+    }
+
+    .workspace-head p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .workspace-body {
+      display: grid;
+      grid-template-columns: 260px minmax(0, 1fr);
+      min-height: 620px;
+    }
+
+    .steps {
+      padding: 16px;
+      border-right: 1px solid var(--line);
+      background: #fbfdff;
+      overflow: auto;
+    }
+
+    .steps h3 {
+      margin: 0 0 12px;
+      font-size: 15px;
+    }
+
+    .step-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .step-button {
+      width: 100%;
+      padding: 10px;
+    }
+
+    .step-button.active {
+      border-color: var(--accent);
+      background: #e7f6f3;
+    }
+
+    .step-index {
+      display: inline-flex;
+      width: 22px;
+      height: 22px;
+      align-items: center;
+      justify-content: center;
+      margin-right: 8px;
+      border-radius: 999px;
+      background: #eef2f7;
+      color: #344054;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .step-button.active .step-index {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .screen {
+      padding: 22px;
+      display: grid;
+      gap: 18px;
+      align-content: start;
+      background: linear-gradient(180deg, #fff 0%, #f8fbff 100%);
+    }
+
+    .route-line {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    code {
+      padding: 2px 6px;
+      border-radius: 6px;
+      background: #eef2f7;
+      color: #344054;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 13px;
+    }
+
+    .mock-browser {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      overflow: hidden;
+    }
+
+    .browser-bar {
+      min-height: 38px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--line);
+      background: #f8fafc;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: #cbd5e1;
+    }
+
+    .mock-page {
+      min-height: 330px;
+      padding: 22px;
+      display: grid;
+      gap: 18px;
+    }
+
+    .site-nav {
+      min-height: 46px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .site-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .site-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .mock-hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(280px, 0.9fr);
+      gap: 18px;
+      align-items: center;
+    }
+
+    .mock-hero h3,
+    .workbench h3 {
+      margin: 0 0 8px;
+      font-size: 24px;
+    }
+
+    .mock-hero p,
+    .workbench p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .role-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .role-card {
+      padding: 16px;
+      min-height: 118px;
+    }
+
+    .role-card strong {
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .role-card span {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .role-card.active {
+      border-color: var(--primary);
+      background: var(--primary-soft);
+    }
+
+    .login-box {
+      max-width: 420px;
+      margin: 18px auto;
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel-soft);
+      display: grid;
+      gap: 12px;
+    }
+
+    .input-line {
+      min-height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fff;
+      padding: 10px 12px;
+      color: var(--muted);
+    }
+
+    .primary-button {
+      min-height: 42px;
+      border: 0;
+      border-radius: 6px;
+      color: #fff;
+      background: var(--primary);
+      text-align: center;
+      font-weight: 700;
+    }
+
+    .workbench {
+      display: grid;
+      grid-template-columns: 180px minmax(0, 1fr) 220px;
+      min-height: 330px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    .mock-side {
+      padding: 14px;
+      background: #172033;
+      color: #fff;
+      display: grid;
+      align-content: start;
+      gap: 8px;
+    }
+
+    .mock-side div {
+      padding: 8px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.08);
+      font-size: 13px;
+    }
+
+    .mock-main {
+      padding: 18px;
+      display: grid;
+      gap: 12px;
+      align-content: start;
+    }
+
+    .mock-right {
+      padding: 14px;
+      background: #f8fafc;
+      border-left: 1px solid var(--line);
+      display: grid;
+      gap: 10px;
+      align-content: start;
+    }
+
+    .card {
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+    }
+
+    .card strong {
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .explain-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .explain-card {
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+    }
+
+    .explain-card h4 {
+      margin: 0 0 8px;
+      font-size: 15px;
+    }
+
+    .explain-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .note {
+      padding: 12px 14px;
+      border-left: 4px solid var(--warn);
+      background: #fff7ed;
+      color: #7c2d12;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+
+    @media (max-width: 920px) {
+      main,
+      .workspace-body,
+      .mock-hero,
+      .workbench,
+      .explain-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        position: static;
+      }
+
+      .steps {
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .role-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="topbar">
+      <div class="brand">
+        <div class="brand-mark">AI</div>
+        <div>AI 辅导员 Demo｜前端交互顺序原型</div>
+      </div>
+      <div class="tag">讨论用低保真页面，不是正式前端实现</div>
+    </div>
+  </header>
+
+  <main>
+    <aside class="panel sidebar">
+      <h1>先看用户怎么走</h1>
+      <p>这个页面用来讨论“用户点哪里、跳到哪里、页面该怎么排版”。正式开发前，再把它整理成页面结构文档和路由/API 表。</p>
+
+      <div class="flow-tabs" id="flowTabs"></div>
+
+      <strong>功能模块第一层</strong>
+      <div class="module-list">
+        <div class="module-item">网站入口模块</div>
+        <div class="module-item">登录认证模块</div>
+        <div class="module-item">学生咨询模块</div>
+        <div class="module-item">辅导员工作台模块</div>
+        <div class="module-item">管理后台模块</div>
+        <div class="module-item">知识资源模块</div>
+        <div class="module-item">统计与审计模块</div>
+      </div>
+    </aside>
+
+    <section class="panel workspace">
+      <div class="workspace-head">
+        <div>
+          <h2 id="flowTitle">学生咨询流程</h2>
+          <p id="flowDesc">从主站入口进入，登录后完成一次 Demo 咨询。</p>
+        </div>
+        <div class="tag" id="phaseTag">Phase 1 讨论原型</div>
+      </div>
+
+      <div class="workspace-body">
+        <nav class="steps">
+          <h3>用户交互顺序</h3>
+          <div class="step-list" id="stepList"></div>
+        </nav>
+
+        <div class="screen">
+          <div>
+            <h3 id="stepTitle">打开主站首页</h3>
+            <div class="route-line">
+              <span>当前页面</span>
+              <code id="stepRoute">/</code>
+              <span id="stepModule">网站入口模块</span>
+            </div>
+          </div>
+
+          <div class="mock-browser">
+            <div class="browser-bar">
+              <span class="dot"></span>
+              <span class="dot"></span>
+              <span class="dot"></span>
+              <code id="browserUrl">https://demo.school-ai.local/</code>
+            </div>
+            <div class="mock-page" id="mockPage"></div>
+          </div>
+
+          <div class="explain-grid">
+            <div class="explain-card">
+              <h4>用户动作</h4>
+              <p id="userAction">浏览产品特性，点击顶部导航栏“登录”。</p>
+            </div>
+            <div class="explain-card">
+              <h4>排版含义</h4>
+              <p id="layoutReason">首页像产品官网，先呈现能力特性；身份选择集中放到登录页。</p>
+            </div>
+            <div class="explain-card">
+              <h4>后续 API 串联</h4>
+              <p id="apiPoint">Phase 1 可不接 API；后续可选公告/系统状态 API。</p>
+            </div>
+          </div>
+
+          <div class="note">
+            这类原型的作用：先把交互顺序讨论清楚，再决定页面结构、布局重点和样式。它不替代正式 React 代码。
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const flows = {
+      student: {
+        label: "学生流程",
+        title: "学生咨询流程",
+        desc: "从主站入口进入，登录后完成一次 Demo 咨询。",
+        steps: [
+          {
+            title: "打开主站首页",
+            route: "/",
+            module: "网站入口模块",
+            action: "学生打开网站，浏览产品特性，点击顶部导航栏“登录”。",
+            layout: "首页按产品官网结构展示定位、能力特性和登录入口；学生身份在登录页确认。",
+            api: "Phase 1 可不接 API；后续可选公告/系统状态 API。",
+            type: "home"
+          },
+          {
+            title: "进入统一登录页",
+            route: "/login",
+            module: "登录认证模块",
+            action: "学生在登录页选择或确认“学生”身份，看到学生欢迎语后输入 Demo 账号。",
+            layout: "登录页承担身份选择；学生身份下展示咨询入口、隐私提示和登录后去向。",
+            api: "Phase 2 对接 POST /api/v1/auth/login。",
+            type: "login"
+          },
+          {
+            title: "进入学生工作台",
+            route: "/student",
+            module: "学生咨询模块",
+            action: "学生看到咨询入口、最近会话和推荐资源。",
+            layout: "左侧放学生导航，中间放提问入口，右侧放来源/资源提示。",
+            api: "Phase 3 对接学生概要或复用问答 API。",
+            type: "studentDesk"
+          },
+          {
+            title: "提交一次咨询问题",
+            route: "/student/chat",
+            module: "学生咨询模块",
+            action: "学生输入问题，提交后看到回答、来源卡片和兜底提示。",
+            layout: "对话区是主视觉；来源卡片靠右，方便验证答案依据。",
+            api: "Phase 3 对接 POST /api/v1/student/questions。",
+            type: "chat"
+          }
+        ]
+      },
+      counselor: {
+        label: "辅导员流程",
+        title: "辅导员案例处理流程",
+        desc: "从主站入口进入，登录后查看并处理一个模拟案例。",
+        steps: [
+          {
+            title: "打开主站首页",
+            route: "/",
+            module: "网站入口模块",
+            action: "老师/辅导员打开网站，浏览产品特性，点击顶部导航栏“登录”。",
+            layout: "首页参考产品官网节奏，解释价值和能力；辅导员身份在登录页确认。",
+            api: "Phase 1 可不接 API。",
+            type: "home"
+          },
+          {
+            title: "进入统一登录页",
+            route: "/login",
+            module: "登录认证模块",
+            action: "辅导员在登录页选择或确认“老师/辅导员”身份，再使用 Demo 账号登录。",
+            layout: "登录页根据辅导员身份展示案例工作台、辅助建议和登录后去向。",
+            api: "Phase 2 对接 POST /api/v1/auth/login。",
+            type: "login"
+          },
+          {
+            title: "进入辅导员工作台",
+            route: "/counselor",
+            module: "辅导员工作台模块",
+            action: "辅导员查看待处理案例、重点提醒和辅助建议入口。",
+            layout: "工作台更像后台系统：左侧导航，中间列表，右侧摘要。",
+            api: "Phase 5 对接 GET /api/v1/counselor/summary。",
+            type: "counselorDesk"
+          },
+          {
+            title: "打开案例详情",
+            route: "/counselor/cases/:id",
+            module: "辅导员工作台模块",
+            action: "辅导员打开案例，查看学生上下文和建议性输出。",
+            layout: "详情页中间放案例主信息，右侧放 AI 辅助建议，但必须标明仅供参考。",
+            api: "Phase 5 对接 GET/PATCH /api/v1/counselor/cases/:id。",
+            type: "caseDetail"
+          }
+        ]
+      },
+      admin: {
+        label: "管理后台流程",
+        title: "管理后台知识维护流程",
+        desc: "通过独立链接进入后台，维护 Demo 知识资源。",
+        steps: [
+          {
+            title: "打开管理后台独立入口",
+            route: "/admin",
+            module: "管理后台模块",
+            action: "管理员通过独立后台链接进入，不在主站首页公开展示。",
+            layout: "后台入口直接呈现管理系统外壳，不做营销型首页。",
+            api: "Phase 4 对接 GET /api/v1/admin/stats 或 activity。",
+            type: "adminDesk"
+          },
+          {
+            title: "进入后台登录或鉴权",
+            route: "/login?role=admin 或 /admin/login",
+            module: "登录认证模块",
+            action: "管理员完成 Demo 登录或已有会话校验。",
+            layout: "后台登录更严肃，明确提示管理权限和 Demo 数据边界。",
+            api: "Phase 2/4 对接 POST /api/v1/auth/login。",
+            type: "login"
+          },
+          {
+            title: "查看知识资源列表",
+            route: "/admin/knowledge",
+            module: "知识资源模块",
+            action: "管理员筛选、查看、启停 Demo 知识资源。",
+            layout: "后台核心是表格和筛选器，右侧可放资源影响范围摘要。",
+            api: "Phase 4 对接 GET /api/v1/admin/knowledge。",
+            type: "knowledge"
+          },
+          {
+            title: "执行 Demo 数据维护",
+            route: "/admin/demo-reset",
+            module: "管理后台模块",
+            action: "管理员确认后重置 Demo 数据。",
+            layout: "高风险操作不放在普通按钮堆里，要有确认区和风险说明。",
+            api: "Phase 4 对接 POST /api/v1/admin/demo-reset。",
+            type: "reset"
+          }
+        ]
+      }
+    };
+
+    let currentFlow = "student";
+    let currentStep = 0;
+
+    const flowTabs = document.getElementById("flowTabs");
+    const stepList = document.getElementById("stepList");
+    const flowTitle = document.getElementById("flowTitle");
+    const flowDesc = document.getElementById("flowDesc");
+    const stepTitle = document.getElementById("stepTitle");
+    const stepRoute = document.getElementById("stepRoute");
+    const stepModule = document.getElementById("stepModule");
+    const browserUrl = document.getElementById("browserUrl");
+    const mockPage = document.getElementById("mockPage");
+    const userAction = document.getElementById("userAction");
+    const layoutReason = document.getElementById("layoutReason");
+    const apiPoint = document.getElementById("apiPoint");
+
+    function renderTabs() {
+      flowTabs.innerHTML = "";
+      Object.entries(flows).forEach(([key, flow]) => {
+        const button = document.createElement("button");
+        button.className = "flow-tab" + (key === currentFlow ? " active" : "");
+        button.textContent = flow.label;
+        button.addEventListener("click", () => {
+          currentFlow = key;
+          currentStep = 0;
+          render();
+        });
+        flowTabs.appendChild(button);
+      });
+    }
+
+    function renderSteps() {
+      const flow = flows[currentFlow];
+      stepList.innerHTML = "";
+      flow.steps.forEach((step, index) => {
+        const button = document.createElement("button");
+        button.className = "step-button" + (index === currentStep ? " active" : "");
+        button.innerHTML = `<span class="step-index">${index + 1}</span>${step.title}`;
+        button.addEventListener("click", () => {
+          currentStep = index;
+          render();
+        });
+        stepList.appendChild(button);
+      });
+    }
+
+    function renderMock(type) {
+      if (type === "home") {
+        return `
+          <div class="site-nav">
+            <strong>AI 辅导员 Demo</strong>
+            <div class="site-links">
+              <span>产品能力</span>
+              <span>使用流程</span>
+              <span>适用角色</span>
+              <span>资源</span>
+            </div>
+            <div class="site-actions">
+              <button class="ghost-link" style="padding:8px 12px;">登录</button>
+              <button class="primary-button" style="padding:0 14px;">申请演示</button>
+            </div>
+          </div>
+          <div class="mock-hero">
+            <div>
+              <h3>面向学校场景的 AI 辅导员工作平台</h3>
+              <p>把学生咨询、辅导员案例跟进、知识资源维护和 Demo 数据统计连接成一个可演示的产品闭环。</p>
+              <button class="primary-button" style="margin-top:16px; padding:0 18px;">登录体验</button>
+            </div>
+            <div class="feature-grid">
+              <div class="card"><strong>学生咨询</strong>提问、查看回答来源、沉淀历史会话。</div>
+              <div class="card"><strong>辅导员工作台</strong>查看模拟案例、上下文摘要和辅助建议。</div>
+              <div class="card"><strong>知识与统计</strong>维护 Demo 资源，查看活动和命中情况。</div>
+            </div>
+          </div>
+          <div class="note">主站首页不作为正式角色选择页。点击顶部“登录”后，登录页再展示学生和老师/辅导员的角色选项。管理后台仍通过独立后台链接访问。</div>
+        `;
+      }
+
+      if (type === "login") {
+        const isCounselor = currentFlow === "counselor";
+        const roleTitle = isCounselor ? "老师/辅导员" : "学生";
+        const welcome = isCounselor
+          ? "欢迎进入辅导员工作台，登录后可查看模拟案例、学生上下文和辅助建议。"
+          : "欢迎进入学生咨询空间，登录后可提交问题、查看回答来源和历史会话。";
+        const target = isCounselor ? "/counselor" : "/student";
+        return `
+          <div class="login-box">
+            <h3>统一 Demo 登录</h3>
+            <div class="role-grid">
+              <button class="role-card${isCounselor ? "" : " active"}"><strong>学生</strong><span>咨询问答、资源来源、历史会话</span></button>
+              <button class="role-card${isCounselor ? " active" : ""}"><strong>老师/辅导员</strong><span>案例工作台、辅助建议、状态跟进</span></button>
+            </div>
+            <div class="card"><strong>${roleTitle}欢迎语</strong>${welcome}</div>
+            <div class="input-line">账号：demo_user</div>
+            <div class="input-line">密码：••••••••</div>
+            <button class="primary-button">登录并进入 ${target}</button>
+            <div class="tag">当前为 Demo 账号，不代表真实学校账号</div>
+          </div>
+        `;
+      }
+
+      if (type === "studentDesk" || type === "chat") {
+        return `
+          <div class="workbench">
+            <div class="mock-side">
+              <div>学生工作台</div>
+              <div>咨询问答</div>
+              <div>资源列表</div>
+              <div>历史会话</div>
+            </div>
+            <div class="mock-main">
+              <h3>${type === "chat" ? "咨询对话" : "今天想咨询什么？"}</h3>
+              <div class="card"><strong>输入框</strong>例如：我最近学习压力很大，应该怎么办？</div>
+              <div class="card"><strong>AI Demo 回答</strong>这里显示确定性的 Demo 回答，不声称是真实 RAG。</div>
+            </div>
+            <div class="mock-right">
+              <div class="card"><strong>来源卡片</strong>心理支持资源 A</div>
+              <div class="card"><strong>Demo 标识</strong>当前为模拟数据</div>
+            </div>
+          </div>
+        `;
+      }
+
+      if (type === "counselorDesk" || type === "caseDetail") {
+        return `
+          <div class="workbench">
+            <div class="mock-side">
+              <div>辅导员工作台</div>
+              <div>案例列表</div>
+              <div>辅助建议</div>
+            </div>
+            <div class="mock-main">
+              <h3>${type === "caseDetail" ? "案例详情" : "待处理案例"}</h3>
+              <div class="card"><strong>案例卡片</strong>学生 A｜学习压力｜待跟进</div>
+              <div class="card"><strong>上下文摘要</strong>来自学生 Demo 咨询记录的模拟摘要。</div>
+            </div>
+            <div class="mock-right">
+              <div class="card"><strong>AI 辅助建议</strong>仅供辅导员参考，不替代人工判断。</div>
+              <div class="card"><strong>状态操作</strong>标记跟进 / 已处理</div>
+            </div>
+          </div>
+        `;
+      }
+
+      if (type === "adminDesk" || type === "knowledge" || type === "reset") {
+        return `
+          <div class="workbench">
+            <div class="mock-side">
+              <div>管理后台</div>
+              <div>知识资源</div>
+              <div>Demo 统计</div>
+              <div>审计记录</div>
+              <div>数据重置</div>
+            </div>
+            <div class="mock-main">
+              <h3>${type === "knowledge" ? "知识资源列表" : type === "reset" ? "Demo 数据重置" : "后台总览"}</h3>
+              <div class="card"><strong>表格区</strong>资源标题｜分类｜启用状态｜更新时间</div>
+              <div class="card"><strong>操作区</strong>新增、编辑、启停、重置都需要权限和审计。</div>
+            </div>
+            <div class="mock-right">
+              <div class="card"><strong>统计摘要</strong>咨询数、命中数、兜底数</div>
+              <div class="card"><strong>风险提示</strong>当前仅为 Demo 数据</div>
+            </div>
+          </div>
+        `;
+      }
+
+      return "<p>待补充页面样式。</p>";
+    }
+
+    function render() {
+      const flow = flows[currentFlow];
+      const step = flow.steps[currentStep];
+      renderTabs();
+      renderSteps();
+      flowTitle.textContent = flow.title;
+      flowDesc.textContent = flow.desc;
+      stepTitle.textContent = step.title;
+      stepRoute.textContent = step.route;
+      stepModule.textContent = step.module;
+      browserUrl.textContent = "https://demo.school-ai.local" + step.route;
+      userAction.textContent = step.action;
+      layoutReason.textContent = step.layout;
+      apiPoint.textContent = step.api;
+      mockPage.innerHTML = renderMock(step.type);
+    }
+
+    render();
+  </script>
+</body>
+</html>

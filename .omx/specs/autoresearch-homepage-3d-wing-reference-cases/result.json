@@ -1,0 +1,28 @@
+{
+  "status": "passed",
+  "passed": true,
+  "validator_prompt": "Review whether the report gives concrete, reviewable frontend/3D motion references, separates evidence from inference, respects mainland China accessibility preference, and produces actionable directions before implementation.",
+  "architect_review": {
+    "verdict": "approved",
+    "summary": "The report provides concrete reference links, separates likely accessibility from verified facts, groups references by layout, motion, 3D, and implementation value, and recommends a reviewable path before any frontend implementation."
+  },
+  "output_artifact_path": ".omx/specs/autoresearch-homepage-3d-wing-reference-cases/report.md",
+  "completion_artifact_path": ".omx/specs/autoresearch-homepage-3d-wing-reference-cases/result.json",
+  "references_reviewed": [
+    "https://x.ant.design/",
+    "https://x.ant.design/components/overview-cn/",
+    "https://tongyi.aliyun.com/",
+    "https://cloud.baidu.com/product/qianfan.html",
+    "https://yuanqi.tencent.com/",
+    "https://linear.app/",
+    "https://spline.design/solutions/3d-websites",
+    "https://spline.design/examples",
+    "https://rive.app/use-cases/websites",
+    "https://lottiefiles.com/featured-free-animations",
+    "https://www.gsap.com/docs/v3/GSAP/Timeline/",
+    "https://gsap.com/docs/v3/Plugins/MorphSVGPlugin/",
+    "https://threejs.org/docs/pages/SVGLoader.html",
+    "https://docs.spline.design/doc/exporting-as-code/docDdDWmkQri"
+  ],
+  "completed_at": "2026-05-22"
+}

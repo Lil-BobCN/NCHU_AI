@@ -1,0 +1,35 @@
+{
+  "notes": [
+    {
+      "category": "architecture",
+      "content": "2026-05-19: Product manager approved the reusable final workflow concept. Current process: idea/docs -> clarification -> autoresearch -> SDAR approval -> product/frontend skeleton -> interaction sequence + low-fidelity prototype -> page structure/route/API/data contracts -> small-node implementation -> verification -> acceptance log. Current Phase 1 asset checkpoint is .omx/logs/current-assets-progress-ai-counselor-demo-20260519.md; next approval doc is SDAR-0005 frontend page structure and interaction flow.",
+      "timestamp": "2026-05-18T18:02:23.163Z"
+    }
+  ],
+  "directives": [
+    {
+      "directive": "When a task has multiple viable alternatives, implementation paths, UI/product expressions, data-contract choices, component choices, or backend boundary options, first present options, tradeoffs, recommendation, risks, and rollback to the product manager for alignment; use Deep Interview-style clarification when ambiguity remains before implementation.",
+      "priority": "high",
+      "context": "AI Counselor Demo development workflow",
+      "timestamp": "2026-05-18T19:41:57.082Z"
+    },
+    {
+      "directive": "After each completed task node, approval package, verification, or acceptance action, update the project log and the development path structure diagram at .omx/logs/development-path-structure-ai-counselor-demo.md so the current node and next step remain visible.",
+      "priority": "normal",
+      "context": "AI Counselor Demo development workflow",
+      "timestamp": "2026-05-18T19:42:22.328Z"
+    },
+    {
+      "directive": "When presenting animation/effect options for user alignment, always include corresponding visual material for each choice: either self-made demo assets or Autoresearch-discovered finished references. Do not ask the user to choose from text-only descriptions. If creating visual demo material directly, use relevant frontend/design skills to assist development before presenting it.",
+      "priority": "high",
+      "context": "User explicitly requested this during QA answer animation alignment because text-only effect descriptions are hard to understand.",
+      "timestamp": "2026-05-25T17:38:29.717Z"
+    },
+    {
+      "directive": "When presenting design/effect options, always include corresponding visual material. If Codex creates the material, use relevant frontend/design/animation skills to build it; do not ask the user to choose from text-only descriptions.",
+      "priority": "high",
+      "context": "Frontend design review workflow",
+      "timestamp": "2026-05-25T19:31:28.283Z"
+    }
+  ]
+}

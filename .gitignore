@@ -16,7 +16,7 @@ build/
 venv/
 
 # Logs
-logs/
+/logs/
 *.log
 
 # IDE
@@ -34,10 +34,20 @@ Thumbs.db
 *.md.backup
 graphify-out/
 
+# OMX durable docs/prototypes are versioned; runtime noise stays local
+.omx/state/
+.omx/team/
+.omx/tmp/
+.omx/metrics.json
+.omx/tmux-hook.json
+.omx/logs/*.jsonl
+.omx/logs/*.log
+
 # Local dev
 .venv/
 .vscode/
-logs/
+/logs/
+output/logs/
 
 # Project workflow artifacts
 !AGENTS.md

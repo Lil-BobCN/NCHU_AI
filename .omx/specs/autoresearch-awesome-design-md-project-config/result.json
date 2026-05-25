@@ -1,0 +1,20 @@
+{
+  "status": "passed",
+  "passed": true,
+  "validation_mode": "prompt-architect-artifact",
+  "validator_prompt": "Verify whether VoltAgent/awesome-design-md was configured as a project-level design reference, whether PRODUCT.md and DESIGN.md are discoverable by the impeccable skill context loader, and whether the relationship between impeccable and awesome-design-md is explained correctly.",
+  "architect_review": {
+    "verdict": "approved",
+    "summary": "The project now has root PRODUCT.md and DESIGN.md files, a docs/design usage guide for VoltAgent/awesome-design-md, README discoverability, and loader evidence showing impeccable can read the context. The explanation correctly separates impeccable as a skill from awesome-design-md as a DESIGN.md reference library."
+  },
+  "output_artifact_path": ".omx/specs/autoresearch-awesome-design-md-project-config/report.md",
+  "completion_artifact_path": ".omx/specs/autoresearch-awesome-design-md-project-config/result.json",
+  "evidence": [
+    "PRODUCT.md",
+    "DESIGN.md",
+    "docs/design/awesome-design-md.md",
+    "README.md",
+    "node .agents/skills/impeccable/scripts/load-context.mjs returned hasProduct=true and hasDesign=true"
+  ],
+  "completed_at": "2026-05-25"
+}

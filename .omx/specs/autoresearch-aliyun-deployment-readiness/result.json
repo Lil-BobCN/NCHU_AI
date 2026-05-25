@@ -1,0 +1,22 @@
+{
+  "status": "passed",
+  "passed": true,
+  "validation_mode": "prompt-architect-artifact",
+  "validator_prompt": "Review whether the research output gives a cost-effective Alibaba Cloud ECS choice grounded in official ECS/Milvus docs and provides a concrete beginner-friendly deployment procedure for the current Docker Compose project.",
+  "architect_review": {
+    "verdict": "approved",
+    "summary": "The report ties the recommendation to the current Compose stack and Milvus hardware requirements, distinguishes minimum/recommended/stable options, lists user preparation needs, and provides an ordered deployment/testing flow with security and ICP caveats."
+  },
+  "output_artifact_path": ".omx/specs/autoresearch-aliyun-deployment-readiness/report.md",
+  "sources": [
+    "https://help.aliyun.com/zh/ecs/getting-started/create-and-manage-an-ecs-instance-by-using-the-ecs-console",
+    "https://help.aliyun.com/zh/ecs/user-guide/create-an-instance-by-using-the-wizard/",
+    "https://help.aliyun.com/zh/ecs/user-guide/shared-instance-families",
+    "https://help.aliyun.com/zh/ecs/user-guide/general-work-force",
+    "https://help.aliyun.com/zh/ecs/user-guide/start-using-security-groups",
+    "https://help.aliyun.com/zh/ecs/use-cases/install-and-use-docker",
+    "https://help.aliyun.com/zh/ecs/user-guide/initialize-a-data-disk-whose-size-does-not-exceed-2-tib-on-a-linux-instance/",
+    "https://help.aliyun.com/zh/icp-filing/product-overview/what-is-an-icp-filing",
+    "https://milvus.io/docs/prerequisite-docker.md"
+  ]
+}

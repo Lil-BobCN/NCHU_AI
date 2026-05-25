@@ -1,0 +1,8 @@
+{
+  "validator_prompt": "Verify that Claude motion observations are grounded in project evidence and official page inspection, then that the prototype uses GSAP-style entrance and scroll reveal motion without copying Claude assets.",
+  "architect_review": {
+    "verdict": "approved",
+    "summary": "The motion polish is grounded in project guidance and official Claude page inspection. The implementation uses GSAP-style staged entrance, token reveal, grouped section reveal, and reduced-motion fallback without copying Claude assets."
+  },
+  "output_artifact_path": ".omx/specs/autoresearch-claude-motion-polish/report.md"
+}
