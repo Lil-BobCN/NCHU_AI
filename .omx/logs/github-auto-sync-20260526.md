@@ -29,3 +29,7 @@ The script also scans the staged snapshot for high-confidence secret patterns be
 ## Operating Rule
 
 Use this workflow for local-to-GitHub synchronization. If GitHub and local `main` diverge, the script stops instead of force-pushing.
+
+## Auto-start Verification
+
+The background sync loop was started locally on 2026-05-26. This note is used as a durable verification change for the first auto-sync pass.
