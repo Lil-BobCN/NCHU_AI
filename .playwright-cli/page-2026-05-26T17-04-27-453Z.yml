@@ -1,0 +1,54 @@
+- generic [ref=e4]:
+  - banner [ref=e5]:
+    - button "NCHU AI" [ref=e6] [cursor=pointer]:
+      - img [ref=e8]:
+        - img [ref=e9]
+      - generic [ref=e12]: NCHU AI
+    - generic [ref=e13]:
+      - generic [ref=e15]: 学生身份
+      - button "学生工作台" [ref=e17] [cursor=pointer]:
+        - generic [ref=e18]: 学生工作台
+      - button "logout 退出" [ref=e20] [cursor=pointer]:
+        - img "logout" [ref=e22]:
+          - img [ref=e23]
+        - generic [ref=e25]: 退出
+  - main [ref=e26]:
+    - main [ref=e27]:
+      - region "学生 AI 咨询助手" [ref=e28]:
+        - generic "会话记录" [ref=e29]:
+          - generic [ref=e30]:
+            - button "学生工作台" [ref=e31] [cursor=pointer]:
+              - generic [ref=e32]: ←
+              - text: 学生工作台
+            - generic [ref=e33]:
+              - generic [ref=e34]: 会话记录
+              - heading "AI 咨询助手" [level=1] [ref=e35]
+            - button "新会话" [ref=e36] [cursor=pointer]:
+              - generic [ref=e37]: ＋
+              - text: 新会话
+          - generic "当前模型" [ref=e38]:
+            - generic [ref=e39]: 当前模型
+            - strong [ref=e40]: Qwen
+          - generic [ref=e42]: 还没有保存的会话，发送第一条消息后会自动出现在这里。
+        - generic [ref=e43]:
+          - generic [ref=e44]:
+            - generic [ref=e45]:
+              - generic [ref=e46]: 学生端咨询
+              - heading "新会话" [level=2] [ref=e47]
+            - generic [ref=e48]:
+              - generic [ref=e49]: 就绪
+              - button "重试" [disabled] [ref=e50]
+          - generic [ref=e51]:
+            - generic [ref=e52]:
+              - generic [ref=e53]: ✦
+              - heading "今天想先聊哪件事？" [level=3] [ref=e54]
+              - paragraph [ref=e55]: 可以从学习压力、沟通困扰、作业安排或校园资源开始。回复由 AI 生成，重要事项请联系辅导员确认。
+              - generic [ref=e56]:
+                - button [ref=e57] [cursor=pointer]
+                - button [ref=e58] [cursor=pointer]
+                - button [ref=e59] [cursor=pointer]
+            - button "回到底部" [disabled] [ref=e61] [cursor=pointer]
+          - generic [ref=e63]:
+            - textbox "输入咨询内容" [active] [ref=e64]:
+              - /placeholder: 输入你想讨论的问题...
+            - button "发送" [disabled] [ref=e67]
