@@ -1567,6 +1567,10 @@
     padding-inline: 10px;
   }
 
+  .topbar-actions .nav-text-button {
+    display: none;
+  }
+
   .hero-section {
     min-height: 100vh;
     padding: 112px 18px 72px;
@@ -1670,6 +1674,7 @@
   .student-chat-page {
     height: calc(100vh - 89px);
     min-height: calc(100vh - 89px);
+    overflow-x: hidden;
   }
 
   .chat-shell {
