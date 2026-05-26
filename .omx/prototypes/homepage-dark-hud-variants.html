@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>NCHU AI 辅导员系统首页原型</title>
+    <title data-i18n="meta.title">NCHU AI 辅导员系统首页原型</title>
     <link rel="icon" href="data:," />
     <script>
       document.documentElement.classList.add("motion-boot");
@@ -161,6 +161,80 @@
         color: var(--ink-strong);
       }
 
+      .animated-shiny-text {
+        position: relative;
+        display: inline-grid;
+        align-items: center;
+        padding-bottom: 4px;
+        margin-bottom: -4px;
+        color: var(--ink-strong);
+        -webkit-text-fill-color: currentColor;
+        text-shadow: none;
+        transition: text-shadow 180ms ease;
+      }
+
+      .brand-shiny-text {
+        grid-area: 1 / 1;
+        background: linear-gradient(
+          90deg,
+          var(--ink-strong),
+          color-mix(in srgb, var(--primary), var(--bg-elevated) 34%),
+          var(--ink-strong)
+        );
+        background-size: 200% auto;
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+        -webkit-text-fill-color: transparent;
+        animation: none;
+        opacity: 0;
+        visibility: hidden;
+      }
+
+      .animated-shiny-text.brand-effect-ready .brand-shiny-text {
+        opacity: 1;
+        visibility: visible;
+        animation: shinyTextSweep 1s linear infinite alternate;
+      }
+
+      .brand-intro-text {
+        grid-area: 1 / 1;
+        display: inline-flex;
+        overflow: hidden;
+        color: var(--ink-strong);
+        -webkit-text-fill-color: currentColor;
+        line-height: 1;
+      }
+
+      .animated-shiny-text.brand-effect-ready .brand-intro-text {
+        opacity: 0;
+        visibility: hidden;
+      }
+
+      .brand-text-letter {
+        display: inline-block;
+        color: inherit;
+        -webkit-text-fill-color: currentColor;
+        will-change: transform, opacity;
+      }
+
+      .brand-text-underline {
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        width: 0%;
+        height: 2px;
+        border-radius: 999px;
+        background: linear-gradient(90deg, var(--primary), #7c5cff 52%, #d14f8f);
+        box-shadow: 0 0 18px color-mix(in srgb, var(--primary), transparent 64%);
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .brand:hover .animated-shiny-text {
+        text-shadow: 0 0 8px color-mix(in srgb, var(--primary), transparent 72%);
+      }
+
       .brand-mark {
         display: grid;
         width: 30px;
@@ -225,6 +299,46 @@
         color: var(--ink-strong);
       }
 
+      .language-switch {
+        display: inline-grid;
+        grid-template-columns: 1fr 1fr;
+        align-items: center;
+        min-height: 34px;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: color-mix(in srgb, var(--bg-elevated), transparent 14%);
+        box-shadow: inset 0 1px 0 color-mix(in srgb, var(--bg-elevated), transparent 14%);
+      }
+
+      .language-switch button {
+        min-width: 42px;
+        min-height: 32px;
+        border: 0;
+        background: transparent;
+        color: var(--muted);
+        cursor: pointer;
+        padding: 0 10px;
+        font-size: 12px;
+        font-weight: 720;
+        letter-spacing: 0;
+        transition:
+          background-color 180ms ease,
+          color 180ms ease;
+      }
+
+      .language-switch button[aria-pressed="true"] {
+        background: var(--primary);
+        color: var(--primary-ink);
+      }
+
+      .language-switch button:focus-visible {
+        position: relative;
+        z-index: 1;
+        outline: 2px solid color-mix(in srgb, var(--primary), transparent 34%);
+        outline-offset: -2px;
+      }
+
       .btn {
         display: inline-flex;
         min-height: 36px;
@@ -260,48 +374,176 @@
         color: var(--ink-strong);
       }
 
-      .theme-toggle {
-        position: relative;
-        display: inline-grid;
-        grid-template-columns: 1fr 1fr;
-        width: 106px;
-        height: 38px;
-        border: 1px solid var(--line);
-        border-radius: 999px;
-        background: color-mix(in srgb, var(--bg-elevated), transparent 12%);
-        padding: 3px;
+      .theme-switch {
+        --switch-duration: 300ms;
+        --switch-track-light: color-mix(in srgb, var(--primary), white 82%);
+        --switch-track-dark: color-mix(in srgb, var(--primary), #10161f 76%);
+        --switch-focus: color-mix(in srgb, var(--primary), transparent 52%);
+        display: flex;
+        align-items: center;
+        -webkit-tap-highlight-color: transparent;
+        cursor: pointer;
       }
 
-      .theme-toggle button {
+      .theme-switch__toggle-wrap {
+        position: relative;
+        width: 76px;
+        height: 38px;
+      }
+
+      .theme-switch__toggle {
         position: relative;
         z-index: 1;
-        border: 0;
+        display: block;
+        width: 76px;
+        height: 38px;
+        margin: 0;
+        border: 1px solid var(--line);
         border-radius: 999px;
-        background: transparent;
-        color: var(--muted);
+        background-color: var(--switch-track-light);
+        box-shadow: 0 10px 28px color-mix(in srgb, var(--primary), transparent 84%);
         cursor: pointer;
-        font-size: 12px;
+        appearance: none;
+        -webkit-appearance: none;
+        transition:
+          background-color var(--switch-duration) ease-in-out,
+          border-color var(--switch-duration) ease-in-out,
+          box-shadow var(--switch-duration) ease-in-out;
       }
 
-      .theme-toggle::before {
+      .theme-switch__toggle::before {
         position: absolute;
-        top: 3px;
-        bottom: 3px;
-        left: 3px;
-        width: calc(50% - 3px);
-        border-radius: 999px;
-        background: var(--primary);
+        top: 5px;
+        left: 5px;
+        display: block;
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        background-color: var(--primary);
         content: "";
-        transition: transform 260ms var(--ease);
+        transition:
+          background-color var(--switch-duration) ease-in-out,
+          transform var(--switch-duration) ease-in-out;
       }
 
-      body[data-theme="dark"] .theme-toggle::before {
-        transform: translateX(100%);
+      .theme-switch__toggle:focus {
+        outline: transparent;
       }
 
-      body[data-theme="light"] .theme-toggle button:first-child,
-      body[data-theme="dark"] .theme-toggle button:last-child {
+      .theme-switch__toggle:focus-visible {
+        box-shadow:
+          0 0 0 3px var(--switch-focus),
+          0 10px 28px color-mix(in srgb, var(--primary), transparent 84%);
+      }
+
+      .theme-switch__toggle:checked {
+        background-color: var(--switch-track-dark);
+        border-color: var(--line-strong);
+      }
+
+      .theme-switch__toggle:checked::before,
+      .theme-switch__toggle:checked ~ .theme-switch__icon {
+        transform: translateX(38px);
+      }
+
+      .theme-switch__fill,
+      .theme-switch__icon {
+        transition: var(--switch-duration);
+      }
+
+      .theme-switch__fill {
+        display: none;
+      }
+
+      .theme-switch__icon,
+      .theme-switch__icon-part {
+        position: absolute;
+      }
+
+      .theme-switch__icon {
+        z-index: 2;
+        top: 5px;
+        left: 5px;
+        display: block;
+        width: 26px;
+        height: 26px;
+        pointer-events: none;
+      }
+
+      .theme-switch__icon-part {
+        top: 50%;
+        left: 50%;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: var(--primary-ink);
+        transform: translate(-50%, -50%);
+        transition:
+          background var(--switch-duration) ease-in-out,
+          opacity var(--switch-duration) ease-in-out,
+          transform var(--switch-duration) ease-in-out;
+      }
+
+      .theme-switch__icon-part ~ .theme-switch__icon-part {
+        top: 50%;
+        left: calc(50% - 1px);
+        width: 2px;
+        height: 4px;
+        border-radius: 1px;
+        background-color: var(--primary-ink);
+        box-shadow: none;
+        transform: rotate(0deg) translateY(8px);
+        transform-origin: 50% 0;
+      }
+
+      .theme-switch__icon-part:nth-child(3) {
+        transform: rotate(45deg) translateY(7px);
+      }
+
+      .theme-switch__icon-part:nth-child(4) {
+        transform: rotate(90deg) translateY(7px);
+      }
+
+      .theme-switch__icon-part:nth-child(5) {
+        transform: rotate(135deg) translateY(7px);
+      }
+
+      .theme-switch__icon-part:nth-child(6) {
+        transform: rotate(180deg) translateY(7px);
+      }
+
+      .theme-switch__icon-part:nth-child(7) {
+        transform: rotate(225deg) translateY(7px);
+      }
+
+      .theme-switch__icon-part:nth-child(8) {
+        transform: rotate(270deg) translateY(8px);
+      }
+
+      .theme-switch__icon-part:nth-child(9) {
+        transform: rotate(315deg) translateY(8px);
+      }
+
+      .theme-switch__moon {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 18px;
+        height: 18px;
         color: var(--primary-ink);
+        opacity: 0;
+        transform: translate(-50%, -50%);
+        transition: opacity var(--switch-duration) ease-in-out;
+      }
+
+      .theme-switch__toggle:checked ~ .theme-switch__icon .theme-switch__moon {
+        opacity: 1;
+      }
+
+      .theme-switch__toggle:checked
+        ~ .theme-switch__icon
+        .theme-switch__icon-part {
+        opacity: 0;
       }
 
       .product-bar {
@@ -346,6 +588,15 @@
         margin: 0 0 20px;
         color: var(--subtle);
         font-size: 13px;
+      }
+
+      .text-scramble {
+        display: inline-block;
+        min-width: 26ch;
+        font-family: var(--font-mono);
+        letter-spacing: 0;
+        line-height: 1;
+        text-transform: uppercase;
       }
 
       .eyebrow::before {
@@ -412,8 +663,16 @@
         padding: 8px 8px 8px 16px;
       }
 
-      .prompt-main input {
+      .prompt-input-shell {
+        position: relative;
         min-width: 0;
+      }
+
+      .prompt-main input {
+        position: relative;
+        z-index: 2;
+        min-width: 0;
+        width: 100%;
         border: 0;
         outline: 0;
         background: transparent;
@@ -423,6 +682,43 @@
 
       .prompt-main input::placeholder {
         color: var(--subtle);
+      }
+
+      .prompt-typewriter {
+        position: absolute;
+        inset: 50% 0 auto 0;
+        z-index: 1;
+        display: flex;
+        min-width: 0;
+        align-items: center;
+        overflow: hidden;
+        color: var(--subtle);
+        font-size: 13px;
+        line-height: 1.4;
+        pointer-events: none;
+        transform: translateY(-50%);
+        white-space: nowrap;
+      }
+
+      .prompt-typewriter.is-hidden {
+        opacity: 0;
+        visibility: hidden;
+      }
+
+      .prompt-typewriter-text {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: clip;
+      }
+
+      .prompt-typewriter-cursor {
+        display: inline-block;
+        flex: 0 0 auto;
+        width: 2px;
+        height: 1.05em;
+        margin-left: 3px;
+        border-radius: 999px;
+        background: var(--subtle);
       }
 
       .prompt-pills {
@@ -907,6 +1203,15 @@
         }
       }
 
+      @keyframes shinyTextSweep {
+        from {
+          background-position: 0 0;
+        }
+        to {
+          background-position: 100% 0;
+        }
+      }
+
       @media (max-width: 920px) {
         .nav-inner {
           grid-template-columns: 1fr auto;
@@ -968,8 +1273,27 @@
           display: none;
         }
 
-        .theme-toggle {
-          width: 86px;
+        .theme-switch__toggle-wrap,
+        .theme-switch__toggle {
+          width: 68px;
+          height: 34px;
+        }
+
+        .theme-switch__toggle::before {
+          width: 22px;
+          height: 22px;
+        }
+
+        .theme-switch__icon {
+          top: 5px;
+          left: 5px;
+          width: 22px;
+          height: 22px;
+        }
+
+        .theme-switch__toggle:checked::before,
+        .theme-switch__toggle:checked ~ .theme-switch__icon {
+          transform: translateX(34px);
         }
 
         .hero {
@@ -1033,11 +1357,33 @@
 
         .motion-prep,
         .reveal,
-        .motion-token {
+        .motion-token,
+        .animated-shiny-text {
           opacity: 1;
           visibility: visible;
           transform: none;
           clip-path: inset(0);
+        }
+
+        .animated-shiny-text {
+          background: none;
+          color: currentColor;
+          -webkit-text-fill-color: currentColor;
+          animation: none !important;
+        }
+
+        .brand-shiny-text {
+          background: none;
+          color: currentColor;
+          -webkit-text-fill-color: currentColor;
+          opacity: 1;
+          visibility: visible;
+          animation: none !important;
+        }
+
+        .brand-intro-text,
+        .brand-text-underline {
+          display: none;
         }
       }
     </style>
@@ -1047,40 +1393,82 @@
       <div class="sticky-header">
         <header class="top-nav motion-prep" data-motion="nav">
           <div class="nav-inner">
-            <a class="brand" href="#top" aria-label="NCHU AI 首页">
+            <a class="brand" href="#top" aria-label="NCHU AI 首页" data-i18n-aria-label="nav.homeLabel">
               <span class="brand-mark" aria-hidden="true">
                 <svg viewBox="0 0 32 32" fill="none">
                   <path d="M6 22 18 6l8 4-11 16-9-4Z" fill="currentColor" opacity="0.9" />
                   <path d="M9 22h15l-7 5-8-5Z" fill="currentColor" opacity="0.58" />
                 </svg>
               </span>
-              <span>NCHU AI</span>
+              <span class="animated-shiny-text" data-brand-animated-text="NCHU AI" aria-label="NCHU AI">
+                <span class="brand-shiny-text" aria-hidden="true">NCHU AI</span>
+                <span class="brand-intro-text" aria-hidden="true">
+                  <span class="brand-text-letter">N</span>
+                  <span class="brand-text-letter">C</span>
+                  <span class="brand-text-letter">H</span>
+                  <span class="brand-text-letter">U</span>
+                  <span class="brand-text-letter">&nbsp;</span>
+                  <span class="brand-text-letter">A</span>
+                  <span class="brand-text-letter">I</span>
+                </span>
+                <span class="brand-text-underline" aria-hidden="true"></span>
+              </span>
             </a>
 
-            <nav class="primary-links" aria-label="主导航">
-              <a href="#meet">认识产品</a>
-              <a href="#platform">平台能力</a>
-              <a href="#roles">角色场景</a>
-              <a href="#governance">治理边界</a>
-              <a href="#resources">资源</a>
+            <nav class="primary-links" aria-label="主导航" data-i18n-aria-label="nav.primaryLabel">
+              <a href="#meet" data-i18n="nav.meet">认识产品</a>
+              <a href="#platform" data-i18n="nav.platform">平台能力</a>
+              <a href="#roles" data-i18n="nav.roles">角色场景</a>
+              <a href="#governance" data-i18n="nav.governance">治理边界</a>
+              <a href="#resources" data-i18n="nav.resources">资源</a>
             </nav>
 
             <div class="nav-actions">
-              <button class="nav-link" type="button">登录</button>
-              <a class="btn btn-ghost" href="#resources">联系项目组</a>
-              <a class="btn btn-primary" href="#roles">进入体验</a>
-              <div class="theme-toggle" aria-label="主题切换">
-                <button type="button" data-theme-choice="light">Light</button>
-                <button type="button" data-theme-choice="dark">Dark</button>
+              <button class="nav-link" type="button" data-i18n="nav.login">登录</button>
+              <a class="btn btn-ghost" href="#resources" data-i18n="nav.contact">联系项目组</a>
+              <a class="btn btn-primary" href="#roles" data-i18n="nav.enter">进入体验</a>
+              <div class="language-switch" aria-label="语言切换" data-i18n-aria-label="language.label">
+                <button type="button" data-language-value="zh" aria-pressed="true">中</button>
+                <button type="button" data-language-value="en" aria-pressed="false">EN</button>
               </div>
+              <label class="theme-switch" for="homepage-theme-toggle" aria-label="主题切换" data-i18n-aria-label="theme.label">
+                <span class="theme-switch__toggle-wrap">
+                  <input
+                    id="homepage-theme-toggle"
+                    class="theme-switch__toggle"
+                    type="checkbox"
+                    role="switch"
+                    name="theme"
+                    value="dark"
+                  />
+                  <span class="theme-switch__fill"></span>
+                  <span class="theme-switch__icon" aria-hidden="true">
+                    <span class="theme-switch__icon-part"></span>
+                    <span class="theme-switch__icon-part"></span>
+                    <span class="theme-switch__icon-part"></span>
+                    <span class="theme-switch__icon-part"></span>
+                    <span class="theme-switch__icon-part"></span>
+                    <span class="theme-switch__icon-part"></span>
+                    <span class="theme-switch__icon-part"></span>
+                    <span class="theme-switch__icon-part"></span>
+                    <span class="theme-switch__icon-part"></span>
+                    <svg class="theme-switch__moon" viewBox="-2.4 0 24 24" focusable="false">
+                      <path
+                        fill="currentColor"
+                        d="M20.1 14.6a7.6 7.6 0 0 1-10.7-10.7 8.5 8.5 0 1 0 10.7 10.7Z"
+                      />
+                    </svg>
+                  </span>
+                </span>
+              </label>
             </div>
           </div>
         </header>
 
         <div class="product-bar motion-prep" data-motion="product-bar">
           <div class="product-strip">
-            <strong>产品概览</strong>
-            <a href="#platform">查看平台能力 <span aria-hidden="true">→</span></a>
+            <strong data-i18n="productBar.title">产品概览</strong>
+            <a href="#platform"><span data-i18n="productBar.link">查看平台能力</span> <span aria-hidden="true">→</span></a>
           </div>
         </div>
       </div>
@@ -1088,31 +1476,52 @@
       <main id="top">
         <section class="hero" id="meet" aria-labelledby="hero-title">
           <div class="hero-copy-block">
-            <p class="eyebrow motion-prep" data-motion="hero-eyebrow">AI Counselor Demo, Phase 2</p>
+            <p class="eyebrow motion-prep" data-motion="hero-eyebrow">
+              <span
+                class="text-scramble"
+                data-i18n="hero.eyebrow"
+                data-text-scramble="AI Counselor Demo, Phase 2"
+                data-scramble-duration="0.8"
+                data-scramble-speed="0.04"
+                aria-label="AI Counselor Demo, Phase 2"
+              >AI Counselor Demo, Phase 2</span>
+            </p>
             <h1 id="hero-title">
-              <span class="motion-prep" data-motion="hero-line">遇见你的</span>
-              <span class="motion-prep" data-motion="hero-line">AI 辅导员</span>
+              <span class="motion-prep" data-motion="hero-line" data-i18n="hero.titleA">遇见你的</span>
+              <span class="motion-prep" data-motion="hero-line" data-i18n="hero.titleB">AI 辅导员</span>
             </h1>
-            <p class="hero-copy motion-prep" data-motion="hero-copy">
+            <p class="hero-copy motion-prep" data-motion="hero-copy" data-i18n="hero.copy">
               与NCHU AI同行，让校园信息触手可及
             </p>
 
             <div class="prompt-box motion-prep" data-motion="prompt">
               <div class="prompt-main">
-                <input value="" placeholder="我想了解奖助学金、心理支持或学业预警流程" aria-label="示例问题" />
-                <button class="btn btn-primary" type="button">开始咨询</button>
+                <div class="prompt-input-shell">
+                  <input
+                    value=""
+                    placeholder=""
+                    aria-label="示例问题"
+                    data-i18n-placeholder="hero.placeholder"
+                    data-i18n-aria-label="hero.inputLabel"
+                  />
+                  <span class="prompt-typewriter" aria-hidden="true">
+                    <span class="prompt-typewriter-text"></span>
+                    <span class="prompt-typewriter-cursor"></span>
+                  </span>
+                </div>
+                <button class="btn btn-primary" type="button" data-i18n="hero.start">开始咨询</button>
               </div>
-              <div class="prompt-pills" aria-label="常用入口">
-                <button type="button">学生问答</button>
-                <button type="button">辅导员协助</button>
-                <button type="button">知识维护</button>
+              <div class="prompt-pills" aria-label="常用入口" data-i18n-aria-label="hero.pillsLabel">
+                <button type="button" data-i18n="hero.pillStudent">学生问答</button>
+                <button type="button" data-i18n="hero.pillCounselor">辅导员协助</button>
+                <button type="button" data-i18n="hero.pillKnowledge">知识维护</button>
               </div>
             </div>
           </div>
 
-          <div class="hero-visual" aria-label="NCHU AI 抽象能力图">
+          <div class="hero-visual" aria-label="NCHU AI 抽象能力图" data-i18n-aria-label="hero.visualLabel">
             <div class="orbital-panel motion-prep" data-motion="visual-panel">
-              <svg class="hero-svg" viewBox="0 0 640 560" role="img" aria-label="AI 辅导员能力连线">
+              <svg class="hero-svg" viewBox="0 0 640 560" role="img" aria-label="AI 辅导员能力连线" data-i18n-aria-label="hero.svgLabel">
                 <defs>
                   <linearGradient id="lineGradient" x1="0" x2="1" y1="0" y2="1">
                     <stop offset="0%" stop-color="var(--primary)" stop-opacity="0.28" />
@@ -1138,66 +1547,66 @@
 
             <div class="flight-chip chip-a motion-prep" data-motion="chip">
               <span class="dot" aria-hidden="true"></span>
-              <span><strong>学生请求</strong><span>问题识别、资源匹配、历史连续性</span></span>
+              <span><strong data-i18n="hero.chipA.title">学生请求</strong><span data-i18n="hero.chipA.copy">问题识别、资源匹配、历史连续性</span></span>
             </div>
             <div class="flight-chip chip-b motion-prep" data-motion="chip">
               <span class="dot" aria-hidden="true"></span>
-              <span><strong>人工接管</strong><span>高风险场景交给辅导员处理</span></span>
+              <span><strong data-i18n="hero.chipB.title">人工接管</strong><span data-i18n="hero.chipB.copy">高风险场景交给辅导员处理</span></span>
             </div>
 
             <aside class="latest-card motion-prep" data-motion="latest-card">
-              <small>Latest update</small>
-              <h3>Phase 2 正在打磨登录、角色识别和首页体验。</h3>
-              <a href="#roles">查看 Demo 路线 →</a>
+              <small data-i18n="hero.latest.kicker">Latest update</small>
+              <h3 data-i18n="hero.latest.title">Phase 2 正在打磨登录、角色识别和首页体验。</h3>
+              <a href="#roles"><span data-i18n="hero.latest.link">查看 Demo 路线</span> →</a>
             </aside>
           </div>
         </section>
 
         <section id="platform" aria-labelledby="problem-title" data-replay-scope="previous-page-gated">
           <div class="section-inner section-centered">
-            <h2 id="problem-title" class="reveal">面向学生支持的 AI 工作伙伴</h2>
-            <p class="section-lead reveal">
+            <h2 id="problem-title" class="reveal" data-i18n="platform.title">面向学生支持的 AI 工作伙伴</h2>
+            <p class="section-lead reveal" data-i18n="platform.lead">
               它不是孤立的聊天窗口，而是一个可审计、可维护、可接管的校内服务入口。
             </p>
-            <div class="download-actions reveal" aria-label="角色入口">
-              <a class="btn btn-primary" href="#roles">查看角色场景</a>
-              <a class="btn btn-ghost" href="#governance">了解治理边界</a>
+            <div class="download-actions reveal" aria-label="角色入口" data-i18n-aria-label="platform.actionsLabel">
+              <a class="btn btn-primary" href="#roles" data-i18n="platform.rolesLink">查看角色场景</a>
+              <a class="btn btn-ghost" href="#governance" data-i18n="platform.governanceLink">了解治理边界</a>
             </div>
 
             <div class="problem-grid">
-              <div class="feature-list" aria-label="平台能力列表">
+              <div class="feature-list" aria-label="平台能力列表" data-i18n-aria-label="platform.listLabel">
                 <article class="feature-item reveal">
                   <span class="feature-num">01</span>
                   <div>
-                    <h3>确定性 Demo 回答</h3>
-                    <p>先用可解释的知识匹配证明完整流程，避免在未审批阶段误称 RAG 能力已经上线。</p>
+                    <h3 data-i18n="platform.feature1.title">确定性 Demo 回答</h3>
+                    <p data-i18n="platform.feature1.copy">先用可解释的知识匹配证明完整流程，避免在未审批阶段误称 RAG 能力已经上线。</p>
                   </div>
                 </article>
                 <article class="feature-item reveal">
                   <span class="feature-num">02</span>
                   <div>
-                    <h3>角色化工作台</h3>
-                    <p>学生、辅导员和管理员进入不同界面，操作路径和信息密度按真实职责拆开。</p>
+                    <h3 data-i18n="platform.feature2.title">角色化工作台</h3>
+                    <p data-i18n="platform.feature2.copy">学生、辅导员和管理员进入不同界面，操作路径和信息密度按真实职责拆开。</p>
                   </div>
                 </article>
                 <article class="feature-item reveal">
                   <span class="feature-num">03</span>
                   <div>
-                    <h3>来源与审计</h3>
-                    <p>答案、资源、操作记录和统计面板保留追踪线索，服务学校内部治理要求。</p>
+                    <h3 data-i18n="platform.feature3.title">来源与审计</h3>
+                    <p data-i18n="platform.feature3.copy">答案、资源、操作记录和统计面板保留追踪线索，服务学校内部治理要求。</p>
                   </div>
                 </article>
                 <article class="feature-item reveal">
                   <span class="feature-num">04</span>
                   <div>
-                    <h3>人工协同</h3>
-                    <p>系统提供建议和上下文，关键判断仍由辅导员完成，边界清楚。</p>
+                    <h3 data-i18n="platform.feature4.title">人工协同</h3>
+                    <p data-i18n="platform.feature4.copy">系统提供建议和上下文，关键判断仍由辅导员完成，边界清楚。</p>
                   </div>
                 </article>
               </div>
 
-              <div class="network-card reveal" aria-label="能力网络图">
-                <svg class="network-svg" viewBox="0 0 700 560" role="img" aria-label="NCHU AI 能力网络">
+              <div class="network-card reveal" aria-label="能力网络图" data-i18n-aria-label="platform.networkLabel">
+                <svg class="network-svg" viewBox="0 0 700 560" role="img" aria-label="NCHU AI 能力网络" data-i18n-aria-label="platform.networkSvgLabel">
                   <circle class="hero-line soft pulse-ring" cx="350" cy="280" r="178" />
                   <circle class="hero-line soft pulse-ring" cx="350" cy="280" r="238" />
                   <path class="hero-line draw-line" pathLength="1" d="M350 280 188 132" />
@@ -1210,10 +1619,10 @@
                   <circle class="node" cx="158" cy="420" r="11" />
                 </svg>
                 <div class="network-center" aria-hidden="true"><span>NCHU AI</span></div>
-                <span class="orbit-label label-1">学生问答</span>
-                <span class="orbit-label label-2">知识资源</span>
-                <span class="orbit-label label-3">辅导员协助</span>
-                <span class="orbit-label label-4">审计统计</span>
+                <span class="orbit-label label-1" data-i18n="platform.orbit1">学生问答</span>
+                <span class="orbit-label label-2" data-i18n="platform.orbit2">知识资源</span>
+                <span class="orbit-label label-3" data-i18n="platform.orbit3">辅导员协助</span>
+                <span class="orbit-label label-4" data-i18n="platform.orbit4">审计统计</span>
               </div>
             </div>
           </div>
@@ -1221,8 +1630,8 @@
 
         <section class="use-section" id="roles" aria-labelledby="use-title">
           <div class="cta-band reveal">
-            <small>Built for campus support workflows</small>
-            <div class="cta-title">把学生服务入口、辅导员处理链路和管理审计放到同一套 Demo 里。</div>
+            <small data-i18n="roles.kicker">Built for campus support workflows</small>
+            <div class="cta-title" data-i18n="roles.cta">把学生服务入口、辅导员处理链路和管理审计放到同一套 Demo 里。</div>
           </div>
 
           <div class="section-inner">
@@ -1233,29 +1642,29 @@
                   <path d="M10 23h13l-6 4-7-4Z" fill="currentColor" opacity="0.55" />
                 </svg>
               </div>
-              <h2 id="use-title" class="reveal">如何使用 NCHU AI</h2>
-              <p class="section-lead reveal">登录后由账号角色决定入口，不在首页暴露三个独立工作台按钮。</p>
+              <h2 id="use-title" class="reveal" data-i18n="roles.title">如何使用 NCHU AI</h2>
+              <p class="section-lead reveal" data-i18n="roles.lead">登录后由账号角色决定入口，不在首页暴露三个独立工作台按钮。</p>
             </div>
 
-            <div class="tabs reveal" aria-label="使用角色">
-              <span class="tab is-active">学生</span>
-              <span class="tab">辅导员</span>
-              <span class="tab">管理员</span>
-              <span class="tab">项目演示</span>
+            <div class="tabs reveal" aria-label="使用角色" data-i18n-aria-label="roles.tabsLabel">
+              <span class="tab is-active" data-i18n="roles.tabStudent">学生</span>
+              <span class="tab" data-i18n="roles.tabCounselor">辅导员</span>
+              <span class="tab" data-i18n="roles.tabAdmin">管理员</span>
+              <span class="tab" data-i18n="roles.tabDemo">项目演示</span>
             </div>
 
             <div class="role-preview">
               <article class="role-card reveal">
-                <h3>学生端</h3>
-                <p>提出问题、查看来源卡片、保存会话，并在需要时转人工支持。</p>
+                <h3 data-i18n="roles.student.title">学生端</h3>
+                <p data-i18n="roles.student.copy">提出问题、查看来源卡片、保存会话，并在需要时转人工支持。</p>
               </article>
               <article class="role-card reveal">
-                <h3>辅导员端</h3>
-                <p>查看模拟个案、获得辅助建议、更新状态并保留处理记录。</p>
+                <h3 data-i18n="roles.counselor.title">辅导员端</h3>
+                <p data-i18n="roles.counselor.copy">查看模拟个案、获得辅助建议、更新状态并保留处理记录。</p>
               </article>
               <article class="role-card reveal">
-                <h3>管理端</h3>
-                <p>维护 Demo 知识资源、重置数据、查看统计和审计活动。</p>
+                <h3 data-i18n="roles.admin.title">管理端</h3>
+                <p data-i18n="roles.admin.copy">维护 Demo 知识资源、重置数据、查看统计和审计活动。</p>
               </article>
             </div>
           </div>
@@ -1263,19 +1672,19 @@
 
         <section id="governance" aria-labelledby="govern-title">
           <div class="section-inner section-centered">
-            <h2 id="govern-title" class="reveal">清楚展示能力边界</h2>
-            <p class="section-lead reveal">
+            <h2 id="govern-title" class="reveal" data-i18n="governance.title">清楚展示能力边界</h2>
+            <p class="section-lead reveal" data-i18n="governance.lead">
               当前阶段以 Demo 可信度为先：模拟数据明确标注，RAG、真实学生数据和公网部署都必须经过审批包。
             </p>
             <div class="download-actions reveal">
-              <a class="btn btn-primary" href="#top">回到首页</a>
-              <a class="btn btn-ghost" href="#resources">查看后续计划</a>
+              <a class="btn btn-primary" href="#top" data-i18n="governance.backTop">回到首页</a>
+              <a class="btn btn-ghost" href="#resources" data-i18n="governance.plan">查看后续计划</a>
             </div>
           </div>
         </section>
       </main>
 
-      <footer class="review-note" id="resources">
+      <footer class="review-note" id="resources" data-i18n="footer.note">
         原型说明：本页面参考 Claude 产品页的布局层级、按钮组合和动效节奏，但使用 NCHU AI 辅导员系统语境与项目审批色彩。
       </footer>
     </div>
@@ -1285,8 +1694,210 @@
       (function () {
         const root = document.body;
         const docEl = document.documentElement;
-        const themeButtons = document.querySelectorAll("[data-theme-choice]");
+        const themeToggle = document.querySelector("#homepage-theme-toggle");
+        const languageButtons = Array.from(document.querySelectorAll("[data-language-value]"));
         const savedTheme = localStorage.getItem("nchu-ai-home-theme");
+        const savedLanguage = localStorage.getItem("nchu-ai-home-language");
+        const reduceMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+        const translations = {
+          zh: {
+            "meta.title": "NCHU AI 辅导员系统首页原型",
+            "nav.homeLabel": "NCHU AI 首页",
+            "nav.primaryLabel": "主导航",
+            "nav.meet": "认识产品",
+            "nav.platform": "平台能力",
+            "nav.roles": "角色场景",
+            "nav.governance": "治理边界",
+            "nav.resources": "资源",
+            "nav.login": "登录",
+            "nav.contact": "联系项目组",
+            "nav.enter": "进入体验",
+            "language.label": "语言切换",
+            "theme.label": "主题切换",
+            "productBar.title": "产品概览",
+            "productBar.link": "查看平台能力",
+            "hero.eyebrow": "AI Counselor Demo, Phase 2",
+            "hero.titleA": "遇见你的",
+            "hero.titleB": "AI 辅导员",
+            "hero.copy": "与NCHU AI同行，让校园信息触手可及",
+            "hero.placeholder": "我想了解奖助学金、心理支持或学业预警流程",
+            "hero.prompts": [
+              "我想了解奖助学金申请需要准备哪些材料？",
+              "我最近学习压力很大，可以从哪里获得心理支持？",
+              "如果收到学业预警，我应该先联系谁？",
+              "我想知道学校有哪些困难补助和资助渠道？",
+              "我和室友沟通不顺，适合先找辅导员聊吗？",
+              "我错过课程作业截止时间，应该如何补救？",
+              "这个回答有没有来源，能不能给我看依据？",
+              "我想把这次咨询记录保存下来，方便下次继续。",
+              "什么情况会转给人工辅导员继续处理？",
+              "当前 Demo 能回答哪些问题，哪些还需要人工确认？"
+            ],
+            "hero.inputLabel": "示例问题",
+            "hero.start": "开始咨询",
+            "hero.pillsLabel": "常用入口",
+            "hero.pillStudent": "学生问答",
+            "hero.pillCounselor": "辅导员协助",
+            "hero.pillKnowledge": "知识维护",
+            "hero.visualLabel": "NCHU AI 抽象能力图",
+            "hero.svgLabel": "AI 辅导员能力连线",
+            "hero.chipA.title": "学生请求",
+            "hero.chipA.copy": "问题识别、资源匹配、历史连续性",
+            "hero.chipB.title": "人工接管",
+            "hero.chipB.copy": "高风险场景交给辅导员处理",
+            "hero.latest.kicker": "Latest update",
+            "hero.latest.title": "Phase 2 正在打磨登录、角色识别和首页体验。",
+            "hero.latest.link": "查看 Demo 路线",
+            "platform.title": "面向学生支持的 AI 工作伙伴",
+            "platform.lead": "它不是孤立的聊天窗口，而是一个可审计、可维护、可接管的校内服务入口。",
+            "platform.actionsLabel": "角色入口",
+            "platform.rolesLink": "查看角色场景",
+            "platform.governanceLink": "了解治理边界",
+            "platform.listLabel": "平台能力列表",
+            "platform.feature1.title": "确定性 Demo 回答",
+            "platform.feature1.copy": "先用可解释的知识匹配证明完整流程，避免在未审批阶段误称 RAG 能力已经上线。",
+            "platform.feature2.title": "角色化工作台",
+            "platform.feature2.copy": "学生、辅导员和管理员进入不同界面，操作路径和信息密度按真实职责拆开。",
+            "platform.feature3.title": "来源与审计",
+            "platform.feature3.copy": "答案、资源、操作记录和统计面板保留追踪线索，服务学校内部治理要求。",
+            "platform.feature4.title": "人工协同",
+            "platform.feature4.copy": "系统提供建议和上下文，关键判断仍由辅导员完成，边界清楚。",
+            "platform.networkLabel": "能力网络图",
+            "platform.networkSvgLabel": "NCHU AI 能力网络",
+            "platform.orbit1": "学生问答",
+            "platform.orbit2": "知识资源",
+            "platform.orbit3": "辅导员协助",
+            "platform.orbit4": "审计统计",
+            "roles.kicker": "Built for campus support workflows",
+            "roles.cta": "把学生服务入口、辅导员处理链路和管理审计放到同一套 Demo 里。",
+            "roles.title": "如何使用 NCHU AI",
+            "roles.lead": "登录后由账号角色决定入口，不在首页暴露三个独立工作台按钮。",
+            "roles.tabsLabel": "使用角色",
+            "roles.tabStudent": "学生",
+            "roles.tabCounselor": "辅导员",
+            "roles.tabAdmin": "管理员",
+            "roles.tabDemo": "项目演示",
+            "roles.student.title": "学生端",
+            "roles.student.copy": "提出问题、查看来源卡片、保存会话，并在需要时转人工支持。",
+            "roles.counselor.title": "辅导员端",
+            "roles.counselor.copy": "查看模拟个案、获得辅助建议、更新状态并保留处理记录。",
+            "roles.admin.title": "管理端",
+            "roles.admin.copy": "维护 Demo 知识资源、重置数据、查看统计和审计活动。",
+            "governance.title": "清楚展示能力边界",
+            "governance.lead": "当前阶段以 Demo 可信度为先：模拟数据明确标注，RAG、真实学生数据和公网部署都必须经过审批包。",
+            "governance.backTop": "回到首页",
+            "governance.plan": "查看后续计划",
+            "footer.note": "原型说明：本页面参考 Claude 产品页的布局层级、按钮组合和动效节奏，但使用 NCHU AI 辅导员系统语境与项目审批色彩。"
+          },
+          en: {
+            "meta.title": "NCHU AI Counselor Homepage Prototype",
+            "nav.homeLabel": "NCHU AI home",
+            "nav.primaryLabel": "Primary navigation",
+            "nav.meet": "Overview",
+            "nav.platform": "Capabilities",
+            "nav.roles": "Roles",
+            "nav.governance": "Governance",
+            "nav.resources": "Resources",
+            "nav.login": "Log in",
+            "nav.contact": "Contact team",
+            "nav.enter": "Enter demo",
+            "language.label": "Language switch",
+            "theme.label": "Theme switch",
+            "productBar.title": "Product overview",
+            "productBar.link": "View capabilities",
+            "hero.eyebrow": "AI Counselor Demo, Phase 2",
+            "hero.titleA": "Meet your",
+            "hero.titleB": "AI counselor",
+            "hero.copy": "With NCHU AI, campus information is always within reach.",
+            "hero.placeholder": "I want to understand scholarships, mental health support, or academic warning workflows",
+            "hero.prompts": [
+              "What materials do I need for scholarship applications?",
+              "I feel overwhelmed by study pressure. Where can I get support?",
+              "If I receive an academic warning, who should I contact first?",
+              "What emergency aid or financial support channels are available?",
+              "I am having roommate conflict. Should I talk with a counselor first?",
+              "I missed an assignment deadline. What should I do next?",
+              "Can this answer show its source or policy basis?",
+              "Can I save this consultation and continue it next time?",
+              "When will the system hand me off to a human counselor?",
+              "What can this demo answer now, and what still needs human confirmation?"
+            ],
+            "hero.inputLabel": "Example question",
+            "hero.start": "Start consultation",
+            "hero.pillsLabel": "Common entry points",
+            "hero.pillStudent": "Student Q&A",
+            "hero.pillCounselor": "Counselor assist",
+            "hero.pillKnowledge": "Knowledge ops",
+            "hero.visualLabel": "NCHU AI abstract capability map",
+            "hero.svgLabel": "AI counselor capability routes",
+            "hero.chipA.title": "Student request",
+            "hero.chipA.copy": "Intent recognition, resource matching, and session continuity",
+            "hero.chipB.title": "Human handoff",
+            "hero.chipB.copy": "High-risk situations are routed to counselors",
+            "hero.latest.kicker": "Latest update",
+            "hero.latest.title": "Phase 2 is polishing login, role recognition, and the homepage experience.",
+            "hero.latest.link": "View demo path",
+            "platform.title": "An AI partner for student support",
+            "platform.lead": "It is not an isolated chat box. It is an auditable, maintainable, and handoff-ready campus service entry point.",
+            "platform.actionsLabel": "Role entry points",
+            "platform.rolesLink": "View role scenarios",
+            "platform.governanceLink": "Review governance boundary",
+            "platform.listLabel": "Platform capability list",
+            "platform.feature1.title": "Deterministic demo answers",
+            "platform.feature1.copy": "Prove the full workflow with explainable knowledge matching before claiming approved RAG capabilities are live.",
+            "platform.feature2.title": "Role-based workspaces",
+            "platform.feature2.copy": "Students, counselors, and admins enter different interfaces with paths and density tuned to real duties.",
+            "platform.feature3.title": "Sources and audit",
+            "platform.feature3.copy": "Answers, resources, actions, and stats keep traceable context for internal governance needs.",
+            "platform.feature4.title": "Human collaboration",
+            "platform.feature4.copy": "The system provides suggestions and context, while key judgments stay with counselors.",
+            "platform.networkLabel": "Capability network diagram",
+            "platform.networkSvgLabel": "NCHU AI capability network",
+            "platform.orbit1": "Student Q&A",
+            "platform.orbit2": "Knowledge resources",
+            "platform.orbit3": "Counselor assist",
+            "platform.orbit4": "Audit stats",
+            "roles.kicker": "Built for campus support workflows",
+            "roles.cta": "Bring student service entry, counselor handling, and management audit into one demo.",
+            "roles.title": "How to use NCHU AI",
+            "roles.lead": "After login, the account role decides the entry point. The homepage does not expose three separate workspace buttons.",
+            "roles.tabsLabel": "User roles",
+            "roles.tabStudent": "Student",
+            "roles.tabCounselor": "Counselor",
+            "roles.tabAdmin": "Admin",
+            "roles.tabDemo": "Project demo",
+            "roles.student.title": "Student portal",
+            "roles.student.copy": "Ask questions, review source cards, save sessions, and transfer to human support when needed.",
+            "roles.counselor.title": "Counselor portal",
+            "roles.counselor.copy": "Review simulated cases, receive assistive suggestions, update status, and retain handling records.",
+            "roles.admin.title": "Admin portal",
+            "roles.admin.copy": "Maintain demo knowledge resources, reset data, and review statistics and audit activity.",
+            "governance.title": "Show capability boundaries clearly",
+            "governance.lead": "This phase prioritizes demo credibility: simulated data is labeled, and RAG, real student data, and public deployment require approval packages.",
+            "governance.backTop": "Back to top",
+            "governance.plan": "View next plan",
+            "footer.note": "Prototype note: this page references the layout hierarchy, button grouping, and motion rhythm of Claude product pages, while using the NCHU AI counselor context and project approval colors."
+          }
+        };
+        let replayPageMotion = () => {};
+        let heroTokens = [];
+        let revealHeadingTokens = [];
+        let currentLanguage = "zh";
+        const brandAnimatedText = document.querySelector("[data-brand-animated-text]");
+        const brandShinyText = brandAnimatedText ? brandAnimatedText.querySelector(".brand-shiny-text") : null;
+        const brandIntroText = brandAnimatedText ? brandAnimatedText.querySelector(".brand-intro-text") : null;
+        const brandTextLetters = brandAnimatedText ? Array.from(brandAnimatedText.querySelectorAll(".brand-text-letter")) : [];
+        const brandTextUnderline = brandAnimatedText ? brandAnimatedText.querySelector(".brand-text-underline") : null;
+        const promptInput = document.querySelector(".prompt-main input");
+        const promptTypewriter = document.querySelector(".prompt-typewriter");
+        const promptTypewriterText = document.querySelector(".prompt-typewriter-text");
+        const promptTypewriterCursor = document.querySelector(".prompt-typewriter-cursor");
+        let promptTypewriterTimeline = null;
+        let promptCursorTween = null;
+        let promptQuestionIndex = 0;
+        let promptTypewriterReady = false;
+        const promptIntroDelayMs = 1480;
+        const promptIntroDurationMs = 980;
 
         if ("scrollRestoration" in window.history) {
           window.history.scrollRestoration = "manual";
@@ -1300,12 +1911,248 @@
           root.dataset.theme = savedTheme;
         }
 
-        themeButtons.forEach((button) => {
+        function getTranslation(language, key) {
+          return translations[language]?.[key] ?? translations.zh[key] ?? "";
+        }
+
+        function setTranslatedText(el, text) {
+          if (el.dataset.motionSplit === "true") {
+            delete el.dataset.motionSplit;
+          }
+
+          if (el.dataset.textScramble !== undefined) {
+            el.dataset.textScramble = text;
+            el.setAttribute("aria-label", text);
+          }
+
+          el.textContent = text;
+        }
+
+        function stopPromptTypewriter() {
+          if (promptTypewriterTimeline) {
+            promptTypewriterTimeline.kill();
+            promptTypewriterTimeline = null;
+          }
+
+          if (promptCursorTween) {
+            promptCursorTween.kill();
+            promptCursorTween = null;
+          }
+
+          if (promptTypewriterCursor) {
+            promptTypewriterCursor.style.opacity = "";
+            promptTypewriterCursor.style.visibility = "";
+          }
+        }
+
+        function syncPromptNativePlaceholder() {
+          if (!promptInput) return;
+
+          const promptText = getPromptQuestions()[promptQuestionIndex] || promptInput.dataset.promptPlaceholder || "";
+          const shouldUseNativePlaceholder = document.activeElement === promptInput && !promptInput.value;
+          promptInput.setAttribute("placeholder", shouldUseNativePlaceholder ? promptText : "");
+        }
+
+        function setPromptTypewriterVisible(isVisible) {
+          if (!promptTypewriter) return;
+          promptTypewriter.classList.toggle("is-hidden", !isVisible);
+        }
+
+        function clearPromptTypewriterText() {
+          stopPromptTypewriter();
+          if (promptTypewriterText) {
+            promptTypewriterText.textContent = "";
+          }
+          setPromptTypewriterVisible(false);
+        }
+
+        function resetPromptTypewriterReadiness() {
+          promptTypewriterReady = false;
+          clearPromptTypewriterText();
+        }
+
+        function startPromptTypewriterWhenReady() {
+          promptTypewriterReady = true;
+          playPromptTypewriter();
+        }
+
+        function getPromptQuestions() {
+          if (!promptInput) return [];
+
+          try {
+            const questions = JSON.parse(promptInput.dataset.promptQuestions || "[]");
+            return Array.isArray(questions) ? questions.filter(Boolean) : [];
+          } catch {
+            return [];
+          }
+        }
+
+        function playPromptTypewriter() {
+          if (!promptInput || !promptTypewriter || !promptTypewriterText) return;
+
+          const promptQuestions = getPromptQuestions();
+          const shouldAnimatePrompt = !promptInput.value && document.activeElement !== promptInput;
+
+          stopPromptTypewriter();
+          syncPromptNativePlaceholder();
+
+          if (!promptTypewriterReady || !promptQuestions.length || !shouldAnimatePrompt) {
+            promptTypewriterText.textContent = "";
+            setPromptTypewriterVisible(false);
+            return;
+          }
+
+          setPromptTypewriterVisible(true);
+
+          if (reduceMotionQuery.matches || !window.gsap) {
+            promptTypewriterText.textContent = promptQuestions[promptQuestionIndex] || promptQuestions[0];
+            promptInput.dataset.promptQuestionIndex = String(promptQuestionIndex);
+            if (promptTypewriterCursor) {
+              promptTypewriterCursor.style.opacity = "0";
+            }
+            return;
+          }
+
+          if (promptTypewriterCursor) {
+            gsap.set(promptTypewriterCursor, { autoAlpha: 1 });
+            promptCursorTween = gsap.to(promptTypewriterCursor, {
+              autoAlpha: 0.24,
+              duration: 0.55,
+              ease: "power1.inOut",
+              repeat: -1,
+              yoyo: true
+            });
+          }
+
+          promptTypewriterTimeline = gsap.timeline({ repeat: -1 });
+
+          promptQuestions.forEach((question, offset) => {
+            const state = { count: 0 };
+            let renderedCount = 0;
+            const questionIndex = (promptQuestionIndex + offset) % promptQuestions.length;
+
+            promptTypewriterTimeline.to(state, {
+              count: question.length,
+              duration: Math.max(question.length * 0.09, 1.2),
+              ease: "none",
+              onStart: () => {
+                renderedCount = 0;
+                promptQuestionIndex = questionIndex;
+                promptInput.dataset.promptQuestionIndex = String(promptQuestionIndex);
+                promptTypewriterText.textContent = "";
+              },
+              onUpdate: () => {
+                const nextCount = Math.round(state.count);
+                if (nextCount !== renderedCount) {
+                  renderedCount = nextCount;
+                  promptTypewriterText.textContent = question.slice(0, nextCount);
+                }
+              }
+            });
+
+            promptTypewriterTimeline.to({}, { duration: 2.25 });
+            promptTypewriterTimeline.call(() => {
+              promptTypewriterText.textContent = "";
+              promptQuestionIndex = (questionIndex + 1) % promptQuestions.length;
+              promptInput.dataset.promptQuestionIndex = String(promptQuestionIndex);
+            });
+            promptTypewriterTimeline.to({}, { duration: 0.35 });
+          });
+        }
+
+        function retokenizeMotionText() {
+          heroTokens = splitTextForMotion(document.querySelectorAll('h1 [data-motion="hero-line"]'));
+          revealHeadingTokens = splitTextForMotion(document.querySelectorAll("h2.reveal, .cta-title.reveal"));
+        }
+
+        function applyLanguage(nextLanguage, shouldReplay = false) {
+          const language = nextLanguage === "en" ? "en" : "zh";
+          const changed = currentLanguage !== language;
+          currentLanguage = language;
+
+          root.dataset.language = language;
+          docEl.lang = language === "en" ? "en" : "zh-CN";
+          localStorage.setItem("nchu-ai-home-language", language);
+
+          document.querySelectorAll("[data-i18n]").forEach((el) => {
+            const text = getTranslation(language, el.dataset.i18n);
+            setTranslatedText(el, text);
+            if (el.tagName === "TITLE") {
+              document.title = text;
+            }
+          });
+
+          document.querySelectorAll("[data-i18n-placeholder]").forEach((el) => {
+            const text = getTranslation(language, el.dataset.i18nPlaceholder);
+            const questions = getTranslation(language, "hero.prompts");
+            el.dataset.promptPlaceholder = text;
+            el.dataset.promptQuestions = JSON.stringify(Array.isArray(questions) ? questions : [text]);
+            el.setAttribute("placeholder", "");
+          });
+
+          document.querySelectorAll("[data-i18n-aria-label]").forEach((el) => {
+            el.setAttribute("aria-label", getTranslation(language, el.dataset.i18nAriaLabel));
+          });
+
+          languageButtons.forEach((button) => {
+            button.setAttribute("aria-pressed", String(button.dataset.languageValue === language));
+          });
+
+          if (shouldReplay && changed) {
+            retokenizeMotionText();
+            requestAnimationFrame(() => replayThemeMotion());
+          } else {
+            requestAnimationFrame(() => playPromptTypewriter());
+          }
+        }
+
+        applyLanguage(savedLanguage === "en" ? "en" : "zh");
+
+        languageButtons.forEach((button) => {
           button.addEventListener("click", () => {
-            root.dataset.theme = button.dataset.themeChoice;
-            localStorage.setItem("nchu-ai-home-theme", root.dataset.theme);
+            applyLanguage(button.dataset.languageValue, true);
           });
         });
+
+        if (promptInput) {
+          promptInput.addEventListener("focus", () => {
+            clearPromptTypewriterText();
+            syncPromptNativePlaceholder();
+          });
+          promptInput.addEventListener("input", () => {
+            if (promptInput.value) {
+              clearPromptTypewriterText();
+            }
+            syncPromptNativePlaceholder();
+          });
+          promptInput.addEventListener("blur", () => {
+            syncPromptNativePlaceholder();
+            playPromptTypewriter();
+          });
+        }
+
+        function applyTheme(nextTheme, shouldReplay = false) {
+          const theme = nextTheme === "dark" ? "dark" : "light";
+          const changed = root.dataset.theme !== theme;
+
+          root.dataset.theme = theme;
+          localStorage.setItem("nchu-ai-home-theme", theme);
+
+          if (themeToggle) {
+            themeToggle.checked = theme === "dark";
+          }
+
+          if (shouldReplay && changed) {
+            requestAnimationFrame(() => replayThemeMotion());
+          }
+        }
+
+        if (themeToggle) {
+          themeToggle.checked = root.dataset.theme === "dark";
+          themeToggle.addEventListener("change", () => {
+            applyTheme(themeToggle.checked ? "dark" : "light", true);
+          });
+        }
 
         function tokenizeMotionText(text) {
           return text.match(/\s+|[A-Za-z0-9]+|[\u4e00-\u9fff]|[^\s]/gu) || [];
@@ -1345,10 +2192,64 @@
           return motionTokens;
         }
 
-        const heroTokens = splitTextForMotion(document.querySelectorAll('h1 [data-motion="hero-line"]'));
-        const revealHeadingTokens = splitTextForMotion(document.querySelectorAll("h2.reveal, .cta-title.reveal"));
+        retokenizeMotionText();
         const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
         const hasGsap = window.gsap && !reduceMotion;
+        const scrambleCharacters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+        function playTextScramble(el) {
+          if (!el) return;
+
+          const text = el.dataset.textScramble || el.textContent || "";
+          const previousTimer = Number(el.dataset.scrambleTimer || 0);
+          const characterSet = el.dataset.scrambleCharacters || scrambleCharacters;
+
+          if (previousTimer) {
+            window.clearInterval(previousTimer);
+          }
+
+          if (reduceMotion) {
+            el.textContent = text;
+            delete el.dataset.scrambleTimer;
+            return;
+          }
+
+          const duration = Number(el.dataset.scrambleDuration || 0.8);
+          const speed = Number(el.dataset.scrambleSpeed || 0.04);
+          const steps = Math.max(1, Math.ceil(duration / Math.max(speed, 0.016)));
+          const frameMs = Math.max(16, speed * 1000);
+          let step = 0;
+
+          const timer = window.setInterval(() => {
+            const progress = step / steps;
+            let scrambled = "";
+
+            for (let index = 0; index < text.length; index += 1) {
+              if (text[index] === " ") {
+                scrambled += " ";
+              } else if (progress * text.length > index) {
+                scrambled += text[index];
+              } else {
+                scrambled += characterSet[Math.floor(Math.random() * characterSet.length)];
+              }
+            }
+
+            el.textContent = scrambled;
+            step += 1;
+
+            if (step > steps) {
+              window.clearInterval(timer);
+              el.textContent = text;
+              delete el.dataset.scrambleTimer;
+            }
+          }, frameMs);
+
+          el.dataset.scrambleTimer = String(timer);
+        }
+
+        function playHeroEyebrowScramble() {
+          playTextScramble(document.querySelector('[data-motion="hero-eyebrow"] [data-text-scramble]'));
+        }
 
         if (reduceMotion) {
           docEl.classList.add("motion-reduced");
@@ -1365,6 +2266,54 @@
           document.querySelectorAll(".draw-line").forEach((line) => {
             line.style.strokeDashoffset = "0";
           });
+          if (brandAnimatedText) {
+            brandAnimatedText.classList.add("brand-effect-ready");
+          }
+          if (brandShinyText) {
+            brandShinyText.style.opacity = "";
+            brandShinyText.style.visibility = "";
+          }
+          if (brandIntroText) {
+            brandIntroText.style.opacity = "";
+            brandIntroText.style.visibility = "";
+          }
+          if (brandTextLetters.length) {
+            brandTextLetters.forEach((letter) => {
+              letter.style.opacity = "1";
+              letter.style.visibility = "visible";
+              letter.style.transform = "none";
+            });
+          }
+          if (brandTextUnderline) {
+            brandTextUnderline.style.opacity = "1";
+            brandTextUnderline.style.visibility = "visible";
+            brandTextUnderline.style.left = "0%";
+            brandTextUnderline.style.width = "100%";
+          }
+          playHeroEyebrowScramble();
+          requestAnimationFrame(() => startPromptTypewriterWhenReady());
+        }
+
+        function isInMotionViewport(el) {
+          const rect = el.getBoundingClientRect();
+          return rect.bottom > window.innerHeight * 0.08 && rect.top < window.innerHeight * 0.92;
+        }
+
+        function restartCssKeyframeAnimations() {
+          document.querySelectorAll(".ambient-float, .pulse-ring").forEach((el) => {
+            el.style.animation = "none";
+            void el.offsetWidth;
+            el.style.animation = "";
+          });
+        }
+
+        function replayThemeMotion() {
+          if (reduceMotionQuery.matches) {
+            showImmediately();
+            return;
+          }
+
+          replayPageMotion();
         }
 
         function animateNative() {
@@ -1396,38 +2345,141 @@
             };
           };
 
-          document
-            .querySelectorAll('[data-motion="nav"], [data-motion="product-bar"], .hero-visual')
-            .forEach((el) => {
-              el.style.opacity = "0";
-              el.style.visibility = "hidden";
-            });
-          docEl.classList.remove("motion-boot");
-
-          [
+          const introMotionSteps = [
             ['[data-motion="nav"]', 0, 980],
             ['[data-motion="product-bar"]', 260, 900],
             ['[data-motion="hero-eyebrow"]', 620, 880],
             ['[data-motion="hero-line"]', 780, 1180],
             ['[data-motion="hero-copy"]', 1220, 980],
-            ['[data-motion="prompt"]', 1480, 980],
+            ['[data-motion="prompt"]', promptIntroDelayMs, promptIntroDurationMs],
             [".hero-visual", 1560, 1080],
             ['[data-motion="visual-panel"]', 1720, 1120],
             ['[data-motion="chip"]', 2140, 860],
             ['[data-motion="latest-card"]', 2320, 920]
-          ].forEach(([selector, delay, duration]) => {
-            document.querySelectorAll(selector).forEach((el, index) => animateIn(el, delay + index * 110, duration));
-          });
+          ];
 
-          document.querySelectorAll(".hero .draw-line").forEach((line, index) => {
-            line.animate([{ strokeDashoffset: 1 }, { strokeDashoffset: 0 }], {
-              duration: 1350,
-              delay: 800 + index * 80,
-              easing: "cubic-bezier(0.19, 1, 0.22, 1)",
-              fill: "forwards"
+          function resetNativeBrandAnimatedText() {
+            if (!brandAnimatedText) return;
+
+            brandAnimatedText.classList.remove("brand-effect-ready");
+            if (brandShinyText) {
+              brandShinyText.style.opacity = "0";
+              brandShinyText.style.visibility = "hidden";
+            }
+            if (brandIntroText) {
+              brandIntroText.style.opacity = "1";
+              brandIntroText.style.visibility = "visible";
+            }
+            brandTextLetters.forEach((letter) => {
+              letter.getAnimations().forEach((animation) => animation.cancel());
+              letter.style.opacity = "0";
+              letter.style.visibility = "hidden";
+              letter.style.transform = "translateY(20px)";
             });
-            line.style.strokeDashoffset = "0";
-          });
+
+            if (brandTextUnderline) {
+              brandTextUnderline.getAnimations().forEach((animation) => animation.cancel());
+              brandTextUnderline.style.opacity = "0";
+              brandTextUnderline.style.visibility = "hidden";
+              brandTextUnderline.style.left = "50%";
+              brandTextUnderline.style.width = "0%";
+            }
+          }
+
+          function playNativeBrandAnimatedText() {
+            if (!brandAnimatedText || !brandTextLetters.length) return;
+
+            brandTextLetters.forEach((letter, index) => {
+              letter.style.visibility = "visible";
+              const player = letter.animate(
+                [
+                  { opacity: 0, transform: "translateY(20px)" },
+                  { opacity: 1, transform: "translateY(0)" }
+                ],
+                {
+                  duration: 500,
+                  delay: 980 + index * 100,
+                  easing: "cubic-bezier(0.34, 1.56, 0.64, 1)",
+                  fill: "forwards"
+                }
+              );
+              player.onfinish = () => {
+                letter.style.opacity = "1";
+                letter.style.visibility = "visible";
+                letter.style.transform = "none";
+              };
+            });
+
+            if (brandTextUnderline) {
+              brandTextUnderline.style.visibility = "visible";
+              const underlinePlayer = brandTextUnderline.animate(
+                [
+                  { opacity: 0, left: "50%", width: "0%" },
+                  { opacity: 1, left: "0%", width: "100%" }
+                ],
+                {
+                  duration: 800,
+                  delay: 980 + brandTextLetters.length * 100,
+                  easing: "cubic-bezier(0.19, 1, 0.22, 1)",
+                  fill: "forwards"
+                }
+              );
+              underlinePlayer.onfinish = () => {
+                brandTextUnderline.style.opacity = "1";
+                brandTextUnderline.style.visibility = "visible";
+                brandTextUnderline.style.left = "0%";
+                brandTextUnderline.style.width = "100%";
+              };
+            }
+
+            window.setTimeout(() => {
+              if (brandShinyText) {
+                brandShinyText.style.opacity = "";
+                brandShinyText.style.visibility = "";
+              }
+              if (brandIntroText) {
+                brandIntroText.style.opacity = "";
+                brandIntroText.style.visibility = "";
+              }
+              brandAnimatedText.classList.add("brand-effect-ready");
+            }, 980 + brandTextLetters.length * 100 + 820);
+          }
+
+          function playNativeIntro() {
+            resetPromptTypewriterReadiness();
+            document
+              .querySelectorAll(
+                '[data-motion="nav"], [data-motion="product-bar"], [data-motion="hero-eyebrow"], [data-motion="hero-line"], [data-motion="hero-copy"], [data-motion="prompt"], [data-motion="visual-panel"], [data-motion="chip"], [data-motion="latest-card"], .hero-visual'
+              )
+              .forEach((el) => {
+                el.getAnimations().forEach((animation) => animation.cancel());
+                el.style.opacity = "0";
+                el.style.visibility = "hidden";
+              });
+            resetNativeBrandAnimatedText();
+            docEl.classList.remove("motion-boot");
+
+            introMotionSteps.forEach(([selector, delay, duration]) => {
+              document.querySelectorAll(selector).forEach((el, index) => animateIn(el, delay + index * 110, duration));
+            });
+            playNativeBrandAnimatedText();
+            window.setTimeout(playHeroEyebrowScramble, 620);
+            window.setTimeout(startPromptTypewriterWhenReady, promptIntroDelayMs + promptIntroDurationMs);
+
+            document.querySelectorAll(".hero .draw-line").forEach((line, index) => {
+              line.getAnimations().forEach((animation) => animation.cancel());
+              line.style.strokeDashoffset = "1";
+              line.animate([{ strokeDashoffset: 1 }, { strokeDashoffset: 0 }], {
+                duration: 1350,
+                delay: 800 + index * 80,
+                easing: "cubic-bezier(0.19, 1, 0.22, 1)",
+                fill: "forwards"
+              });
+              line.style.strokeDashoffset = "0";
+            });
+          }
+
+          playNativeIntro();
 
           const nativePageGatedReplayScope = document.querySelector('[data-replay-scope="previous-page-gated"]');
           const nativePageGatedRevealItems = nativePageGatedReplayScope
@@ -1449,6 +2501,23 @@
             });
           };
 
+          const playNativeReveal = (el, delay = 0) => {
+            animateIn(el, delay, 820);
+            if (el.classList.contains("network-card")) {
+              el.querySelectorAll(".draw-line").forEach((line, index) => {
+                line.getAnimations().forEach((animation) => animation.cancel());
+                line.style.strokeDashoffset = "1";
+                line.animate([{ strokeDashoffset: 1 }, { strokeDashoffset: 0 }], {
+                  duration: 1100,
+                  delay: delay + 180 + index * 80,
+                  easing: "cubic-bezier(0.19, 1, 0.22, 1)",
+                  fill: "forwards"
+                });
+                line.style.strokeDashoffset = "0";
+              });
+            }
+          };
+
           const resetNativePageGatedReplayIfOnPreviousPage = () => {
             if (!nativePageGatedReplayScope || !nativePageGatedRevealItems.length) return;
 
@@ -1468,18 +2537,7 @@
             nativePageGatedReplayScope.dataset.replayPlayed = "true";
             nativePageGatedReplayScope.dataset.replayArmed = "false";
             nativePageGatedRevealItems.forEach((el, index) => {
-              animateIn(el, index * 70, 820);
-              if (el.classList.contains("network-card")) {
-                el.querySelectorAll(".draw-line").forEach((line, lineIndex) => {
-                  line.animate([{ strokeDashoffset: 1 }, { strokeDashoffset: 0 }], {
-                    duration: 1100,
-                    delay: 180 + lineIndex * 80,
-                    easing: "cubic-bezier(0.19, 1, 0.22, 1)",
-                    fill: "forwards"
-                  });
-                  line.style.strokeDashoffset = "0";
-                });
-              }
+              playNativeReveal(el, index * 70);
             });
           };
 
@@ -1487,18 +2545,7 @@
             (entries) => {
               entries.forEach((entry) => {
                 if (entry.isIntersecting) {
-                  animateIn(entry.target, 0, 820);
-                  if (entry.target.classList.contains("network-card")) {
-                    entry.target.querySelectorAll(".draw-line").forEach((line, index) => {
-                      line.animate([{ strokeDashoffset: 1 }, { strokeDashoffset: 0 }], {
-                        duration: 1100,
-                        delay: 180 + index * 80,
-                        easing: "cubic-bezier(0.19, 1, 0.22, 1)",
-                        fill: "forwards"
-                      });
-                      line.style.strokeDashoffset = "0";
-                    });
-                  }
+                  playNativeReveal(entry.target);
                 } else {
                   resetNativeReveal(entry.target);
                 }
@@ -1521,68 +2568,209 @@
           }
           window.addEventListener("scroll", resetNativePageGatedReplayIfOnPreviousPage, { passive: true });
           resetNativePageGatedReplayIfOnPreviousPage();
+
+          replayPageMotion = () => {
+            restartCssKeyframeAnimations();
+            playNativeIntro();
+
+            nativeStandaloneRevealItems.forEach((el) => {
+              resetNativeReveal(el);
+              if (isInMotionViewport(el)) {
+                playNativeReveal(el);
+              }
+            });
+
+            if (nativePageGatedReplayScope) {
+              nativePageGatedRevealItems.forEach(resetNativeReveal);
+              nativePageGatedReplayScope.dataset.replayArmed = "true";
+              nativePageGatedReplayScope.dataset.replayPlayed = "false";
+
+              if (isInMotionViewport(nativePageGatedReplayScope)) {
+                playNativePageGatedReplay();
+              } else {
+                resetNativePageGatedReplayIfOnPreviousPage();
+              }
+            }
+          };
         }
 
-        if (hasGsap) {
-          gsap.set('[data-motion="nav"]', { autoAlpha: 0, y: -26 });
-          gsap.set('[data-motion="product-bar"]', { autoAlpha: 0, y: 18 });
-          gsap.set(
-            '[data-motion="hero-eyebrow"], [data-motion="hero-line"], [data-motion="hero-copy"], [data-motion="prompt"]',
-            { autoAlpha: 0, y: 28 }
-          );
-          gsap.set(".hero-visual", { autoAlpha: 0, y: 34 });
-          gsap.set('[data-motion="visual-panel"]', { autoAlpha: 0, y: 28, scale: 0.985 });
-          gsap.set('[data-motion="chip"], [data-motion="latest-card"]', { autoAlpha: 0, y: 24 });
-          gsap.set(heroTokens, { autoAlpha: 0, y: 22 });
-          gsap.set(revealHeadingTokens, { autoAlpha: 0, y: 14 });
+        if (reduceMotion) {
+          showImmediately();
+          replayPageMotion = showImmediately;
+        } else if (hasGsap) {
           gsap.defaults({ ease: "power3.out", duration: 0.92 });
-          docEl.classList.remove("motion-boot");
 
+          let intro = null;
+          let ambientMotionTweens = [];
           let ambientMotionStarted = false;
+
+          function stopAmbientMotion() {
+            ambientMotionTweens.forEach((tween) => tween.kill());
+            ambientMotionTweens = [];
+            ambientMotionStarted = false;
+            gsap.set(".network-center", { y: 0 });
+          }
+
+          function resetBrandAnimatedText() {
+            if (!brandAnimatedText) return;
+
+            brandAnimatedText.classList.remove("brand-effect-ready");
+            gsap.killTweensOf([brandAnimatedText, brandShinyText, brandIntroText, ...brandTextLetters, brandTextUnderline].filter(Boolean));
+            gsap.set(brandAnimatedText, { autoAlpha: 1 });
+            if (brandShinyText) {
+              gsap.set(brandShinyText, { autoAlpha: 0 });
+            }
+            if (brandIntroText) {
+              gsap.set(brandIntroText, { autoAlpha: 1 });
+            }
+            gsap.set(brandTextLetters, { autoAlpha: 0, y: 20 });
+
+            if (brandTextUnderline) {
+              gsap.set(brandTextUnderline, {
+                autoAlpha: 0,
+                width: "0%",
+                left: "50%",
+                scaleX: 1,
+                transformOrigin: "center center"
+              });
+            }
+          }
+
+          function createBrandAnimatedTextTimeline() {
+            const brandTimeline = gsap.timeline({
+              onComplete: () => {
+                if (brandAnimatedText) {
+                  if (brandShinyText) {
+                    gsap.set(brandShinyText, { clearProps: "opacity,visibility" });
+                  }
+                  if (brandIntroText) {
+                    gsap.set(brandIntroText, { clearProps: "opacity,visibility" });
+                  }
+                  brandAnimatedText.classList.add("brand-effect-ready");
+                }
+              }
+            });
+
+            if (!brandAnimatedText || !brandTextLetters.length) {
+              return brandTimeline;
+            }
+
+            brandTimeline.to(
+              brandTextLetters,
+              {
+                autoAlpha: 1,
+                y: 0,
+                duration: 0.5,
+                ease: "back.out(1.7)",
+                stagger: 0.1
+              },
+              0
+            );
+
+            if (brandTextUnderline) {
+              brandTimeline.to(
+                brandTextUnderline,
+                {
+                  autoAlpha: 1,
+                  width: "100%",
+                  left: "0%",
+                  duration: 0.8,
+                  ease: "power2.out"
+                },
+                brandTextLetters.length * 0.1
+              );
+            }
+
+            return brandTimeline;
+          }
+
           function startAmbientMotion() {
             if (ambientMotionStarted) return;
             ambientMotionStarted = true;
-            document.querySelectorAll(".flight-chip, .latest-card, .network-center").forEach((el, index) => {
-              gsap.to(el, {
-                y: index % 2 === 0 ? -8 : 8,
-                duration: 3.4 + index * 0.2,
-                repeat: -1,
-                yoyo: true,
-                ease: "sine.inOut"
-              });
-            });
+
+            ambientMotionTweens = Array.from(document.querySelectorAll(".flight-chip, .latest-card, .network-center")).map(
+              (el, index) =>
+                gsap.to(el, {
+                  y: index % 2 === 0 ? -8 : 8,
+                  duration: 3.4 + index * 0.2,
+                  repeat: -1,
+                  yoyo: true,
+                  ease: "sine.inOut"
+                })
+            );
           }
 
-          const intro = gsap.timeline({
-            defaults: { ease: "power3.out" },
-            delay: 0.06,
-            onComplete: () => {
-              docEl.classList.add("motion-ready");
-              startAmbientMotion();
+          function resetIntroMotion() {
+            if (intro) {
+              intro.kill();
             }
-          });
-          intro
-            .addLabel("top", 0)
-            .to('[data-motion="nav"]', { autoAlpha: 1, y: 0, duration: 1.05 }, "top")
-            .to('[data-motion="product-bar"]', { autoAlpha: 1, y: 0, duration: 0.96 }, "top+=0.24")
-            .addLabel("hero", "top+=0.62")
-            .to('[data-motion="hero-eyebrow"]', { autoAlpha: 1, y: 0, duration: 0.86 }, "hero")
-            .set('[data-motion="hero-line"]', { autoAlpha: 1, y: 0 }, "hero+=0.1")
-            .to(heroTokens, { autoAlpha: 1, y: 0, duration: 1.18, stagger: { amount: 0.42 } }, "hero+=0.12")
-            .to('[data-motion="hero-copy"]', { autoAlpha: 1, y: 0, duration: 1.02 }, "hero+=0.76")
-            .to('[data-motion="prompt"]', { autoAlpha: 1, y: 0, scale: 1, duration: 0.98 }, "hero+=1.02")
-            .addLabel("visual", "hero+=1.16")
-            .to(".hero-visual", { autoAlpha: 1, y: 0, duration: 1.02 }, "visual")
-            .to('[data-motion="visual-panel"]', { autoAlpha: 1, y: 0, scale: 1, duration: 1.08 }, "visual+=0.12")
-            .to(".hero .draw-line", { strokeDashoffset: 0, duration: 1.38, stagger: 0.09 }, "visual+=0.34")
-            .to('[data-motion="chip"]', { autoAlpha: 1, y: 0, duration: 0.84, stagger: 0.12 }, "visual+=0.56")
-            .to('[data-motion="latest-card"]', { autoAlpha: 1, y: 0, duration: 0.9 }, "visual+=0.78");
+            stopAmbientMotion();
+            docEl.classList.remove("motion-ready");
+            resetBrandAnimatedText();
+
+            gsap.killTweensOf(
+              '[data-motion="nav"], [data-motion="product-bar"], [data-motion="hero-eyebrow"], [data-motion="hero-line"], [data-motion="hero-copy"], [data-motion="prompt"], [data-motion="visual-panel"], [data-motion="chip"], [data-motion="latest-card"], .hero-visual'
+            );
+            gsap.killTweensOf(heroTokens);
+            gsap.killTweensOf(".hero .draw-line");
+            resetPromptTypewriterReadiness();
+            gsap.set('[data-motion="nav"]', { autoAlpha: 0, y: -26 });
+            gsap.set('[data-motion="product-bar"]', { autoAlpha: 0, y: 18 });
+            gsap.set(
+              '[data-motion="hero-eyebrow"], [data-motion="hero-line"], [data-motion="hero-copy"], [data-motion="prompt"]',
+              { autoAlpha: 0, y: 28 }
+            );
+            gsap.set(".hero-visual", { autoAlpha: 0, y: 34 });
+            gsap.set('[data-motion="visual-panel"]', { autoAlpha: 0, y: 28, scale: 0.985 });
+            gsap.set('[data-motion="chip"], [data-motion="latest-card"]', { autoAlpha: 0, y: 24 });
+            gsap.set(heroTokens, { autoAlpha: 0, y: 22 });
+            gsap.set(revealHeadingTokens, { autoAlpha: 0, y: 14 });
+            gsap.set(".hero .draw-line", { strokeDashoffset: 1 });
+            docEl.classList.remove("motion-boot");
+          }
+
+          function playIntroMotion() {
+            resetIntroMotion();
+            intro = gsap.timeline({
+              defaults: { ease: "power3.out" },
+              delay: 0.06,
+              onComplete: () => {
+                docEl.classList.add("motion-ready");
+                startAmbientMotion();
+              }
+            });
+
+            intro
+              .addLabel("top", 0)
+              .to('[data-motion="nav"]', { autoAlpha: 1, y: 0, duration: 1.05 }, "top")
+              .add(createBrandAnimatedTextTimeline(), "top+=1.05")
+              .to('[data-motion="product-bar"]', { autoAlpha: 1, y: 0, duration: 0.96 }, "top+=0.24")
+              .addLabel("hero", "top+=0.62")
+              .to('[data-motion="hero-eyebrow"]', { autoAlpha: 1, y: 0, duration: 0.86 }, "hero")
+              .call(playHeroEyebrowScramble, [], "hero+=0.04")
+              .set('[data-motion="hero-line"]', { autoAlpha: 1, y: 0 }, "hero+=0.1")
+              .to(heroTokens, { autoAlpha: 1, y: 0, duration: 1.18, stagger: { amount: 0.42 } }, "hero+=0.12")
+              .to('[data-motion="hero-copy"]', { autoAlpha: 1, y: 0, duration: 1.02 }, "hero+=0.76")
+              .to('[data-motion="prompt"]', { autoAlpha: 1, y: 0, scale: 1, duration: 0.98 }, "hero+=1.02")
+              .call(startPromptTypewriterWhenReady, [], "hero+=2")
+              .addLabel("visual", "hero+=1.16")
+              .to(".hero-visual", { autoAlpha: 1, y: 0, duration: 1.02 }, "visual")
+              .to('[data-motion="visual-panel"]', { autoAlpha: 1, y: 0, scale: 1, duration: 1.08 }, "visual+=0.12")
+              .to(".hero .draw-line", { strokeDashoffset: 0, duration: 1.38, stagger: 0.09 }, "visual+=0.34")
+              .to('[data-motion="chip"]', { autoAlpha: 1, y: 0, duration: 0.84, stagger: 0.12 }, "visual+=0.56")
+              .to('[data-motion="latest-card"]', { autoAlpha: 1, y: 0, duration: 0.9 }, "visual+=0.78");
+
+            return intro;
+          }
+
+          playIntroMotion();
 
           window.__nchuMotionPolish = {
             mode: "gsap",
             introStyle: "top-down",
             scrollReplay: true,
             platformReplayGate: "previous-page",
+            themeReplay: true,
             heroTokens: heroTokens.length,
             revealHeadingTokens: revealHeadingTokens.length
           };
@@ -1755,7 +2943,10 @@
             const pageGatedObserver = new IntersectionObserver(
               (entries) => {
                 entries.forEach((entry) => {
-                  if (entry.isIntersecting && scrollDirectionY >= 0) {
+                  if (
+                    entry.isIntersecting &&
+                    (scrollDirectionY >= 0 || pageGatedReplayScope.dataset.replayArmed === "true")
+                  ) {
                     playPageGatedReplay(28);
                   }
                 });
@@ -1766,6 +2957,34 @@
           }
           window.addEventListener("scroll", resetPageGatedReplayIfOnPreviousPage, { passive: true });
           resetPageGatedReplayIfOnPreviousPage();
+
+          replayPageMotion = () => {
+            restartCssKeyframeAnimations();
+            playIntroMotion();
+
+            if (pageGatedReplayTimeline) {
+              pageGatedReplayTimeline.kill();
+              pageGatedReplayTimeline = null;
+            }
+
+            revealItems.forEach((el) => resetReveal(el, 28));
+            standaloneRevealItems.forEach((el) => {
+              if (isInMotionViewport(el)) {
+                playReveal(el, 28);
+              }
+            });
+
+            if (pageGatedReplayScope) {
+              pageGatedReplayScope.dataset.replayArmed = "true";
+              pageGatedReplayScope.dataset.replayPlayed = "false";
+
+              if (isInMotionViewport(pageGatedReplayScope)) {
+                playPageGatedReplay(28);
+              } else {
+                resetPageGatedReplayIfOnPreviousPage();
+              }
+            }
+          };
 
         } else {
           animateNative();

@@ -1,0 +1,9 @@
+- generic [ref=e2]:
+  - main [ref=e4]:
+    - region [ref=e5]:
+      - heading [level=1] [ref=e7]
+    - region "面 向 学 生 支 持 的 AI 工 作 伙 伴" [ref=e8]:
+      - generic "平台能力列表" [ref=e11]
+    - region "如 何 使 用 NCHU AI" [ref=e12]
+    - region "清 楚 展 示 能 力 边 界" [ref=e16]
+  - contentinfo [ref=e18]: 原型说明：本页面参考 Claude 产品页的布局层级、按钮组合和动效节奏，但使用 NCHU AI 辅导员系统语境与项目审批色彩。

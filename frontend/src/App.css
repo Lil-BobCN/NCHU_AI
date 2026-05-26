@@ -1419,6 +1419,8 @@
 }
 
 .composer-input {
+  position: relative;
+  z-index: 2;
   width: 100%;
   min-height: 44px;
   max-height: 180px;
@@ -1435,6 +1437,37 @@
 
 .composer-input::placeholder {
   color: #a29587;
+}
+
+.composer-input-wrap {
+  position: relative;
+  min-width: 0;
+}
+
+.composer-typewriter-placeholder {
+  position: absolute;
+  top: 8px;
+  left: 4px;
+  right: 4px;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  color: var(--chat-soft);
+  font-size: 15px;
+  line-height: 1.6;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.composer-typewriter-cursor {
+  display: inline-block;
+  flex: 0 0 auto;
+  width: 2px;
+  height: 1.1em;
+  margin-left: 2px;
+  border-radius: 2px;
+  background: var(--chat-soft);
 }
 
 .composer-footer {

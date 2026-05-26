@@ -20,6 +20,14 @@ Every task must begin from the workflow document's context-first approach:
   architecture.
 - Provide verification evidence before calling work complete.
 
+## Website Change Order
+
+For website or frontend experience changes, update and verify the demo/prototype
+version first. In this project that means starting from the relevant artifact
+under `.omx/prototypes/`, such as
+`.omx/prototypes/homepage-dark-hud-variants.html`, before changing the formal
+React implementation under `frontend/src/`.
+
 ## Approval Gates
 
 Pause for product-manager approval before making decisions that affect long-term

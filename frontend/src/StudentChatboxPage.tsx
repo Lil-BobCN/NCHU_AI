@@ -16,6 +16,7 @@ import {
 import gsap from 'gsap'
 import { useGSAP } from '@gsap/react'
 import { Navigate, useNavigate } from 'react-router-dom'
+import { TextScramble } from './components/ui/text-scramble'
 
 type StudentChatboxPageProps = {
   apiBase: string
@@ -64,6 +65,10 @@ const promptStarters = [
 ]
 
 const assistantDisplayName = 'AI 咨询助手'
+
+const composerPromptPhrases = [
+  'I want to understand scholarships, mental health support, or campus life...',
+]
 
 export default function StudentChatboxPage({ apiBase, session }: StudentChatboxPageProps) {
   const navigate = useNavigate()
@@ -521,17 +526,26 @@ export default function StudentChatboxPage({ apiBase, session }: StudentChatboxP
 
               <ThreadPrimitive.ViewportFooter className="chat-composer-panel">
                 <ComposerPrimitive.Root className="composer-form">
-                  <ComposerPrimitive.Input
-                    addAttachmentOnPaste={false}
-                    aria-label="输入咨询内容"
-                    autoFocus
-                    className="composer-input"
-                    maxRows={6}
-                    minRows={1}
-                    placeholder="输入你想讨论的问题..."
-                    submitMode="enter"
-                    unstable_insertNewlineOnTouchEnter
-                  />
+                  <div className="composer-input-wrap">
+                    <ComposerPrimitive.Input
+                      addAttachmentOnPaste={false}
+                      aria-label="输入咨询内容"
+                      autoFocus
+                      className="composer-input"
+                      maxRows={6}
+                      minRows={1}
+                      placeholder=""
+                      submitMode="enter"
+                      unstable_insertNewlineOnTouchEnter
+                    />
+                    <AuiIf condition={(state) => state.composer.isEmpty && !state.thread.isRunning}>
+                      <TextScramble
+                        className="composer-typewriter-placeholder"
+                        cursorClassName="composer-typewriter-cursor"
+                        phrases={composerPromptPhrases}
+                      />
+                    </AuiIf>
+                  </div>
                   <div className="composer-footer">
                     <span>Enter 发送，Shift + Enter 换行</span>
                     <div className="composer-actions">

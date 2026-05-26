@@ -1,0 +1,93 @@
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - generic [ref=e5]:
+        - link "NCHU AI 首页" [ref=e6] [cursor=pointer]:
+          - /url: "#top"
+          - img [ref=e8]
+          - generic "NCHU AI" [ref=e11]:
+            - generic [ref=e12]:
+              - generic [ref=e13]: "N"
+              - generic [ref=e14]: C
+              - generic [ref=e15]: H
+              - generic [ref=e16]: U
+              - generic [ref=e18]: A
+              - generic [ref=e19]: I
+        - navigation "主导航" [ref=e20]:
+          - link "认识产品" [ref=e21] [cursor=pointer]:
+            - /url: "#meet"
+          - link "平台能力" [ref=e22] [cursor=pointer]:
+            - /url: "#platform"
+          - link "角色场景" [ref=e23] [cursor=pointer]:
+            - /url: "#roles"
+          - link "治理边界" [ref=e24] [cursor=pointer]:
+            - /url: "#governance"
+          - link "资源" [ref=e25] [cursor=pointer]:
+            - /url: "#resources"
+        - generic [ref=e26]:
+          - button "登录" [ref=e27] [cursor=pointer]
+          - link "联系项目组" [ref=e28] [cursor=pointer]:
+            - /url: "#resources"
+          - link "进入体验" [ref=e29] [cursor=pointer]:
+            - /url: "#roles"
+          - generic "语言切换" [ref=e30]:
+            - button "中" [pressed] [ref=e31] [cursor=pointer]
+            - button "EN" [ref=e32] [cursor=pointer]
+          - generic "主题切换" [ref=e33] [cursor=pointer]:
+            - generic [ref=e34]:
+              - switch "主题切换" [ref=e35]
+              - generic:
+                - img
+    - generic [ref=e37]:
+      - strong [ref=e38]: 产品概览
+      - link "查看平台能力" [ref=e39] [cursor=pointer]:
+        - /url: "#platform"
+        - generic [ref=e40]: 查看平台能力
+        - generic [ref=e41]: →
+  - main [ref=e42]:
+    - region "遇 见 你 的 AI 辅 导 员" [ref=e43]:
+      - generic [ref=e44]:
+        - paragraph [ref=e45]:
+          - generic "AI Counselor Demo, Phase 2" [ref=e46]
+        - heading "遇 见 你 的 AI 辅 导 员" [level=1] [ref=e47]:
+          - generic [ref=e48]:
+            - generic [ref=e49]: 遇
+            - generic [ref=e50]: 见
+            - generic [ref=e51]: 你
+            - generic [ref=e52]: 的
+          - generic [ref=e53]:
+            - generic [ref=e54]: AI
+            - generic [ref=e55]: 辅
+            - generic [ref=e56]: 导
+            - generic [ref=e57]: 员
+        - paragraph [ref=e58]: 与NCHU AI同行，让校园信息触手可及
+        - generic [ref=e59]:
+          - generic [ref=e60]:
+            - generic [ref=e61]:
+              - textbox "示例问题" [ref=e62]:
+                - /placeholder: ""
+              - generic:
+                - generic: 我想了解奖助学金申请需要准备哪些材料？
+            - button "开始咨询" [ref=e63] [cursor=pointer]
+          - generic "常用入口" [ref=e64]:
+            - button "学生问答" [ref=e65] [cursor=pointer]
+            - button "辅导员协助" [ref=e66] [cursor=pointer]
+            - button "知识维护" [ref=e67] [cursor=pointer]
+      - generic "NCHU AI 抽象能力图" [ref=e68]:
+        - img "AI 辅导员能力连线" [ref=e70]
+        - generic [ref=e86]:
+          - strong [ref=e87]: 学生请求
+          - generic [ref=e88]: 问题识别、资源匹配、历史连续性
+        - generic [ref=e91]:
+          - strong [ref=e92]: 人工接管
+          - generic [ref=e93]: 高风险场景交给辅导员处理
+        - complementary [ref=e94]:
+          - text: Latest update
+          - heading "Phase 2 正在打磨登录、角色识别和首页体验。" [level=3] [ref=e95]
+          - link "查看 Demo 路线 →" [ref=e96] [cursor=pointer]:
+            - /url: "#roles"
+    - region "面 向 学 生 支 持 的 AI 工 作 伙 伴" [ref=e97]:
+      - generic "平台能力列表" [ref=e100]
+    - region "如 何 使 用 NCHU AI" [ref=e101]
+    - region "清 楚 展 示 能 力 边 界" [ref=e105]
+  - contentinfo [ref=e107]: 原型说明：本页面参考 Claude 产品页的布局层级、按钮组合和动效节奏，但使用 NCHU AI 辅导员系统语境与项目审批色彩。
