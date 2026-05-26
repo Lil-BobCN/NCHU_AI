@@ -1,17 +1,20 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import type { AppendMessage, MessageStatus, ThreadMessageLike } from '@assistant-ui/react'
 import {
-  ArrowLeftOutlined,
-  ClockCircleOutlined,
-  MessageOutlined,
-  PlusOutlined,
-  ReloadOutlined,
-  RobotOutlined,
-  SendOutlined,
-  StopOutlined,
-  UserOutlined,
-  WarningOutlined,
-} from '@ant-design/icons'
-import { Alert, Button, Empty, Input, Space, Tag, Typography } from 'antd'
+  ActionBarPrimitive,
+  AssistantRuntimeProvider,
+  AuiIf,
+  ComposerPrimitive,
+  MessagePartPrimitive,
+  MessagePrimitive,
+  ThreadListItemPrimitive,
+  ThreadListPrimitive,
+  ThreadPrimitive,
+  useAuiState,
+  useExternalStoreRuntime,
+} from '@assistant-ui/react'
+import gsap from 'gsap'
+import { useGSAP } from '@gsap/react'
 import { Navigate, useNavigate } from 'react-router-dom'
 
 type StudentChatboxPageProps = {
@@ -44,7 +47,7 @@ type ChatMessage = {
   role: 'student' | 'assistant'
   content: string
   createdAt?: string
-  streaming?: boolean
+  status?: MessageStatus
 }
 
 type StreamStatus = 'idle' | 'loading' | 'streaming' | 'error' | 'stopped'
@@ -60,19 +63,244 @@ const promptStarters = [
   '我错过了一次作业截止时间，应该怎么补救？',
 ]
 
+const assistantDisplayName = 'AI 咨询助手'
+
 export default function StudentChatboxPage({ apiBase, session }: StudentChatboxPageProps) {
   const navigate = useNavigate()
+  const pageRef = useRef<HTMLElement | null>(null)
   const abortRef = useRef<AbortController | null>(null)
   const initialHistoryLoadedRef = useRef(false)
   const [conversations, setConversations] = useState<ApiConversation[]>([])
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null)
   const [messages, setMessages] = useState<ChatMessage[]>([])
-  const [draft, setDraft] = useState('')
   const [status, setStatus] = useState<StreamStatus>('idle')
   const [error, setError] = useState('')
   const [lastPrompt, setLastPrompt] = useState('')
 
   const token = session?.token ?? ''
+  const activeConversation = conversations.find((item) => item.id === activeConversationId)
+  const isBusy = status === 'loading' || status === 'streaming'
+  const canRetry = Boolean(lastPrompt) && !isBusy
+
+  const appendAssistantChunk = useCallback((messageId: string, chunk: string) => {
+    if (!chunk) {
+      return
+    }
+    setMessages((current) =>
+      current.map((message) =>
+        message.id === messageId ? { ...message, content: `${message.content}${chunk}` } : message,
+      ),
+    )
+  }, [])
+
+  const markAssistantStatus = useCallback((messageId: string, nextStatus: MessageStatus) => {
+    setMessages((current) =>
+      current.map((message) =>
+        message.id === messageId ? { ...message, status: nextStatus } : message,
+      ),
+    )
+  }, [])
+
+  const refreshConversations = useCallback(
+    async (conversationId: string | null) => {
+      if (!token) {
+        return
+      }
+      const items = await loadConversations(apiBase, token)
+      setConversations(items)
+      if (conversationId) {
+        const refreshed = items.find((item) => item.id === conversationId)
+        if (refreshed) {
+          setMessages(refreshed.messages.map(toChatMessage))
+        }
+      }
+    },
+    [apiBase, token],
+  )
+
+  const startNewChat = useCallback(() => {
+    abortRef.current?.abort()
+    setActiveConversationId(null)
+    setMessages([])
+    setError('')
+    setLastPrompt('')
+    setStatus('idle')
+  }, [])
+
+  const selectConversationById = useCallback(
+    (conversationId: string) => {
+      if (isBusy) {
+        return
+      }
+      const conversation = conversations.find((item) => item.id === conversationId)
+      if (!conversation) {
+        return
+      }
+      setActiveConversationId(conversation.id)
+      setMessages(conversation.messages.map(toChatMessage))
+      setError('')
+      setStatus('idle')
+    },
+    [conversations, isBusy],
+  )
+
+  const sendMessage = useCallback(
+    async (promptOverride: string, conversationOverride?: string | null) => {
+      const prompt = promptOverride.trim()
+      if (!prompt || isBusy || !token) {
+        return
+      }
+
+      const controller = new AbortController()
+      const stamp = Date.now()
+      const studentId = `pending-student-${stamp}`
+      const assistantId = `pending-assistant-${stamp}`
+      const conversationId = conversationOverride ?? activeConversationId
+      abortRef.current = controller
+      setError('')
+      setLastPrompt(prompt)
+      setStatus('loading')
+      setMessages((current) => [
+        ...current,
+        { id: studentId, role: 'student', content: prompt },
+        {
+          id: assistantId,
+          role: 'assistant',
+          content: '正在连接咨询助手...',
+          status: { type: 'running' },
+        },
+      ])
+
+      try {
+        const response = await fetch(`${apiBase}/api/v1/student/chat/stream`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            conversationId,
+            message: prompt,
+          }),
+          signal: controller.signal,
+        })
+
+        if (!response.ok) {
+          const detail = await response.json().catch(() => ({ detail: '模型接口调用失败' }))
+          throw new Error(detail.detail ?? '模型接口调用失败')
+        }
+
+        if (!response.body) {
+          throw new Error('当前浏览器不支持流式响应读取')
+        }
+
+        setStatus('streaming')
+        setMessages((current) =>
+          current.map((message) =>
+            message.id === assistantId ? { ...message, content: '' } : message,
+          ),
+        )
+
+        const reader = response.body.getReader()
+        const decoder = new TextDecoder()
+        let buffer = ''
+        let streamedConversationId = conversationId
+
+        while (true) {
+          const { done, value } = await reader.read()
+          if (done) {
+            break
+          }
+
+          buffer += decoder.decode(value, { stream: true })
+          const parsed = drainSseEvents(buffer)
+          buffer = parsed.rest
+
+          for (const event of parsed.events) {
+            if (event.event === 'conversation') {
+              streamedConversationId = event.data.conversationId ?? streamedConversationId
+              setActiveConversationId(streamedConversationId ?? null)
+            }
+            if (event.event === 'delta') {
+              appendAssistantChunk(assistantId, event.data.content ?? '')
+            }
+            if (event.event === 'error') {
+              throw new Error(event.data.detail ?? '模型生成失败')
+            }
+          }
+        }
+
+        markAssistantStatus(assistantId, { type: 'complete', reason: 'stop' })
+        setStatus('idle')
+        await refreshConversations(streamedConversationId ?? null)
+      } catch (sendError) {
+        if (sendError instanceof DOMException && sendError.name === 'AbortError') {
+          markAssistantStatus(assistantId, { type: 'incomplete', reason: 'cancelled' })
+          setStatus('stopped')
+          return
+        }
+        const message = sendError instanceof Error ? sendError.message : '模型生成失败'
+        setStatus('error')
+        setError(message)
+        markAssistantStatus(assistantId, {
+          type: 'incomplete',
+          reason: 'error',
+          error: message,
+        })
+      } finally {
+        if (abortRef.current === controller) {
+          abortRef.current = null
+        }
+      }
+    },
+    [
+      activeConversationId,
+      apiBase,
+      appendAssistantChunk,
+      isBusy,
+      markAssistantStatus,
+      refreshConversations,
+      token,
+    ],
+  )
+
+  const stopStreaming = useCallback(async () => {
+    abortRef.current?.abort()
+  }, [])
+
+  const retryLastPrompt = useCallback(async () => {
+    if (!lastPrompt) {
+      return
+    }
+    await sendMessage(lastPrompt, activeConversationId)
+  }, [activeConversationId, lastPrompt, sendMessage])
+
+  const runtime = useExternalStoreRuntime<ChatMessage>({
+    messages,
+    convertMessage: toAssistantMessage,
+    isRunning: isBusy,
+    isSendDisabled: !token || isBusy,
+    suggestions: messages.length === 0 ? promptStarters.map((prompt) => ({ prompt })) : [],
+    onNew: async (message) => {
+      await sendMessage(getAppendMessageText(message), activeConversationId)
+    },
+    onCancel: stopStreaming,
+    onReload: async () => {
+      await retryLastPrompt()
+    },
+    adapters: {
+      threadList: {
+        threadId: activeConversationId ?? 'new',
+        threads: conversations.map((conversation) => ({
+          id: conversation.id,
+          title: conversation.title || '未命名会话',
+          status: 'regular' as const,
+        })),
+        onSwitchToNewThread: startNewChat,
+        onSwitchToThread: selectConversationById,
+      },
+    },
+  })
 
   useEffect(() => {
     if (!token) {
@@ -113,6 +341,54 @@ export default function StudentChatboxPage({ apiBase, session }: StudentChatboxP
     }
   }, [])
 
+  useGSAP(
+    () => {
+      const mm = gsap.matchMedia()
+      mm.add(
+        {
+          reduceMotion: '(prefers-reduced-motion: reduce)',
+        },
+        (context) => {
+          const { reduceMotion } = context.conditions as { reduceMotion: boolean }
+          if (reduceMotion) {
+            gsap.set('.conversation-rail, .chat-workspace, .chat-composer-panel', {
+              clearProps: 'all',
+            })
+            return undefined
+          }
+          const timeline = gsap.timeline({ defaults: { duration: 0.36, ease: 'power3.out' } })
+          timeline
+            .from('.conversation-rail', { x: -18, autoAlpha: 0 })
+            .from('.chat-workspace', { y: 16, autoAlpha: 0 }, '<0.08')
+            .from('.chat-composer-panel', { y: 12, autoAlpha: 0 }, '<0.08')
+          return undefined
+        },
+      )
+      return () => mm.revert()
+    },
+    { scope: pageRef },
+  )
+
+  useGSAP(
+    () => {
+      const root = pageRef.current
+      if (!root || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        return
+      }
+      const items = root.querySelectorAll('.chat-message')
+      const lastItem = items[items.length - 1]
+      if (!lastItem) {
+        return
+      }
+      gsap.fromTo(
+        lastItem,
+        { y: 10, autoAlpha: 0 },
+        { y: 0, autoAlpha: 1, duration: 0.22, ease: 'power2.out' },
+      )
+    },
+    { dependencies: [messages.length], scope: pageRef },
+  )
+
   if (!session) {
     return <Navigate to="/login" replace />
   }
@@ -121,308 +397,204 @@ export default function StudentChatboxPage({ apiBase, session }: StudentChatboxP
     return <Navigate to="/app" replace />
   }
 
-  const activeConversation = conversations.find((item) => item.id === activeConversationId)
-  const isBusy = status === 'loading' || status === 'streaming'
-  const canRetry = Boolean(lastPrompt) && !isBusy
+  return (
+    <main className="student-chat-page" ref={pageRef}>
+      <AssistantRuntimeProvider runtime={runtime}>
+        <section className="chat-shell" aria-label="学生 AI 咨询助手">
+          <ThreadListPrimitive.Root className="conversation-rail" aria-label="会话记录">
+            <div className="rail-header">
+              <button className="rail-back-button" onClick={() => navigate('/app/student')} type="button">
+                <span aria-hidden="true">←</span>
+                学生工作台
+              </button>
+              <div>
+                <span className="rail-eyebrow">会话记录</span>
+                <h1>{assistantDisplayName}</h1>
+              </div>
+              <ThreadListPrimitive.New className="new-thread-button">
+                <span aria-hidden="true">＋</span>
+                新会话
+              </ThreadListPrimitive.New>
+            </div>
 
-  const refreshConversations = async (conversationId: string | null) => {
-    const items = await loadConversations(apiBase, token)
-    setConversations(items)
-    if (conversationId) {
-      const refreshed = items.find((item) => item.id === conversationId)
-      if (refreshed) {
-        setMessages(refreshed.messages.map(toChatMessage))
-      }
-    }
-  }
+            <div className="rail-model-card" aria-label="当前模型">
+              <span>当前模型</span>
+              <strong>Qwen</strong>
+            </div>
 
-  const startNewChat = () => {
-    abortRef.current?.abort()
-    setActiveConversationId(null)
-    setMessages([])
-    setDraft('')
-    setError('')
-    setLastPrompt('')
-    setStatus('idle')
-  }
+            <div className="conversation-list">
+              {conversations.length === 0 ? (
+                <div className="conversation-empty">还没有保存的会话，发送第一条消息后会自动出现在这里。</div>
+              ) : (
+                <ThreadListPrimitive.Items>
+                  {({ threadListItem }) => {
+                    const conversation = conversations.find((item) => item.id === threadListItem.id)
+                    return (
+                      <ThreadListItemPrimitive.Root className="conversation-item">
+                        <ThreadListItemPrimitive.Trigger className="conversation-item-trigger">
+                          <span className="conversation-item-title">
+                            <ThreadListItemPrimitive.Title
+                              fallback={conversation?.title || '未命名会话'}
+                            />
+                          </span>
+                          <span className="conversation-item-meta">
+                            {conversation ? `${conversation.messages.length} 条消息` : '继续会话'}
+                          </span>
+                        </ThreadListItemPrimitive.Trigger>
+                      </ThreadListItemPrimitive.Root>
+                    )
+                  }}
+                </ThreadListPrimitive.Items>
+              )}
+            </div>
+          </ThreadListPrimitive.Root>
 
-  const selectConversation = (conversation: ApiConversation) => {
-    if (isBusy) {
-      return
-    }
-    setActiveConversationId(conversation.id)
-    setMessages(conversation.messages.map(toChatMessage))
-    setError('')
-    setStatus('idle')
-  }
+          <ThreadPrimitive.Root className="chat-workspace">
+            <div className="chat-topbar">
+              <div className="chat-title-block">
+                <span className="chat-kicker">学生端咨询</span>
+                <h2>{activeConversation?.title ?? '新会话'}</h2>
+              </div>
+              <div className="chat-topbar-actions">
+                <span className={`chat-status-pill ${status}`}>{statusLabel(status)}</span>
+                <button
+                  className="chat-text-button"
+                  disabled={!canRetry}
+                  onClick={() => void retryLastPrompt()}
+                  type="button"
+                >
+                  重试
+                </button>
+              </div>
+            </div>
 
-  const sendMessage = async (promptOverride?: string, conversationOverride?: string | null) => {
-    const prompt = (promptOverride ?? draft).trim()
-    if (!prompt || isBusy) {
-      return
-    }
+            {error ? (
+              <div className="chat-error" role="alert">
+                <div>
+                  <strong>回复没有完成</strong>
+                  <span>{error}</span>
+                </div>
+                <button disabled={!canRetry} onClick={() => void retryLastPrompt()} type="button">
+                  重新发送
+                </button>
+              </div>
+            ) : null}
 
-    const controller = new AbortController()
-    const studentId = `pending-student-${messages.length + 1}`
-    const assistantId = `pending-assistant-${messages.length + 2}`
-    const conversationId = conversationOverride ?? activeConversationId
-    abortRef.current = controller
-    setDraft('')
-    setError('')
-    setLastPrompt(prompt)
-    setStatus('loading')
-    setMessages((current) => [
-      ...current,
-      { id: studentId, role: 'student', content: prompt },
-      { id: assistantId, role: 'assistant', content: '', streaming: true },
-    ])
+            <ThreadPrimitive.Viewport className="message-list" turnAnchor="bottom">
+              <ThreadPrimitive.Empty>
+                <div className="chat-empty-state">
+                  <span className="empty-mark" aria-hidden="true">
+                    ✦
+                  </span>
+                  <h3>今天想先聊哪件事？</h3>
+                  <p>
+                    可以从学习压力、沟通困扰、作业安排或校园资源开始。回复由 AI 生成，重要事项请联系辅导员确认。
+                  </p>
+                  <div className="prompt-starters">
+                    {promptStarters.map((prompt) => (
+                      <ThreadPrimitive.Suggestion
+                        className="prompt-starter"
+                        key={prompt}
+                        prompt={prompt}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </ThreadPrimitive.Empty>
 
-    try {
-      const response = await fetch(`${apiBase}/api/v1/student/chat/stream`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          conversationId,
-          message: prompt,
-        }),
-        signal: controller.signal,
-      })
+              <div className="message-stack" aria-live="polite">
+                <ThreadPrimitive.Messages>
+                  {({ message }) => <ChatMessageItem role={message.role} />}
+                </ThreadPrimitive.Messages>
+              </div>
 
-      if (!response.ok) {
-        const detail = await response.json().catch(() => ({ detail: '模型接口调用失败' }))
-        throw new Error(detail.detail ?? '模型接口调用失败')
-      }
+              <ThreadPrimitive.ScrollToBottom className="scroll-to-bottom-button">
+                回到底部
+              </ThreadPrimitive.ScrollToBottom>
 
-      if (!response.body) {
-        throw new Error('当前浏览器不支持流式响应读取')
-      }
+              <ThreadPrimitive.ViewportFooter className="chat-composer-panel">
+                <ComposerPrimitive.Root className="composer-form">
+                  <ComposerPrimitive.Input
+                    addAttachmentOnPaste={false}
+                    aria-label="输入咨询内容"
+                    autoFocus
+                    className="composer-input"
+                    maxRows={6}
+                    minRows={1}
+                    placeholder="输入你想讨论的问题..."
+                    submitMode="enter"
+                    unstable_insertNewlineOnTouchEnter
+                  />
+                  <div className="composer-footer">
+                    <span>Enter 发送，Shift + Enter 换行</span>
+                    <div className="composer-actions">
+                      <AuiIf condition={(state) => state.thread.isRunning}>
+                        <ComposerPrimitive.Cancel className="composer-stop-button">
+                          停止
+                        </ComposerPrimitive.Cancel>
+                      </AuiIf>
+                      <AuiIf condition={(state) => !state.thread.isRunning}>
+                        <ComposerPrimitive.Send className="composer-send-button">
+                          发送
+                        </ComposerPrimitive.Send>
+                      </AuiIf>
+                    </div>
+                  </div>
+                </ComposerPrimitive.Root>
+              </ThreadPrimitive.ViewportFooter>
+            </ThreadPrimitive.Viewport>
+          </ThreadPrimitive.Root>
+        </section>
+      </AssistantRuntimeProvider>
+    </main>
+  )
+}
 
-      setStatus('streaming')
-      const reader = response.body.getReader()
-      const decoder = new TextDecoder()
-      let buffer = ''
-      let streamedConversationId = conversationId
+function ChatMessageItem({ role }: { role: 'assistant' | 'user' | 'system' }) {
+  const isAssistant = role === 'assistant'
+  const isRunning = useAuiState((state) => state.message.status?.type === 'running')
 
-      while (true) {
-        const { done, value } = await reader.read()
-        if (done) {
-          break
-        }
-
-        buffer += decoder.decode(value, { stream: true })
-        const parsed = drainSseEvents(buffer)
-        buffer = parsed.rest
-
-        for (const event of parsed.events) {
-          if (event.event === 'conversation') {
-            streamedConversationId = event.data.conversationId ?? streamedConversationId
-            setActiveConversationId(streamedConversationId ?? null)
-          }
-          if (event.event === 'delta') {
-            appendAssistantChunk(assistantId, event.data.content ?? '')
-          }
-          if (event.event === 'error') {
-            throw new Error(event.data.detail ?? '模型生成失败')
-          }
-        }
-      }
-
-      markAssistantComplete(assistantId)
-      setStatus('idle')
-      await refreshConversations(streamedConversationId ?? null)
-    } catch (sendError) {
-      if (sendError instanceof DOMException && sendError.name === 'AbortError') {
-        markAssistantComplete(assistantId)
-        setStatus('stopped')
-        return
-      }
-      const message = sendError instanceof Error ? sendError.message : '模型生成失败'
-      setStatus('error')
-      setError(message)
-      markAssistantComplete(assistantId)
-    } finally {
-      if (abortRef.current === controller) {
-        abortRef.current = null
-      }
-    }
-  }
-
-  const stopStreaming = () => {
-    abortRef.current?.abort()
-  }
-
-  const retryLastPrompt = () => {
-    void sendMessage(lastPrompt, activeConversationId)
-  }
-
-  const appendAssistantChunk = (messageId: string, chunk: string) => {
-    if (!chunk) {
-      return
-    }
-    setMessages((current) =>
-      current.map((message) =>
-        message.id === messageId ? { ...message, content: `${message.content}${chunk}` } : message,
-      ),
-    )
-  }
-
-  const markAssistantComplete = (messageId: string) => {
-    setMessages((current) =>
-      current.map((message) =>
-        message.id === messageId ? { ...message, streaming: false } : message,
-      ),
-    )
+  if (role === 'system') {
+    return null
   }
 
   return (
-    <main className="student-chat-page">
-      <section className="chat-header">
-        <Button icon={<ArrowLeftOutlined />} onClick={() => navigate('/app/student')}>
-          学生工作台
-        </Button>
-        <div className="chat-header-title">
-          <Tag color="blue">Phase 3R</Tag>
-          <Typography.Title level={2}>学生 Chatbox</Typography.Title>
-          <Typography.Paragraph>
-            当前页面独立于学生工作台，回答由后端 Qwen/DashScope 流式代理生成。
-          </Typography.Paragraph>
+    <MessagePrimitive.Root className={`chat-message ${isAssistant ? 'assistant' : 'student'}`}>
+      <div className="message-avatar" aria-hidden="true">
+        {isAssistant ? 'AI' : '我'}
+      </div>
+      <div className="message-content">
+        <div className="message-heading">
+          <span>{isAssistant ? assistantDisplayName : '你'}</span>
+          {isRunning ? <small>正在回复</small> : null}
         </div>
-        <Space wrap>
-          <Button icon={<ReloadOutlined />} disabled={!canRetry} onClick={retryLastPrompt}>
-            重试
-          </Button>
-          <Button type="primary" icon={<PlusOutlined />} onClick={startNewChat}>
-            新会话
-          </Button>
-        </Space>
-      </section>
-
-      <section className="chat-shell" aria-label="学生 Chatbox">
-        <aside className="conversation-rail">
-          <div className="rail-title">
-            <MessageOutlined />
-            <span>当前运行期记录</span>
-          </div>
-          <div className="conversation-list">
-            {conversations.length === 0 ? (
-              <div className="conversation-empty">暂无会话</div>
-            ) : (
-              conversations.map((conversation) => (
-                <button
-                  className={`conversation-item ${
-                    conversation.id === activeConversationId ? 'active' : ''
-                  }`}
-                  key={conversation.id}
-                  onClick={() => selectConversation(conversation)}
-                  type="button"
-                >
-                  <span>{conversation.title}</span>
-                  <small>
-                    <ClockCircleOutlined />
-                    {conversation.messages.length} 条消息
-                  </small>
-                </button>
-              ))
-            )}
-          </div>
-        </aside>
-
-        <section className="chat-workspace">
-          <div className="chat-status-line">
-            <div>
-              <strong>{activeConversation?.title ?? '新会话'}</strong>
-              <span>{session.user.displayName}</span>
-            </div>
-            <Tag color={status === 'error' ? 'red' : status === 'streaming' ? 'green' : 'blue'}>
-              {statusLabel(status)}
-            </Tag>
-          </div>
-
-          {error ? (
-            <Alert
-              type="error"
-              showIcon
-              icon={<WarningOutlined />}
-              message={error}
-              action={
-                canRetry ? (
-                  <Button size="small" onClick={retryLastPrompt}>
-                    重试
-                  </Button>
-                ) : null
-              }
-            />
-          ) : null}
-
-          <div className="message-list" aria-live="polite">
-            {messages.length === 0 ? (
-              <Empty
-                image={Empty.PRESENTED_IMAGE_SIMPLE}
-                description="开始一个学生端咨询会话"
-              >
-                <div className="prompt-starters">
-                  {promptStarters.map((prompt) => (
-                    <Button key={prompt} onClick={() => void sendMessage(prompt, null)}>
-                      {prompt}
-                    </Button>
-                  ))}
-                </div>
-              </Empty>
-            ) : (
-              messages.map((message) => (
-                <article className={`chat-message ${message.role}`} key={message.id}>
-                  <div className="message-avatar">
-                    {message.role === 'student' ? <UserOutlined /> : <RobotOutlined />}
-                  </div>
-                  <div className="message-bubble">
-                    <div className="message-role">
-                      {message.role === 'student' ? '学生' : 'AI 辅导员'}
-                      {message.streaming ? <span>生成中</span> : null}
-                    </div>
-                    <p>{message.content || '正在连接模型...'}</p>
-                  </div>
-                </article>
-              ))
-            )}
-          </div>
-
-          <div className="chat-composer">
-            <Input.TextArea
-              value={draft}
-              onChange={(event) => setDraft(event.target.value)}
-              onPressEnter={(event) => {
-                if (!event.shiftKey) {
-                  event.preventDefault()
-                  void sendMessage()
-                }
-              }}
-              disabled={isBusy}
-              autoSize={{ minRows: 2, maxRows: 5 }}
-              placeholder="输入你想讨论的问题"
-            />
-            <div className="composer-actions">
-              {isBusy ? (
-                <Button danger icon={<StopOutlined />} onClick={stopStreaming}>
-                  停止
-                </Button>
-              ) : (
-                <Button
-                  type="primary"
-                  icon={<SendOutlined />}
-                  disabled={!draft.trim()}
-                  onClick={() => void sendMessage()}
-                >
-                  发送
-                </Button>
-              )}
-            </div>
-          </div>
-        </section>
-      </section>
-    </main>
+        <div className="message-bubble">
+          <MessagePrimitive.Parts
+            components={{
+              Text: () => (
+                <MessagePartPrimitive.Text
+                  className="message-text"
+                  component="p"
+                  smooth={isAssistant}
+                />
+              ),
+            }}
+          />
+          <ActionBarPrimitive.Root
+            autohide="not-last"
+            className="message-actions"
+            hideWhenRunning
+          >
+            <ActionBarPrimitive.Copy className="message-action-button">
+              复制
+            </ActionBarPrimitive.Copy>
+            <ActionBarPrimitive.Reload className="message-action-button">
+              重试
+            </ActionBarPrimitive.Reload>
+          </ActionBarPrimitive.Root>
+        </div>
+      </div>
+    </MessagePrimitive.Root>
   )
 }
 
@@ -445,7 +617,32 @@ function toChatMessage(message: ApiMessage): ChatMessage {
     role: message.role,
     content: message.content,
     createdAt: message.created_at,
+    status:
+      message.role === 'assistant'
+        ? {
+            type: 'complete',
+            reason: 'stop',
+          }
+        : undefined,
   }
+}
+
+function toAssistantMessage(message: ChatMessage): ThreadMessageLike {
+  return {
+    id: message.id,
+    role: message.role === 'student' ? 'user' : 'assistant',
+    content: message.content,
+    createdAt: message.createdAt ? new Date(message.createdAt) : undefined,
+    status: message.role === 'assistant' ? message.status ?? { type: 'complete', reason: 'stop' } : undefined,
+  }
+}
+
+function getAppendMessageText(message: AppendMessage): string {
+  return message.content
+    .filter((part): part is { type: 'text'; text: string } => part.type === 'text')
+    .map((part) => part.text)
+    .join('\n\n')
+    .trim()
 }
 
 function drainSseEvents(buffer: string): { events: StreamEvent[]; rest: string } {
@@ -486,10 +683,10 @@ function statusLabel(status: StreamStatus): string {
     return '连接中'
   }
   if (status === 'streaming') {
-    return '流式输出'
+    return '正在回复'
   }
   if (status === 'error') {
-    return '错误'
+    return '需要重试'
   }
   if (status === 'stopped') {
     return '已停止'
