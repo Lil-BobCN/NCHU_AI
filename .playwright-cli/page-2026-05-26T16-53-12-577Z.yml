@@ -1,0 +1,66 @@
+- generic [ref=e4]:
+  - banner [ref=e5]:
+    - button "NCHU AI AI Counselor Demo" [ref=e6] [cursor=pointer]:
+      - img [ref=e8]:
+        - img [ref=e9]
+      - generic [ref=e11]:
+        - generic [ref=e12]: NCHU AI
+        - generic [ref=e13]: AI Counselor Demo
+    - menu [ref=e14]:
+      - menuitem "首页" [ref=e15] [cursor=pointer]
+      - menuitem "产品能力" [ref=e16] [cursor=pointer]
+      - menuitem "使用流程" [ref=e17] [cursor=pointer]
+      - menuitem "可信边界" [ref=e18] [cursor=pointer]
+      - menuitem [disabled]:
+        - img:
+          - img
+    - generic [ref=e19]:
+      - generic [ref=e21]: 学生身份
+      - button "学生工作台" [ref=e23] [cursor=pointer]:
+        - generic [ref=e24]: 学生工作台
+      - button "logout 退出" [ref=e26] [cursor=pointer]:
+        - img "logout" [ref=e28]:
+          - img [ref=e29]
+        - generic [ref=e31]: 退出
+  - main [ref=e32]:
+    - main [ref=e33]:
+      - region "学生 AI 咨询助手" [ref=e34]:
+        - generic "会话记录" [ref=e35]:
+          - generic [ref=e36]:
+            - button "学生工作台" [ref=e37] [cursor=pointer]:
+              - generic [ref=e38]: ←
+              - text: 学生工作台
+            - generic [ref=e39]:
+              - generic [ref=e40]: 会话记录
+              - heading "AI 咨询助手" [level=1] [ref=e41]
+            - button "新会话" [ref=e42] [cursor=pointer]:
+              - generic [ref=e43]: ＋
+              - text: 新会话
+          - generic "当前模型" [ref=e44]:
+            - generic [ref=e45]: 当前模型
+            - strong [ref=e46]: Qwen
+          - generic [ref=e48]: 还没有保存的会话，发送第一条消息后会自动出现在这里。
+        - generic [ref=e49]:
+          - generic [ref=e50]:
+            - generic [ref=e51]:
+              - generic [ref=e52]: 学生端咨询
+              - heading "新会话" [level=2] [ref=e53]
+            - generic [ref=e54]:
+              - generic [ref=e55]: 就绪
+              - button "重试" [disabled] [ref=e56]
+          - generic [ref=e57]:
+            - generic [ref=e58]:
+              - generic [ref=e59]: ✦
+              - heading "今天想先聊哪件事？" [level=3] [ref=e60]
+              - paragraph [ref=e61]: 可以从学习压力、沟通困扰、作业安排或校园资源开始。回复由 AI 生成，重要事项请联系辅导员确认。
+              - generic [ref=e62]:
+                - button [ref=e63] [cursor=pointer]
+                - button [ref=e64] [cursor=pointer]
+                - button [ref=e65] [cursor=pointer]
+            - button "回到底部" [disabled] [ref=e67] [cursor=pointer]
+          - generic [ref=e69]:
+            - textbox "输入咨询内容" [active] [ref=e70]:
+              - /placeholder: 输入你想讨论的问题...
+            - generic [ref=e71]:
+              - generic [ref=e72]: Enter 发送，Shift + Enter 换行
+              - button "发送" [disabled] [ref=e74]
