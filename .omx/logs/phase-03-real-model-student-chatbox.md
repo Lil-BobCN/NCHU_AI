@@ -137,3 +137,34 @@ Evidence:
 Known verification note:
 
 - Mobile 390px uses a horizontal conversation-history strip by design. `documentElement.scrollWidth` equals viewport width after hiding the topbar exit button on mobile; the strip itself contains off-viewport items inside its own horizontal scroll container.
+
+### P3R-N5 Final Review: Assistant UI Structure And Visual Smoke
+
+Status: done
+
+Date: 2026-05-26
+
+Scope:
+
+- Aligned the production composer with the documented assistant-ui primitive shape by placing `ComposerPrimitive.Root` inside `ThreadPrimitive.ViewportFooter`.
+- Kept the approved FastAPI SSE boundary, Qwen-only first-round model display, hidden attachment/search/RAG/mode controls, and scoped GSAP motion.
+- Added a Chatbox-scoped mobile content height fix so the global app content wrapper does not create page-level scroll at 390px.
+
+Evidence:
+
+- `npm run lint` from `frontend/`: passed.
+- `npm run build` from `frontend/`: passed with the existing Vite chunk size warning.
+- LSP diagnostics:
+  - `frontend/src/StudentChatboxPage.tsx`: 0 errors.
+  - `frontend/src/App.css`: 0 errors.
+- `git diff --check`: passed.
+- Browser layout metrics:
+  - Desktop `1440x1000`: `scrollWidth=1440`, `bodyScrollHeight=1000`, composer visible at viewport bottom.
+  - Mobile `390x844`: `scrollWidth=390`, `bodyScrollHeight=844`, composer visible at viewport bottom.
+- Playwright console check: 0 errors / 0 warnings, excluding the React DevTools development info message.
+- Real stream UI smoke:
+  - `POST /api/v1/student/chat/stream` returned `200 OK`.
+  - Final visible response: `Assistant UI 最终烟测响应正常。`
+- Screenshots:
+  - `output/playwright/student-chatbox-assistant-ui-production-desktop-final.png`
+  - `output/playwright/student-chatbox-assistant-ui-production-mobile-final.png`
