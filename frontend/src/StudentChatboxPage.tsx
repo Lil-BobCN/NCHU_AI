@@ -88,7 +88,12 @@ export default function StudentChatboxPage({ apiBase, session }: StudentChatboxP
     }
     setMessages((current) =>
       current.map((message) =>
-        message.id === messageId ? { ...message, content: `${message.content}${chunk}` } : message,
+        message.id === messageId
+          ? {
+              ...message,
+              content: `${message.content === '正在连接咨询助手...' ? '' : message.content}${chunk}`,
+            }
+          : message,
       ),
     )
   }, [])
@@ -150,6 +155,8 @@ export default function StudentChatboxPage({ apiBase, session }: StudentChatboxP
       if (!prompt || isBusy || !token) {
         return
       }
+
+      setMessages((current) => current.filter((message) => message.content.trim() !== ''))
 
       const controller = new AbortController()
       const stamp = Date.now()
@@ -631,7 +638,10 @@ function toAssistantMessage(message: ChatMessage): ThreadMessageLike {
   return {
     id: message.id,
     role: message.role === 'student' ? 'user' : 'assistant',
-    content: message.content,
+    content:
+      message.role === 'assistant'
+        ? [{ type: 'text', text: message.content || '正在回复...' }]
+        : message.content,
     createdAt: message.createdAt ? new Date(message.createdAt) : undefined,
     status: message.role === 'assistant' ? message.status ?? { type: 'complete', reason: 'stop' } : undefined,
   }
