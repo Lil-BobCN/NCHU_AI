@@ -276,6 +276,8 @@ assistant-ui 是 React AI Chat UI/runtime 框架，方向上最匹配 Claude / C
 批准，优先稳定学生端体验，教师/辅导员端后续再审批复用边界和抽象程度。
 4. 是否确认本轮继续沿用 `SDAR-0002` 已批准的 React + TypeScript + Vite + Ant Design 技术路线，不新增并行前端技术栈。
 React + TypeScript + Vite确定，但是组件库我们需要进行探讨，我在看ant design X组件库的效果
+
+放弃 Ant Design X 作为 Chatbox 主路线，采用 assistant-ui 作为学生 Chatbox 与后续 Chat 页主前端聊天技术栈
 5. 是否批准新增 assistant-ui 作为学生 Chatbox 与后续 Chat 页主前端聊天框架，放弃 Ant Design X 作为 Chatbox 主路线。
 批准。采用 assistant-ui，保留 FastAPI 后端代理和前端无密钥边界。首轮只接学生端，模型选择只启用已批准 Qwen；web search、RAG、附件上传、持久化和多角色 Chatbox 后续单独审批。
 ## 15. 审批记录
