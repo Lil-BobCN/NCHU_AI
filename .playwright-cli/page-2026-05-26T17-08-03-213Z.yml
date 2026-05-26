@@ -1,0 +1,128 @@
+- generic [ref=e4]:
+  - banner [ref=e5]:
+    - button "NCHU AI AI Counselor Demo" [ref=e6] [cursor=pointer]:
+      - img [ref=e8]:
+        - img [ref=e9]
+      - generic [ref=e11]:
+        - generic [ref=e12]: NCHU AI
+        - generic [ref=e13]: AI Counselor Demo
+    - menu [ref=e14]:
+      - menuitem "首页" [ref=e15] [cursor=pointer]
+      - menuitem "产品能力" [ref=e16] [cursor=pointer]
+      - menuitem "使用流程" [ref=e17] [cursor=pointer]
+      - menuitem "可信边界" [ref=e18] [cursor=pointer]
+      - menuitem [disabled]:
+        - img:
+          - img
+    - generic [ref=e19]:
+      - generic [ref=e21]: 学生身份
+      - button "学生工作台" [ref=e23] [cursor=pointer]:
+        - generic [ref=e24]: 学生工作台
+      - button "logout 退出" [ref=e26] [cursor=pointer]:
+        - img "logout" [ref=e28]:
+          - img [ref=e29]
+        - generic [ref=e31]: 退出
+  - main [ref=e32]:
+    - main [ref=e33]:
+      - region "学生 AI 咨询助手" [ref=e34]:
+        - generic "会话记录" [ref=e35]:
+          - generic [ref=e36]:
+            - button "学生工作台" [ref=e37] [cursor=pointer]:
+              - generic [ref=e38]: ←
+              - text: 学生工作台
+            - generic [ref=e39]:
+              - generic [ref=e40]: 会话记录
+              - heading "AI 咨询助手" [level=1] [ref=e41]
+            - button "新会话" [ref=e42] [cursor=pointer]:
+              - generic [ref=e43]: ＋
+              - text: 新会话
+          - generic "当前模型" [ref=e44]:
+            - generic [ref=e45]: 当前模型
+            - strong [ref=e46]: Qwen
+          - generic [ref=e47]:
+            - button "我最近学习压力很大，应该怎么调整？ 10 条消息" [ref=e76] [cursor=pointer]:
+              - generic [ref=e77]: 我最近学习压力很大，应该怎么调整？
+              - generic [ref=e78]: 10 条消息
+            - button "我和室友发生矛盾，不知道怎么开口沟通。 2 条消息" [ref=e80] [cursor=pointer]:
+              - generic [ref=e81]: 我和室友发生矛盾，不知道怎么开口沟通。
+              - generic [ref=e82]: 2 条消息
+        - generic [ref=e49]:
+          - generic [ref=e50]:
+            - generic [ref=e51]:
+              - generic [ref=e52]: 学生端咨询
+              - heading "我最近学习压力很大，应该怎么调整？" [level=2] [ref=e83]
+            - generic [ref=e54]:
+              - generic [ref=e55]: 正在回复
+              - button "重试" [disabled] [ref=e56]
+          - generic [ref=e57]:
+            - generic [ref=e66]:
+              - generic [ref=e84]:
+                - generic [ref=e85]: 我
+                - generic [ref=e86]:
+                  - generic [ref=e88]: 你
+                  - paragraph [ref=e160]: 我最近学习压力很大，应该怎么调整？
+              - generic [ref=e91]:
+                - generic [ref=e92]: AI
+                - generic [ref=e93]:
+                  - generic [ref=e95]: AI 咨询助手
+                  - paragraph [ref=e161]: 你好。感受到学习压力是大学阶段常见的情绪反应，你能主动寻求调整方法，是很积极的一步。 作为 AI 助手，我无法访问你的个人课业数据或档案，但可以提供一些通用的调整建议供你参考： 1. **任务拆解**：尝试将大的学习目标分解为每天可完成的小任务，每完成一项给自己一点肯定，减少畏难情绪。 2. **作息调整**：保证基本的睡眠和饮食，适当的运动有助于缓解紧张情绪，避免长时间连续学习。 3. **寻求支持**：可以和信任的同学、家人聊聊，或者向任课老师请教学习难点，不要独自承担。 4. **专业资源**：如果压力持续影响睡眠或日常生活，建议联系学校心理健康教育中心寻求专业支持。 请注意，我只是一个 AI 演示助手。如果你感到情绪极度低落或有伤害自己的念头，请立即联系校内值班老师、拨打心理援助热线或前往医院就诊。 你愿意具体说说是在哪门课程或哪个环节感到困难吗？这样我可以提供更针对性的学习策略建议。
+              - generic [ref=e101]:
+                - generic [ref=e102]: 我
+                - generic [ref=e103]:
+                  - generic [ref=e105]: 你
+                  - paragraph [ref=e162]: 我想继续问一个很短的问题，用于测试停止生成。
+              - generic [ref=e108]:
+                - generic [ref=e109]: AI
+                - generic [ref=e110]:
+                  - generic [ref=e112]: AI 咨询助手
+                  - paragraph [ref=e163]: 没问题，请随时提问。我会尽力为您解答。
+              - generic [ref=e115]:
+                - generic [ref=e116]: 我
+                - generic [ref=e117]:
+                  - generic [ref=e119]: 你
+                  - paragraph [ref=e164]: 请用较长篇幅解释如何把一个大型复习任务拆成七天计划，我会立即测试停止生成按钮。
+              - generic [ref=e122]:
+                - generic [ref=e123]: 我
+                - generic [ref=e124]:
+                  - generic [ref=e126]: 你
+                  - paragraph [ref=e165]: 你好
+              - generic [ref=e129]:
+                - generic [ref=e130]: 我
+                - generic [ref=e131]:
+                  - generic [ref=e133]: 你
+                  - paragraph [ref=e166]: 你好
+              - generic [ref=e136]:
+                - generic [ref=e137]: AI
+                - generic [ref=e138]:
+                  - generic [ref=e140]: AI 咨询助手
+                  - paragraph [ref=e167]: 你好！我是南昌航空大学 AI 辅导员 Demo 的学生端助手。 很高兴再次为你提供服务。无论是学习压力、时间管理，还是生活适应方面的困惑，都可以随时和我聊聊。我会尽力提供清晰、可执行的建议供你参考。 温馨提示：我无法访问真实的学校数据库或个人档案。如果遇到紧急危机或情绪极度困扰，请务必联系校内值班老师、心理咨询中心或紧急服务。 今天有什么具体想聊的话题吗？
+              - generic [ref=e143]:
+                - generic [ref=e144]: 我
+                - generic [ref=e145]:
+                  - generic [ref=e147]: 你
+                  - paragraph [ref=e168]: 你好
+              - generic [ref=e150]:
+                - generic [ref=e151]: AI
+                - generic [ref=e152]:
+                  - generic [ref=e154]: AI 咨询助手
+                  - paragraph [ref=e169]: 你好！我是南昌航空大学 AI 辅导员 Demo 助手。 很高兴再次见到你。虽然我只是一个人工智能演示助手，无法访问真实的学校档案或个人数据，但我很愿意倾听你的困惑，并提供一些通用、可执行的建议供你参考。 无论是学习规划、生活适应还是情绪调整，你都可以随时告诉我。今天有什么具体想聊的话题吗？ 温馨提示：如遇紧急危机或严重心理困扰，请及时联系校内值班老师、心理咨询中心或拨打紧急服务电话。
+              - generic [ref=e170]:
+                - generic [ref=e171]: 我
+                - generic [ref=e172]:
+                  - generic [ref=e174]: 你
+                  - paragraph [ref=e176]: 请用一句话回复：今天的页面烟测。
+              - generic [ref=e177]:
+                - generic [ref=e178]: AI
+                - generic [ref=e179]:
+                  - generic [ref=e180]:
+                    - generic [ref=e181]: AI 咨询助手
+                    - generic [ref=e182]: 正在回复
+                  - generic [ref=e183]:
+                    - paragraph
+            - button "回到底部" [disabled] [ref=e67] [cursor=pointer]
+          - generic [ref=e69]:
+            - textbox "输入咨询内容" [active] [ref=e70]:
+              - /placeholder: 输入你想讨论的问题...
+            - generic [ref=e71]:
+              - generic [ref=e72]: Enter 发送，Shift + Enter 换行
+              - button "停止" [ref=e184] [cursor=pointer]
