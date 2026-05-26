@@ -1,7 +1,7 @@
 ---
 id: SDAR-0009
 title: Student Chatbox Product Polish Boundary
-status: pending-component-library-review
+status: approved
 date: 2026-05-26
 phase: Phase 3R Student Chatbox Product Polish
 decision_owner: Product Manager
@@ -14,18 +14,24 @@ extends:
 related_files:
   - frontend/src/StudentChatboxPage.tsx
   - frontend/src/App.css
+  - frontend/package.json
   - .omx/logs/phase-03-real-model-student-chatbox.md
+  - .omx/specs/autoresearch-ai-chat-components/report.md
+  - .omx/specs/autoresearch-assistant-ui-chat-platform/report.md
+  - .omx/prototypes/assistant-ui-chat-platform-capability.html
   - output/playwright/student-chatbox-1440-viewport.png
   - output/playwright/student-chatbox-390.png
+  - output/playwright/assistant-ui-chat-platform-desktop.png
+  - output/playwright/assistant-ui-chat-platform-mobile.png
 ---
 
 # SDAR-0009: 学生 Chatbox 会话台产品打磨边界
 
 ## 1. 一句话结论
 
-建议将当前 Phase 3R 的下一步定义为“学生 Chatbox 会话台产品级打磨”，优先修复会话台结构、输入框常驻、历史栏、空态、错误态、流式态、文案和移动端阅读体验。
+建议将当前 Phase 3R 的下一步定义为“学生 Chatbox 会话台产品级打磨”，采用 assistant-ui 作为学生 Chatbox 与后续多角色 Chat 页的主前端聊天框架，优先修复会话台结构、输入框常驻、历史栏、空态、错误态、流式态、模型选择入口、文案和移动端阅读体验。
 
-本审批包只批准学生端 Chatbox 的前端视觉与交互打磨；不批准后端 API、模型 provider、数据库、RAG、真实学生数据、教师端/辅导员端 Chat 页面或首页改版。
+本审批包只批准学生端 Chatbox 的前端视觉与交互打磨，以及为该页面新增 assistant-ui 前端依赖与 runtime adapter；不批准后端 API 契约变更、模型 provider 变更、数据库、RAG、真实学生数据、教师端/辅导员端 Chat 页面或首页改版。
 
 ## 2. 背景
 
@@ -96,9 +102,9 @@ related_files:
 
 参考方向：
 
-- Intercom：支持对话的稳定结构、历史与输入区关系。
+- Claude / ChatGPT / Qwen：居中线程式消息流、底部常驻输入框、左侧会话历史、低工程噪音。
+- assistant-ui：使用 `Thread`、`Composer`、`ThreadListRuntime`、`LocalRuntime` / `ExternalStoreRuntime`、`ModelSelector` 等能力承接聊天页交互。
 - Linear：克制、清晰、低噪音的产品工作台密度。
-- Ant Design：保持当前组件栈的一致性，不引入新组件库。
 
 ## 8. 技术栈与后续对接核对
 
@@ -128,9 +134,10 @@ related_files:
 产品经理最新反馈：
 
 - React + TypeScript + Vite 已确认。
-- 组件库需要继续探讨，产品经理正在查看 Ant Design X 的效果。
+- 产品经理更偏好 Claude / ChatGPT / Qwen 风格的居中线程式聊天页面。
+- 2026-05-26，产品经理审阅 assistant-ui 专项调研后，批准采用 assistant-ui 作为学生 Chatbox 与后续 Chat 页的主前端聊天框架，放弃 Ant Design X 作为 Chatbox 主路线。
 
-因此，本轮在组件库确认前不得进入实现。
+因此，本轮组件库路线已确认，可进入后续小任务实现节点。
 
 ### Ant Design X 边界判断
 
