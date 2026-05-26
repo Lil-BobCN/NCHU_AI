@@ -1,0 +1,50 @@
+- generic [ref=e4]:
+  - banner [ref=e5]:
+    - button "NCHU AI" [ref=e6] [cursor=pointer]:
+      - img [ref=e8]:
+        - img [ref=e9]
+      - generic [ref=e12]: NCHU AI
+    - generic [ref=e13]:
+      - generic [ref=e15]: 学生身份
+      - button "学生工作台" [ref=e17] [cursor=pointer]:
+        - generic [ref=e18]: 学生工作台
+  - main [ref=e19]:
+    - main [ref=e20]:
+      - region "学生 AI 咨询助手" [ref=e21]:
+        - generic "会话记录" [ref=e22]:
+          - generic [ref=e23]:
+            - button "学生工作台" [ref=e24] [cursor=pointer]:
+              - generic [ref=e25]: ←
+              - text: 学生工作台
+            - generic [ref=e26]:
+              - generic [ref=e27]: 会话记录
+              - heading "AI 咨询助手" [level=1] [ref=e28]
+            - button "新会话" [ref=e29] [cursor=pointer]:
+              - generic [ref=e30]: ＋
+              - text: 新会话
+          - generic "当前模型" [ref=e31]:
+            - generic [ref=e32]: 当前模型
+            - strong [ref=e33]: Qwen
+          - generic [ref=e35]: 还没有保存的会话，发送第一条消息后会自动出现在这里。
+        - generic [ref=e36]:
+          - generic [ref=e37]:
+            - generic [ref=e38]:
+              - generic [ref=e39]: 学生端咨询
+              - heading "新会话" [level=2] [ref=e40]
+            - generic [ref=e41]:
+              - generic [ref=e42]: 就绪
+              - button "重试" [disabled] [ref=e43]
+          - generic [ref=e44]:
+            - generic [ref=e45]:
+              - generic [ref=e46]: ✦
+              - heading "今天想先聊哪件事？" [level=3] [ref=e47]
+              - paragraph [ref=e48]: 可以从学习压力、沟通困扰、作业安排或校园资源开始。回复由 AI 生成，重要事项请联系辅导员确认。
+              - generic [ref=e49]:
+                - button [ref=e50] [cursor=pointer]
+                - button [ref=e51] [cursor=pointer]
+                - button [ref=e52] [cursor=pointer]
+            - button "回到底部" [disabled] [ref=e54] [cursor=pointer]
+            - generic [ref=e56]:
+              - textbox "输入咨询内容" [active] [ref=e57]:
+                - /placeholder: 输入你想讨论的问题...
+              - button "发送" [disabled] [ref=e60]
