@@ -1671,6 +1671,10 @@
     flex-direction: column;
   }
 
+  .app-content:has(.student-chat-page) {
+    min-height: calc(100vh - 89px);
+  }
+
   .student-chat-page {
     height: calc(100vh - 89px);
     min-height: calc(100vh - 89px);
