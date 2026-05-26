@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { AppendMessage, MessageStatus, ThreadMessageLike } from '@assistant-ui/react'
 import {
   ActionBarPrimitive,
