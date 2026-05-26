@@ -511,38 +511,38 @@ export default function StudentChatboxPage({ apiBase, session }: StudentChatboxP
               <ThreadPrimitive.ScrollToBottom className="scroll-to-bottom-button">
                 回到底部
               </ThreadPrimitive.ScrollToBottom>
-
-              <ThreadPrimitive.ViewportFooter className="chat-composer-panel">
-                <ComposerPrimitive.Root className="composer-form">
-                  <ComposerPrimitive.Input
-                    addAttachmentOnPaste={false}
-                    aria-label="输入咨询内容"
-                    autoFocus
-                    className="composer-input"
-                    maxRows={6}
-                    minRows={1}
-                    placeholder="输入你想讨论的问题..."
-                    submitMode="enter"
-                    unstable_insertNewlineOnTouchEnter
-                  />
-                  <div className="composer-footer">
-                    <span>Enter 发送，Shift + Enter 换行</span>
-                    <div className="composer-actions">
-                      <AuiIf condition={(state) => state.thread.isRunning}>
-                        <ComposerPrimitive.Cancel className="composer-stop-button">
-                          停止
-                        </ComposerPrimitive.Cancel>
-                      </AuiIf>
-                      <AuiIf condition={(state) => !state.thread.isRunning}>
-                        <ComposerPrimitive.Send className="composer-send-button">
-                          发送
-                        </ComposerPrimitive.Send>
-                      </AuiIf>
-                    </div>
-                  </div>
-                </ComposerPrimitive.Root>
-              </ThreadPrimitive.ViewportFooter>
             </ThreadPrimitive.Viewport>
+
+            <ThreadPrimitive.ViewportFooter className="chat-composer-panel">
+              <ComposerPrimitive.Root className="composer-form">
+                <ComposerPrimitive.Input
+                  addAttachmentOnPaste={false}
+                  aria-label="输入咨询内容"
+                  autoFocus
+                  className="composer-input"
+                  maxRows={6}
+                  minRows={1}
+                  placeholder="输入你想讨论的问题..."
+                  submitMode="enter"
+                  unstable_insertNewlineOnTouchEnter
+                />
+                <div className="composer-footer">
+                  <span>Enter 发送，Shift + Enter 换行</span>
+                  <div className="composer-actions">
+                    <AuiIf condition={(state) => state.thread.isRunning}>
+                      <ComposerPrimitive.Cancel className="composer-stop-button">
+                        停止
+                      </ComposerPrimitive.Cancel>
+                    </AuiIf>
+                    <AuiIf condition={(state) => !state.thread.isRunning}>
+                      <ComposerPrimitive.Send className="composer-send-button">
+                        发送
+                      </ComposerPrimitive.Send>
+                    </AuiIf>
+                  </div>
+                </div>
+              </ComposerPrimitive.Root>
+            </ThreadPrimitive.ViewportFooter>
           </ThreadPrimitive.Root>
         </section>
       </AssistantRuntimeProvider>
