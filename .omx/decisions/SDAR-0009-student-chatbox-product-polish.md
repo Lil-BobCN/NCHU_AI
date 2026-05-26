@@ -139,32 +139,35 @@ related_files:
 
 因此，本轮组件库路线已确认，可进入后续小任务实现节点。
 
-### Ant Design X 边界判断
+### assistant-ui 审批边界
 
-Ant Design X 属于 Ant Design 体系下的 React AI 界面组件库，方向上匹配 Chatbox 场景，但引入 `@ant-design/x` 仍然会改变本轮“只使用现有 Ant Design 组件和自定义 CSS”的原边界。
+assistant-ui 是 React AI Chat UI/runtime 框架，方向上最匹配 Claude / ChatGPT / Qwen 式聊天页面。产品经理已批准将其作为本轮学生 Chatbox 的主前端方案。
 
-可选方案：
+批准内容：
 
-| 方案 | 描述 | 优点 | 风险 | 结论 |
-| --- | --- | --- | --- | --- |
-| X-A. 不引入 Ant Design X | 沿用现有 `antd` + `@ant-design/icons` + 自定义 CSS 完成 Chatbox 打磨 | 不新增依赖；实现可控；最快进入打磨 | 需要手写消息气泡、输入区和历史栏细节 | 保守推荐 |
-| X-B. 引入 Ant Design X UI 组件，但只用展示层组件 | 评估使用 `Bubble`、`Sender`、`Conversations` 等 AI 对话 UI 组件；仍保留现有后端 API 与 SSE 逻辑 | 更贴合 AI Chatbox 场景；与 Ant Design 视觉体系一致；未来多角色 Chat 复用更自然 | 新增依赖；需要适配现有消息结构和状态；需要重新验证打包体积与样式一致性 | 可选，需产品经理批准 |
-| X-C. 引入 Ant Design X SDK / request 流程 | 使用 `useXAgent`、`useXChat`、`XRequest` 等数据流能力 | 可能减少前端会话状态代码 | 容易绕过当前 FastAPI 后端权威边界；可能与现有 SSE 代理重复；增加 API 安全风险 | 暂不推荐 |
+- 新增 `@assistant-ui/react` 作为学生 Chatbox 主前端聊天框架。
+- 可按需新增 `@assistant-ui/react-markdown` 支撑 AI 回复 Markdown 渲染。
+- 首轮优先使用 assistant-ui primitives / runtime adapter，与本项目 CSS 结合，不默认引入 Tailwind / shadcn 初始化。
+- 通过 `LocalRuntime` 或 `ExternalStoreRuntime` 适配现有 FastAPI SSE 与当前运行期会话记录。
+- 使用 `Thread` / `Composer` 承接居中消息流和底部输入区。
+- 使用 `ThreadListRuntime` 或自定义历史栏接入现有 `/api/v1/student/conversations`。
+- 可加入 `ModelSelector`，但首轮只启用已批准的 Qwen 模型；其他模型不得暗示已可用。
 
-推荐判断：
+明确不批准：
 
-- 如果目标是尽快打磨当前页面并保持最小风险，采用 X-A。
-- 如果产品经理明确认可 Ant Design X 的视觉效果，并接受新增依赖，则采用 X-B，但只允许使用 UI 展示层组件，不使用浏览器直连模型 API 或 `dangerouslyApiKey` 形态。
-- X-C 不进入本轮，因为 `SDAR-0008` 已明确模型 API 必须走 FastAPI 后端代理，前端不得持有模型密钥。
+- 不使用浏览器直连模型 provider。
+- 不在前端保存或暴露模型 API Key。
+- 不在本轮启用未审批的多模型 provider。
+- 不在本轮启用 web search、RAG、真实学校资源检索、附件上传处理或数据库持久化。
+- 不在本轮实现教师端/辅导员端 Chatbox。
 
 后续对接预留：
 
-- 若采用 X-A，本轮不抽象通用多角色 Chat 组件，但 JSX 结构和 class 命名应避免学生端专属视觉硬编码污染未来复用。
-- 若采用 X-B，可把 Ant Design X 组件适配层限制在学生端页面内部，不在本轮扩展到教师/辅导员端。
-- 如果后续扩展教师端/辅导员端 Chatbox，需要单独审批复用边界，再决定是否提取共享 Chat shell、message list、composer 和 history rail。
+- 本轮可先在学生端页面内部建立 assistant-ui runtime adapter，不提前抽象多角色通用 Chat shell。
+- 如果后续扩展教师端/辅导员端 Chatbox，需要单独审批复用边界，再决定是否提取共享 Thread shell、message list、composer、history rail 和 role-specific prompt。
 - 本轮 polish 不改变消息数据结构、会话 id、SSE 事件解析或 token/session 传递方式，因此不会阻断后续 API、持久化或多角色对接。
 
-结论：`SDAR-0009` 不需要更换核心前端技术方案，但需要在实现前确认组件库路线：X-A 现有 Ant Design 组件路线，或 X-B Ant Design X UI 展示层路线。
+结论：`SDAR-0009` 不更换核心 React + TypeScript + Vite 技术方案，但组件库路线更新为 assistant-ui 主路线。Ant Design X 不再作为学生 Chatbox 主实现方案。
 
 ## 9. 具体打磨范围
 
@@ -195,11 +198,16 @@ Ant Design X 属于 Ant Design 体系下的 React AI 界面组件库，方向上
    - 输入框始终可见。
    - `Enter` 发送、`Shift+Enter` 换行保持不变。
    - 发送、停止、重试、新会话的可用/禁用状态更清晰。
+   - 支持 assistant-ui Composer 的停止、重试、编辑、复制等标准聊天交互入口。
 
 6. 优化空态、错误态和移动端：
    - 空态用问题 starter 引导学生开始。
    - 错误态提供明确恢复路径。
    - 390px 移动宽度下避免横向溢出，降低气泡宽度和 padding 压力。
+
+7. 模型与模式入口：
+   - 首轮可展示模型选择入口，但只启用已批准 Qwen 模型。
+   - 模式选择只允许表达已批准的咨询体验；联网搜索、RAG、附件上传等能力不得在 UI 中伪装为可用。
 
 ### 本轮不做
 
@@ -208,7 +216,7 @@ Ant Design X 属于 Ant Design 体系下的 React AI 界面组件库，方向上
 - 不新增数据库持久化。
 - 不接入 RAG、真实学校资料或真实学生数据。
 - 不新增教师端/辅导员端 Chatbox。
-- 不新增组件库或设计依赖。
+- 不新增除 assistant-ui 及必要配套包之外的组件库或设计依赖。
 - 不重做首页或 `/app/student` 入口页。
 
 ## 10. 小节点拆分
@@ -220,6 +228,7 @@ Ant Design X 属于 Ant Design 体系下的 React AI 界面组件库，方向上
 | P3R-N5C | 空态、错误态、流式态打磨 | 无会话、生成中、停止、失败、重试均可理解 |
 | P3R-N5D | 移动端阅读与触控优化 | 390px 截图无横向溢出，输入和按钮可用 |
 | P3R-N5E | 验证与日志更新 | `npm run lint`、`npm run build`、桌面/移动截图、日志同步 |
+| P3R-N5F | assistant-ui adapter POC | 保留现有 FastAPI SSE、停止、重试、会话记录，不暴露前端密钥 |
 
 ## 11. 验收方式
 
@@ -244,7 +253,9 @@ Ant Design X 属于 Ant Design 体系下的 React AI 界面组件库，方向上
 | 视觉 polish 误伤流式逻辑 | 高 | 不改 SSE 解析和 API 调用主逻辑，只调整渲染结构与状态表达 |
 | 多角色复用提前膨胀 | 中 | 本轮不抽象通用 Chat engine UI，学生端稳定后另行审批 |
 | 打磨时偏离已批准前端技术栈 | 中 | React + TypeScript + Vite 不变；组件库新增必须经本审批包确认 |
-| 引入 Ant Design X 后绕过后端代理 | 高 | 若批准 X-B，只使用 UI 展示层组件，不使用前端直连模型 API、`XRequest` 或 `dangerouslyApiKey` |
+| 引入 assistant-ui 后误以为可绕过后端代理 | 高 | assistant-ui 只负责前端 Chat UI/runtime；模型调用、密钥、权限、会话权威数据仍由 FastAPI 负责 |
+| 模型选择 UI 暗示多模型已批准 | 中 | 首轮只启用 Qwen，其余模型隐藏或标注待审批 |
+| 模式/附件入口暗示 web search、RAG 或上传已启用 | 高 | 未审批能力不显示为可用；真实搜索、RAG、附件上传单独审批 |
 
 ## 13. 回滚方式
 
@@ -252,6 +263,7 @@ Ant Design X 属于 Ant Design 体系下的 React AI 界面组件库，方向上
 
 - 回滚 `frontend/src/StudentChatboxPage.tsx` 的结构调整。
 - 回滚 `frontend/src/App.css` 中 Chatbox 专属样式。
+- 删除新增 assistant-ui 依赖和 runtime adapter。
 - 保留 `SDAR-0008` 已实现的真实模型 API、流式输出和运行期历史能力。
 
 ## 14. 产品经理需确认
@@ -264,12 +276,15 @@ Ant Design X 属于 Ant Design 体系下的 React AI 界面组件库，方向上
 批准，优先稳定学生端体验，教师/辅导员端后续再审批复用边界和抽象程度。
 4. 是否确认本轮继续沿用 `SDAR-0002` 已批准的 React + TypeScript + Vite + Ant Design 技术路线，不新增并行前端技术栈。
 React + TypeScript + Vite确定，但是组件库我们需要进行探讨，我在看ant design X组件库的效果
+5. 是否批准新增 assistant-ui 作为学生 Chatbox 与后续 Chat 页主前端聊天框架，放弃 Ant Design X 作为 Chatbox 主路线。
+批准。采用 assistant-ui，保留 FastAPI 后端代理和前端无密钥边界。首轮只接学生端，模型选择只启用已批准 Qwen；web search、RAG、附件上传、持久化和多角色 Chatbox 后续单独审批。
 ## 15. 审批记录
 
-Status: `pending-component-library-review`
+Status: `approved`
 
 Product Manager decision:
 
 - 2026-05-26：产品经理批准方案 B、确认本轮只打磨 `/app/student/chatbox`、确认不先做多角色通用组件抽象。
 - 2026-05-26：产品经理要求继续探讨组件库；React + TypeScript + Vite 已确认，Ant Design X 是否进入本轮待定。
-- 当前停止点：组件库路线未定前，不进入实现。
+- 2026-05-26：产品经理审阅 assistant-ui 专项调研与原型后，批准采用 assistant-ui 作为学生 Chatbox 与后续 Chat 页主前端聊天框架；放弃 Ant Design X 作为 Chatbox 主路线。
+- 当前状态：组件库路线已批准，可进入 assistant-ui 学生端 Chatbox adapter POC 与页面打磨实现节点。
