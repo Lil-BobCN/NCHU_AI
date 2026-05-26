@@ -1672,8 +1672,8 @@
   }
 
   .student-chat-page {
-    height: calc(100vh - var(--nav-height));
-    min-height: calc(100vh - var(--nav-height));
+    height: calc(100vh - 89px);
+    min-height: calc(100vh - 89px);
     overflow-x: hidden;
   }
 
