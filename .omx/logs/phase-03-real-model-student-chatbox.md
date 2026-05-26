@@ -98,3 +98,42 @@ Evidence:
 Known verification note:
 
 - Normal backend lifespan startup requires PostgreSQL. The local browser smoke used `uvicorn --lifespan off` to validate the in-memory Phase 3R Chatbox path without database startup.
+
+### P3R-N5: Assistant UI Production Chatbox Polish
+
+Status: done
+
+Date: 2026-05-26
+
+Scope:
+
+- Rebuilt `/app/student/chatbox` with `@assistant-ui/react` runtime and primitives.
+- Kept the existing FastAPI endpoints unchanged:
+  - `GET /api/v1/student/conversations`
+  - `POST /api/v1/student/chat/stream`
+- Preserved backend-proxied Qwen streaming, frontend no-key boundary, runtime conversation history, stop generation, retry, and new conversation.
+- Applied Claude-like product layout: warm restrained surface, left conversation rail, centered thread, fixed bottom composer, mobile horizontal history strip.
+- Added scoped GSAP entrance/message motion with reduced-motion guard.
+- Continued to hide unapproved model/mode/search/RAG/attachment controls; only Qwen is shown.
+
+Evidence:
+
+- `npm run lint` from `frontend/`: passed.
+- `npm run build` from `frontend/`: passed with the existing Vite chunk size warning.
+- Browser route smoke: `http://127.0.0.1:5180/app/student/chatbox` loaded after Student Demo login.
+- Backend/API smoke:
+  - `GET /api/v1/student/conversations` returned `200 OK`.
+  - `POST /api/v1/student/chat/stream` returned `200 OK`.
+  - SSE body included `conversation`, `delta`, and `done` events.
+- Real stream UI smoke:
+  - During generation, composer switched from `发送` to `停止`.
+  - After completion, status returned to `就绪` and the model reply was visible.
+  - Verified response text: `第二次流式烟测响应正常。`
+- Playwright console check: 0 errors.
+- Screenshots:
+  - `output/playwright/student-chatbox-assistant-ui-production-desktop.png`
+  - `output/playwright/student-chatbox-assistant-ui-production-mobile.png`
+
+Known verification note:
+
+- Mobile 390px uses a horizontal conversation-history strip by design. `documentElement.scrollWidth` equals viewport width after hiding the topbar exit button on mobile; the strip itself contains off-viewport items inside its own horizontal scroll container.
