@@ -12,6 +12,7 @@
   "dependencies": {
     "@ant-design/icons": "^6.2.3",
     "@ant-design/x": "^2.7.0",
+    "@assistant-ui/react": "^0.14.8",
     "@gsap/react": "^2.1.2",
     "antd": "^6.4.3",
     "gsap": "^3.15.0",
