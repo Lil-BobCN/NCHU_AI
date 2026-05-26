@@ -513,7 +513,7 @@ export default function StudentChatboxPage({ apiBase, session }: StudentChatboxP
               </ThreadPrimitive.ScrollToBottom>
             </ThreadPrimitive.Viewport>
 
-            <ThreadPrimitive.ViewportFooter className="chat-composer-panel">
+            <div className="chat-composer-panel">
               <ComposerPrimitive.Root className="composer-form">
                 <ComposerPrimitive.Input
                   addAttachmentOnPaste={false}
@@ -542,7 +542,7 @@ export default function StudentChatboxPage({ apiBase, session }: StudentChatboxP
                   </div>
                 </div>
               </ComposerPrimitive.Root>
-            </ThreadPrimitive.ViewportFooter>
+            </div>
           </ThreadPrimitive.Root>
         </section>
       </AssistantRuntimeProvider>
