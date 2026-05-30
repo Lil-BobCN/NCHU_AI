@@ -210,6 +210,14 @@
 - 验证：`npm run lint` 通过；`npm run build` 通过；桌面截图 `output/playwright/home-hero-1440-v2.png`；移动截图 `output/playwright/home-hero-mobile-390-v2.png`；`/login` 返回 HTTP 200。
 - 已知后续：移动端首屏可用，但仍以完整 hero 表达优先，后续响应式 polish 可继续压缩。
 
+2026-05-27 一次更新：
+
+- 根据产品经理要求，将评审原型 `.omx/prototypes/homepage-dark-hud-variants.html` 迁移到正式 React 首页。
+- 新增 `frontend/src/ProductionHomePage.tsx` 与 `frontend/src/ProductionHomePage.css`，正式 `/` 首页采用 Claude 风格产品页结构，保留 NCHU AI 中文产品语境、Light/Dark 主题、顶部导航、首屏提问框、右侧能力图、滚动 reveal 动效和平台章节回退重播逻辑。
+- `frontend/src/App.tsx`：`/` 路由改为渲染 `ProductionHomePage`；首页隐藏旧 AppShell 顶栏，避免双导航；非首页仍保留原登录态顶栏、`/login` 和角色工作台路由。
+- 验证：`npm run lint` 通过；`npm run build` 通过；`http://127.0.0.1:5173/` 返回 200；Playwright CLI 截图为 `output/playwright/production-homepage-migration-smoke.png`。
+- 已知非阻塞项：当前环境无法用临时 Playwright test runner 解析 `@playwright/test` 包，因此未保留自动化 smoke 测试文件；Vite build 仍有既有 chunk size warning。
+
 ## 5. 调研资产
 
 | 文件夹 | 用途 |

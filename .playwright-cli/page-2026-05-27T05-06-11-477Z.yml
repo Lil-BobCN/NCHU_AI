@@ -1,0 +1,22 @@
+- generic [ref=e4]:
+  - banner [ref=e5]:
+    - button "NCHU AI AI Counselor Demo" [ref=e6] [cursor=pointer]:
+      - img [ref=e8]:
+        - img [ref=e9]
+      - generic [ref=e11]:
+        - generic [ref=e12]: NCHU AI
+        - generic [ref=e13]: AI Counselor Demo
+    - menu [ref=e14]:
+      - menuitem "认识产品" [ref=e15] [cursor=pointer]
+      - menuitem "平台能力" [ref=e16] [cursor=pointer]
+      - menuitem "角色场景" [ref=e17] [cursor=pointer]
+      - menuitem "治理边界" [ref=e18] [cursor=pointer]
+      - menuitem [disabled]:
+        - img:
+          - img
+    - generic [ref=e19]:
+      - button "登录" [ref=e21] [cursor=pointer]:
+        - generic [ref=e22]: 登录
+      - button "开始体验" [ref=e24] [cursor=pointer]:
+        - generic [ref=e25]: 开始体验
+  - main [ref=e26]

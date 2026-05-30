@@ -1,0 +1,20 @@
+{
+    "cookies":  [
+
+                ],
+    "origins":  [
+                    {
+                        "localStorage":  [
+                                             {
+                                                 "value":  "{\"user\":{\"id\":\"student-1\",\"displayName\":\"Demo Student\",\"role\":\"student\",\"demoAccount\":true,\"sessionState\":\"authenticated\"},\"token\":\"phase1-6b8e9c24548e4b73ad85725a56a978a9\"}",
+                                                 "name":  "ai-counselor-demo-session"
+                                             },
+                                             {
+                                                 "value":  "light",
+                                                 "name":  "nchu-ai-chat-theme"
+                                             }
+                                         ],
+                        "origin":  "http://127.0.0.1:5180"
+                    }
+                ]
+}

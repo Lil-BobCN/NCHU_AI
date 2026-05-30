@@ -1,0 +1,108 @@
+- main [ref=e5]:
+  - main [ref=e6]:
+    - region "学生 AI 咨询助手" [ref=e7]:
+      - complementary "会话侧边栏" [ref=e8]:
+        - generic [ref=e9]:
+          - button "学生工作台" [ref=e10] [cursor=pointer]:
+            - img [ref=e11]
+            - text: 学生工作台
+          - generic [ref=e14]:
+            - generic [ref=e15]: 学生端
+            - heading "AI 咨询助手" [level=1] [ref=e16]
+        - generic [ref=e17]:
+          - generic "当前模型" [ref=e18]:
+            - generic [ref=e19]: 模型
+            - strong [ref=e20]: Qwen
+          - generic "主题切换" [ref=e21] [cursor=pointer]:
+            - switch "切换到深色模式" [ref=e22]
+            - generic:
+              - img
+              - img
+        - generic "会话记录" [ref=e23]:
+          - button "新会话" [ref=e24]:
+            - img
+            - text: 新会话
+          - generic [ref=e25]:
+            - button "?? 2 条消息" [ref=e53] [cursor=pointer]:
+              - generic [ref=e54]: "??"
+              - generic [ref=e55]: 2 条消息
+            - button "?? 2 条消息" [ref=e57] [cursor=pointer]:
+              - generic [ref=e58]: "??"
+              - generic [ref=e59]: 2 条消息
+            - button "?????????????????????????? 2 条消息" [ref=e61] [cursor=pointer]:
+              - generic [ref=e62]: "??????????????????????????"
+              - generic [ref=e63]: 2 条消息
+            - button "Please search the web for today' 2 条消息" [ref=e65] [cursor=pointer]:
+              - generic [ref=e66]: Please search the web for today'
+              - generic [ref=e67]: 2 条消息
+            - button "请联网搜索今天最新的一条人工智能新闻，用一句话回答。 2 条消息" [ref=e69] [cursor=pointer]:
+              - generic [ref=e70]: 请联网搜索今天最新的一条人工智能新闻，用一句话回答。
+              - generic [ref=e71]: 2 条消息
+            - button "我最近学习压力很大，应该怎么调整？ 2 条消息" [ref=e114] [cursor=pointer]:
+              - generic [ref=e115]: 我最近学习压力很大，应该怎么调整？
+              - generic [ref=e116]: 2 条消息
+      - generic [ref=e26]:
+        - generic [ref=e27]:
+          - generic [ref=e29]:
+            - generic [ref=e30]: AI 咨询助手
+            - heading "我最近学习压力很大，应该怎么调整？" [level=2] [ref=e117]
+          - button "新会话" [ref=e34] [cursor=pointer]:
+            - img [ref=e35]
+            - text: 新会话
+        - generic [ref=e36]:
+          - generic [ref=e44]:
+            - generic "你" [ref=e118]:
+              - paragraph [ref=e121]: 我最近学习压力很大，应该怎么调整？
+            - generic "AI 咨询助手" [ref=e122]:
+              - generic [ref=e125]:
+                - paragraph [ref=e126]: 同学你好，听到你最近感到学习压力很大，非常理解这种感受。在南昌航空大学这样一所注重工程实践和学业要求的学校，高强度的课业节奏确实容易让人紧绷。
+                - paragraph [ref=e127]:
+                  - text: 作为 AI 辅导员助手，我无法访问你的真实成绩或具体课程安排，但我可以为你提供几项
+                  - strong [ref=e128]: 清晰、克制且可执行
+                  - text: 的减压建议：
+                - heading "1. 短期情绪“急救”" [level=3] [ref=e129]
+                - list [ref=e130]:
+                  - listitem [ref=e131]:
+                    - strong [ref=e132]: 物理阻断法
+                    - text: ：当感到焦虑无法集中时，立刻离开当前座位或环境 5-10 分钟。去图书馆外的走廊走走，或者去食堂喝杯水，切断当下的负面思维循环。
+                  - listitem [ref=e133]:
+                    - strong [ref=e134]: 4-7-8 呼吸法
+                    - text: ：吸气 4 秒，憋气 7 秒，缓慢呼气 8 秒。重复 3-4 次。这能迅速激活副交感神经，降低生理上的紧张感。
+                  - listitem [ref=e135]:
+                    - strong [ref=e136]: “微任务”拆解
+                    - text: ：不要想“我要复习完这一章”，而是告诉自己“我只看这一页书的前两段”。将大目标拆解为只需 5 分钟就能完成的微小动作，降低启动门槛。
+                - heading "2. 中期学习与时间管理" [level=3] [ref=e137]
+                - list [ref=e138]:
+                  - listitem [ref=e139]:
+                    - strong [ref=e140]: 番茄工作法改良版
+                    - text: ：尝试"25 分钟专注 + 5 分钟休息”的节奏。如果连 25 分钟都难以坚持，可以从"15 分钟专注 + 5 分钟休息”开始，重点是
+                    - strong [ref=e141]: 保持专注时的质量
+                    - text: ，而非时长。
+                  - listitem [ref=e142]:
+                    - strong [ref=e143]: 区分“重要”与“紧急”
+                    - text: ：拿出一张纸，列出手头所有任务。优先处理既重要又紧急的（如明天的测验），对于重要但不紧急的（如期末论文构思），设定固定的每天 30 分钟处理时间，避免拖延带来的累积焦虑。
+                  - listitem [ref=e144]:
+                    - strong [ref=e145]: 利用校内资源
+                    - text: ：南昌航空大学通常设有学业发展中心或各学院的辅导老师。如果是因为特定科目听不懂导致的压力，建议尽早预约任课老师或助教进行答疑，不要独自硬扛。
+                - heading "3. 长期身心调节" [level=3] [ref=e146]
+                - list [ref=e147]:
+                  - listitem [ref=e148]:
+                    - strong [ref=e149]: 保证基础睡眠
+                    - text: ：无论多忙，尽量保证 6.5-7 小时睡眠。熬夜往往会导致第二天效率更低，形成恶性循环。
+                  - listitem [ref=e150]:
+                    - strong [ref=e151]: 适度运动
+                    - text: ：利用学校的操场或体育馆，进行 20-30 分钟的慢跑或快走。运动产生的多巴胺是天然的抗压剂。
+                  - listitem [ref=e152]:
+                    - strong [ref=e153]: 建立支持系统
+                    - text: ：找
+          - button "回到底部" [disabled]:
+            - img
+            - text: 回到底部
+          - generic [ref=e46]:
+            - textbox "输入咨询内容" [active] [ref=e48]:
+              - /placeholder: 发消息给 AI 咨询助手
+            - generic [ref=e49]:
+              - generic [ref=e50]: AI 生成内容仅供参考
+              - generic [ref=e51]:
+                - button "发送" [disabled]:
+                  - img

@@ -48,7 +48,12 @@ class Settings(BaseSettings):
     milvus_token: str = ""
 
     # CORS
-    cors_origins: str = "http://localhost:3000,http://localhost:5173,http://localhost:8000"
+    cors_origins: str = (
+        "http://localhost:3000,"
+        "http://localhost:5173,http://127.0.0.1:5173,"
+        "http://localhost:5180,http://127.0.0.1:5180,"
+        "http://localhost:8000,http://127.0.0.1:8000"
+    )
 
     # Qwen/DashScope real-model proxy (Phase 3R)
     dashscope_api_key: str = Field(
@@ -60,14 +65,18 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices("DASHSCOPE_API_BASE_URL", "QWEN_API_BASE_URL"),
     )
     dashscope_model: str = Field(
-        default="qwen-plus",
+        default="qwen3.5-flash",
         validation_alias=AliasChoices("DASHSCOPE_MODEL", "QWEN_MODEL"),
     )
     enable_thinking: bool = Field(
         default=False,
         validation_alias=AliasChoices("ENABLE_THINKING", "DASHSCOPE_ENABLE_THINKING"),
     )
-    chat_model_timeout_seconds: float = Field(default=60.0, gt=0)
+    chat_model_timeout_seconds: float = Field(default=30.0, gt=0)
+    chat_model_max_tokens: int = Field(default=512, gt=0)
+    chat_model_context_message_limit: int = Field(default=8, gt=0)
+    chat_model_web_search_enabled: bool = Field(default=True)
+    chat_model_web_search_strategy: str = "turbo"
     chat_model_system_prompt: str = (
         "你是南昌航空大学 AI 辅导员 Demo 的学生端助手。"
         "请用中文给出清晰、克制、可执行的支持建议；"
@@ -98,6 +107,18 @@ class Settings(BaseSettings):
     def normalize_milvus_uppercase(cls, value: str) -> str:
         """Normalize Milvus enum-like settings."""
         return value.upper()
+
+    @field_validator("chat_model_web_search_strategy")
+    @classmethod
+    def normalize_search_strategy(cls, value: str) -> str:
+        """Normalize DashScope search strategy to the documented lowercase form."""
+        normalized = value.strip().lower()
+        if normalized not in {"turbo", "max", "agent", "agent_max"}:
+            raise ValueError(
+                "chat_model_web_search_strategy must be one of "
+                "'turbo', 'max', 'agent', or 'agent_max'"
+            )
+        return normalized
 
     def parse_cors_origins(self) -> list[str]:
         """Parse comma-separated CORS origins into a list."""

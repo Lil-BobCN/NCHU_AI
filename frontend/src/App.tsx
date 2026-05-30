@@ -1,17 +1,10 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
-import gsap from 'gsap'
-import { useGSAP } from '@gsap/react'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import {
-  ArrowRightOutlined,
-  AuditOutlined,
-  CloudServerOutlined,
   DashboardOutlined,
   LockOutlined,
   LogoutOutlined,
   MessageOutlined,
-  SafetyCertificateOutlined,
   RobotOutlined,
   TeamOutlined,
   UserOutlined,
@@ -41,10 +34,8 @@ import {
   useNavigate,
 } from 'react-router-dom'
 import './App.css'
-import RealQaFlowDemo from './RealQaFlowDemo'
+import ProductionHomePage from './ProductionHomePage'
 import StudentChatboxPage from './StudentChatboxPage'
-
-gsap.registerPlugin(useGSAP, ScrollTrigger)
 
 type Role = 'student' | 'counselor' | 'admin'
 
@@ -149,63 +140,10 @@ const demoAccounts: Array<{
 ]
 
 const navItems = [
-  { key: '#hero', label: '首页' },
-  { key: '#capabilities', label: '产品能力' },
-  { key: '#workflow', label: '使用流程' },
-  { key: '#trust', label: '可信边界' },
-]
-
-const trustSignals = [
-  { value: '3', label: '角色工作台' },
-  { value: 'Demo', label: '模拟数据边界' },
-  { value: 'FastAPI', label: '后端业务边界' },
-]
-
-const narrativeChapters = [
-  {
-    id: 'capabilities',
-    eyebrow: '01 / Student consultation',
-    title: '学生咨询从问题进入，以来源与边界结束。',
-    copy:
-      '学生端展示清晰的提问入口、回答状态、来源卡片和不支持问题的回退提示。Demo 阶段不冒充真实 RAG，也不使用真实学生记录。',
-    metric: 'Source-backed',
-    icon: <UserOutlined />,
-    visualTitle: '学生问答流',
-    visualItems: ['问题识别', '确定性来源匹配', '回答与来源卡片', 'Unsupported fallback'],
-  },
-  {
-    id: 'workflow',
-    eyebrow: '02 / Counselor workspace',
-    title: '老师看到的是案例工作流，而不是一个泛用聊天框。',
-    copy:
-      '老师工作台以模拟案例、状态变化、辅助建议和后续动作组织信息，让 AI 成为工作流里的辅助层，而不是替代专业判断。',
-    metric: 'Case-aware',
-    icon: <TeamOutlined />,
-    visualTitle: '辅导员协作',
-    visualItems: ['模拟案例列表', '风险与状态', '辅助建议', '人工确认动作'],
-  },
-  {
-    id: 'operations',
-    eyebrow: '03 / Knowledge operations',
-    title: '知识运维和审计被放在独立管理面，不混入学生入口。',
-    copy:
-      '运维管理人员维护 Demo 知识资源、查看统计活动、执行重置动作。后续真实 schema、RAG、向量库和模型接入都要走审批门控。',
-    metric: 'Auditable',
-    icon: <AuditOutlined />,
-    visualTitle: '知识与审计',
-    visualItems: ['知识资源', 'Demo seed/reset', '统计快照', '审计事件'],
-  },
-  {
-    id: 'trust',
-    eyebrow: '04 / Trusted demo boundary',
-    title: '把“能演示什么”和“还没有上线什么”讲清楚。',
-    copy:
-      '当前版本保持 Demo 数据、非生产 SSO、非真实学生数据和可回滚实现。用户体验追求正式产品感，但技术边界不会被视觉包装掩盖。',
-    metric: 'Demo-safe',
-    icon: <SafetyCertificateOutlined />,
-    visualTitle: '边界声明',
-    visualItems: ['模拟数据', '非生产 SSO', '无真实学生记录', '可替换动效资产'],
-  },
+  { key: '#meet', label: '认识产品' },
+  { key: '#platform', label: '平台能力' },
+  { key: '#roles', label: '角色场景' },
+  { key: '#governance', label: '治理边界' },
 ]
 
 function readStoredSession(): SessionState | null {
@@ -253,6 +191,7 @@ function AppShell() {
   }, [session])
 
   const currentRole = session?.user.role ?? null
+  const isChatboxRoute = location.pathname === '/app/student/chatbox'
 
   const loginByAccount = async (account: (typeof demoAccounts)[number]) => {
     setLoadingRole(account.role)
@@ -275,6 +214,11 @@ function AppShell() {
     setSession(null)
     navigate('/')
   }
+
+  const handleSessionExpired = useCallback(() => {
+    setSession(null)
+    navigate('/login', { replace: true })
+  }, [navigate])
 
   const handleTopnavClick = ({ key }: { key: string }) => {
     if (!key.startsWith('#')) {
@@ -307,58 +251,65 @@ function AppShell() {
       }}
     >
       <AntApp>
-        <Layout className={`app-shell ${location.pathname === '/' ? 'home-shell' : ''}`}>
-          <Layout.Header className="topbar" data-home-nav={location.pathname === '/'}>
-            <div className="brand" onClick={() => navigate('/')} role="button" tabIndex={0}>
-              <div className="brand-mark" aria-hidden="true">
-                <RobotOutlined />
+        <Layout
+          className={`app-shell ${location.pathname === '/' ? 'home-shell' : ''} ${
+            isChatboxRoute ? 'chatbox-shell' : ''
+          }`}
+        >
+          {location.pathname === '/' || isChatboxRoute ? null : (
+            <Layout.Header className="topbar">
+              <div className="brand" onClick={() => navigate('/')} role="button" tabIndex={0}>
+                <div className="brand-mark" aria-hidden="true">
+                  <RobotOutlined />
+                </div>
+                <div>
+                  <div className="brand-title">NCHU AI</div>
+                  <div className="brand-subtitle">AI Counselor Demo</div>
+                </div>
               </div>
-              <div>
-                <div className="brand-title">NCHU AI</div>
-                <div className="brand-subtitle">AI Counselor Demo</div>
-              </div>
-            </div>
-            <Menu
-              mode="horizontal"
-              items={navItems}
-              selectedKeys={[]}
-              className="topnav"
-              onClick={handleTopnavClick}
-            />
-            <Space size={12} className="topbar-actions">
-              {session ? (
-                <>
-                  <Tag className="identity-tag" color={roleMeta[currentRole ?? 'student'].color}>
-                    {roleMeta[currentRole ?? 'student'].identityLabel}
-                  </Tag>
-                  <Button
-                    type="primary"
-                    shape="round"
-                    onClick={() => navigate(roleMeta[currentRole ?? 'student'].path)}
-                  >
-                    {roleMeta[currentRole ?? 'student'].workspaceLabel}
-                  </Button>
-                  <Button type="text" className="nav-text-button" icon={<LogoutOutlined />} onClick={logout}>
-                    退出
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Button type="text" className="nav-text-button" onClick={() => navigate('/login')}>
-                    登录
-                  </Button>
-                  <Button type="primary" shape="round" onClick={() => navigate('/login')}>
-                    开始体验
-                  </Button>
-                </>
-              )}
-            </Space>
-          </Layout.Header>
+              <Menu
+                mode="horizontal"
+                items={navItems}
+                selectedKeys={[]}
+                className="topnav"
+                onClick={handleTopnavClick}
+              />
+              <Space size={12} className="topbar-actions">
+                {session ? (
+                  <>
+                    <Tag className="identity-tag" color={roleMeta[currentRole ?? 'student'].color}>
+                      {roleMeta[currentRole ?? 'student'].identityLabel}
+                    </Tag>
+                    <Button
+                      type="primary"
+                      shape="round"
+                      onClick={() => navigate(roleMeta[currentRole ?? 'student'].path)}
+                    >
+                      {roleMeta[currentRole ?? 'student'].workspaceLabel}
+                    </Button>
+                    <Button type="text" className="nav-text-button" icon={<LogoutOutlined />} onClick={logout}>
+                      退出
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button type="text" className="nav-text-button" onClick={() => navigate('/login')}>
+                      登录
+                    </Button>
+                    <Button type="primary" shape="round" onClick={() => navigate('/login')}>
+                      开始体验
+                    </Button>
+                  </>
+                )}
+              </Space>
+            </Layout.Header>
+          )}
 
           <Layout.Content className="app-content">
             <RouterOutlet
               session={session}
               onLogin={loginByAccount}
+              onSessionExpired={handleSessionExpired}
               loadingRole={loadingRole}
             />
           </Layout.Content>
@@ -371,16 +322,17 @@ function AppShell() {
 function RouterOutlet({
   session,
   onLogin,
+  onSessionExpired,
   loadingRole,
 }: {
   session: SessionState | null
   onLogin: (account: (typeof demoAccounts)[number]) => Promise<void>
+  onSessionExpired: () => void
   loadingRole: Role | null
 }) {
   return (
     <Routes>
-      <Route path="/" element={<LandingPage />} />
-      <Route path="/prototype/real-qa-flow" element={<RealQaFlowDemo />} />
+      <Route path="/" element={<ProductionHomePage />} />
       <Route
         path="/login"
         element={<LoginPage session={session} onLogin={onLogin} loadingRole={loadingRole} />}
@@ -390,291 +342,19 @@ function RouterOutlet({
         <Route path="student" element={<WorkspacePage role="student" session={session} />} />
         <Route
           path="student/chatbox"
-          element={<StudentChatboxPage apiBase={API_BASE} session={session} />}
+          element={
+            <StudentChatboxPage
+              apiBase={API_BASE}
+              onSessionExpired={onSessionExpired}
+              session={session}
+            />
+          }
         />
         <Route path="counselor" element={<WorkspacePage role="counselor" session={session} />} />
         <Route path="admin" element={<WorkspacePage role="admin" session={session} />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
-  )
-}
-
-function LandingPage() {
-  const navigate = useNavigate()
-  const pageRef = useRef<HTMLElement | null>(null)
-
-  useGSAP(
-    () => {
-      const mm = gsap.matchMedia()
-
-      mm.add(
-        {
-          reduceMotion: '(prefers-reduced-motion: reduce)',
-          desktop: '(min-width: 900px)',
-        },
-        (context) => {
-          const { reduceMotion, desktop } = context.conditions as {
-            reduceMotion: boolean
-            desktop: boolean
-          }
-          const homeTopbar = document.querySelector<HTMLElement>('.home-shell .topbar')
-          const introTargets = [
-            homeTopbar,
-            ...gsap.utils.toArray<HTMLElement>(
-              '.hero-kicker, .hero-title-line, .hero-text, .hero-actions, .trust-item, .scroll-cue, .cinema-stage',
-            ),
-          ].filter(Boolean) as HTMLElement[]
-
-          gsap.set(introTargets, { autoAlpha: 1 })
-
-          if (reduceMotion) {
-            gsap.set('.chapter-card', { autoAlpha: 1, y: 0, scale: 1 })
-            gsap.set('.motion-orbit, .motion-node, .scan-line', { clearProps: 'all' })
-            return
-          }
-
-          const intro = gsap.timeline({ defaults: { ease: 'power3.out' } })
-          intro
-            .from('.cinema-stage', { autoAlpha: 0, scale: 1.08, duration: 1.35 })
-          if (homeTopbar) {
-            intro.from(homeTopbar, { y: -28, autoAlpha: 0, duration: 0.8 }, '<0.2')
-          }
-          intro
-            .from('.hero-kicker', { y: 24, autoAlpha: 0, filter: 'blur(12px)', duration: 0.8 }, '<0.16')
-            .from(
-              '.hero-title-line',
-              {
-                yPercent: 110,
-                autoAlpha: 0,
-                filter: 'blur(16px)',
-                stagger: 0.13,
-                duration: 0.92,
-              },
-              '<0.08',
-            )
-            .from('.hero-text', { y: 28, autoAlpha: 0, filter: 'blur(10px)', duration: 0.8 }, '-=0.28')
-            .from('.hero-actions', { y: 22, autoAlpha: 0, duration: 0.7 }, '-=0.34')
-            .from('.trust-item', { y: 18, autoAlpha: 0, stagger: 0.08, duration: 0.54 }, '-=0.2')
-            .from('.scroll-cue', { y: -8, autoAlpha: 0, duration: 0.54 }, '-=0.1')
-
-          gsap.to('.motion-orbit', {
-            rotation: 360,
-            transformOrigin: '50% 50%',
-            duration: 22,
-            ease: 'none',
-            repeat: -1,
-            stagger: { each: 3, from: 'center' },
-          })
-
-          gsap.to('.motion-node', {
-            y: (index) => (index % 2 === 0 ? -16 : 16),
-            x: (index) => (index % 3 === 0 ? 12 : -8),
-            duration: 3.6,
-            ease: 'sine.inOut',
-            repeat: -1,
-            yoyo: true,
-            stagger: 0.22,
-          })
-
-          gsap.to('.scan-line', {
-            xPercent: 170,
-            duration: 4.2,
-            ease: 'power1.inOut',
-            repeat: -1,
-            repeatDelay: 0.8,
-          })
-
-          gsap.utils.toArray<HTMLElement>('.chapter-card').forEach((chapter, index) => {
-            gsap.from(chapter, {
-              autoAlpha: 0,
-              y: desktop ? 96 : 42,
-              scale: desktop ? 0.96 : 1,
-              duration: 0.9,
-              ease: 'power3.out',
-              scrollTrigger: {
-                trigger: chapter,
-                start: desktop ? 'top 72%' : 'top 84%',
-                toggleActions: 'play none none reverse',
-              },
-            })
-
-            const visualItems = chapter.querySelectorAll('.chapter-visual-item')
-            gsap.from(visualItems, {
-              autoAlpha: 0,
-              x: index % 2 === 0 ? -26 : 26,
-              duration: 0.54,
-              ease: 'power2.out',
-              stagger: 0.09,
-              scrollTrigger: {
-                trigger: chapter,
-                start: desktop ? 'top 64%' : 'top 80%',
-                toggleActions: 'play none none reverse',
-              },
-            })
-          })
-
-          if (desktop) {
-            gsap.to('.hero-motion-field', {
-              yPercent: 12,
-              scale: 0.96,
-              ease: 'none',
-              scrollTrigger: {
-                trigger: '.hero-section',
-                start: 'top top',
-                end: 'bottom top',
-                scrub: 1,
-              },
-            })
-          }
-        },
-      )
-
-      return () => mm.revert()
-    },
-    { scope: pageRef },
-  )
-
-  const scrollToChapters = () => {
-    document.getElementById('capabilities')?.scrollIntoView({ behavior: 'smooth' })
-  }
-
-  return (
-    <main className="home-page" ref={pageRef}>
-      <section id="hero" className="hero-section" aria-labelledby="home-hero-title">
-        <div className="cinema-stage" aria-hidden="true">
-          <div className="cinema-vignette" />
-          <div className="hero-motion-field">
-            <svg className="motion-map" viewBox="0 0 1000 720" role="img" aria-label="">
-              <defs>
-                <linearGradient id="routeGlow" x1="0%" y1="100%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#42d4ff" stopOpacity="0" />
-                  <stop offset="42%" stopColor="#6aa8ff" stopOpacity="0.72" />
-                  <stop offset="100%" stopColor="#ffffff" stopOpacity="0.08" />
-                </linearGradient>
-                <radialGradient id="nodeGlow" cx="50%" cy="50%" r="50%">
-                  <stop offset="0%" stopColor="#ffffff" stopOpacity="0.9" />
-                  <stop offset="48%" stopColor="#51d6ff" stopOpacity="0.45" />
-                  <stop offset="100%" stopColor="#2f6dff" stopOpacity="0" />
-                </radialGradient>
-              </defs>
-              <path
-                className="motion-route route-one"
-                d="M 76 612 C 212 510, 318 470, 452 362 S 710 166, 932 86"
-              />
-              <path
-                className="motion-route route-two"
-                d="M 84 516 C 244 478, 390 396, 512 290 S 738 118, 956 154"
-              />
-              <path
-                className="motion-route route-three"
-                d="M 160 650 C 320 575, 472 480, 570 380 S 720 240, 892 222"
-              />
-              <g className="motion-orbit orbit-one">
-                <ellipse cx="628" cy="268" rx="256" ry="116" />
-              </g>
-              <g className="motion-orbit orbit-two">
-                <ellipse cx="628" cy="268" rx="346" ry="164" />
-              </g>
-              <circle className="motion-node node-one" cx="266" cy="494" r="56" />
-              <circle className="motion-node node-two" cx="466" cy="366" r="72" />
-              <circle className="motion-node node-three" cx="692" cy="214" r="96" />
-              <circle className="motion-node node-four" cx="850" cy="128" r="46" />
-            </svg>
-            <div className="scan-line" />
-            <div className="video-slot">
-              <div className="video-slot-label">Future motion asset slot</div>
-              <div className="video-slot-title">NCHU emblem animation / product video</div>
-              <div className="video-slot-copy">当前使用本地 GSAP + SVG 抽象航空 AI 动效占位，后续可替换为正式视频、Lottie 或校徽动效资产。</div>
-            </div>
-          </div>
-        </div>
-
-        <div className="hero-content">
-          <div className="hero-kicker">
-            <CloudServerOutlined />
-            <span>AI-powered campus consultation</span>
-          </div>
-          <Typography.Title id="home-hero-title" level={1} className="hero-title">
-            <span className="hero-title-mask">
-              <span className="hero-title-line">NCHU AI</span>
-            </span>
-            <span className="hero-title-mask">
-              <span className="hero-title-line">让校园咨询服务拥有</span>
-            </span>
-            <span className="hero-title-mask">
-              <span className="hero-title-line">清晰、可信、可演示的 AI 工作台。</span>
-            </span>
-          </Typography.Title>
-          <Typography.Paragraph className="hero-text">
-            独立主站承载产品定位与能力叙事，登录后根据账号自动识别学生、老师、运维管理人员身份。
-            当前版本坚持 Demo 边界：模拟数据、非生产 SSO、非真实学生记录，并为后续真实知识库和 RAG 编排保留接口。
-          </Typography.Paragraph>
-          <div className="hero-actions">
-            <Button
-              type="primary"
-              size="large"
-              shape="round"
-              icon={<ArrowRightOutlined />}
-              onClick={() => navigate('/login')}
-            >
-              进入登录
-            </Button>
-            <Button size="large" shape="round" onClick={scrollToChapters}>
-              查看产品叙事
-            </Button>
-          </div>
-          <div className="trust-row" aria-label="Demo status">
-            {trustSignals.map((item) => (
-              <div className="trust-item" key={item.label}>
-                <strong>{item.value}</strong>
-                <span>{item.label}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <button className="scroll-cue" onClick={scrollToChapters} aria-label="向下查看产品能力">
-          <span>Scroll</span>
-          <i aria-hidden="true" />
-        </button>
-      </section>
-
-      <section className="narrative-stack" aria-label="产品能力章节">
-        {narrativeChapters.map((chapter, index) => (
-          <article className="chapter-card" id={chapter.id} key={chapter.id}>
-            <div className="chapter-copy">
-              <div className="chapter-eyebrow">
-                {chapter.icon}
-                <span>{chapter.eyebrow}</span>
-              </div>
-              <Typography.Title level={2} className="chapter-title">
-                {chapter.title}
-              </Typography.Title>
-              <Typography.Paragraph className="chapter-text">{chapter.copy}</Typography.Paragraph>
-              <div className="chapter-meta">
-                <strong>{chapter.metric}</strong>
-                <span>{index === 0 ? 'Phase 3 ready' : 'Planned node'}</span>
-              </div>
-            </div>
-            <div className="chapter-visual">
-              <div className="chapter-visual-header">
-                <span>{chapter.visualTitle}</span>
-                <Tag color={index === 3 ? 'gold' : 'blue'}>{index === 3 ? 'Boundary' : 'Demo'}</Tag>
-              </div>
-              <div className="chapter-visual-grid">
-                {chapter.visualItems.map((item, itemIndex) => (
-                  <div className="chapter-visual-item" key={item}>
-                    <span>{String(itemIndex + 1).padStart(2, '0')}</span>
-                    <strong>{item}</strong>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </article>
-        ))}
-      </section>
-    </main>
   )
 }
 

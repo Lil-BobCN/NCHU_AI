@@ -1,0 +1,229 @@
+- generic:
+  - generic:
+    - generic:
+      - generic:
+        - banner:
+          - button:
+            - generic:
+              - img:
+                - img
+            - generic:
+              - generic: NCHU AI
+          - generic:
+            - generic:
+              - generic: 学生身份
+            - generic:
+              - button:
+                - generic: 学生工作台
+        - main:
+          - main:
+            - region "学生 AI 咨询助手":
+              - generic:
+                - generic:
+                  - generic:
+                    - button [expanded]:
+                      - img
+                    - generic:
+                      - generic: 学生端咨询
+                      - heading [level=2]: 我最近学习压力很大，应该怎么调整？
+                  - generic:
+                    - button [disabled]: 就绪
+                    - button [disabled]:
+                      - img
+                      - text: 重试
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic:
+                        - generic:
+                          - paragraph: 我最近学习压力很大，应该怎么调整？
+                    - generic:
+                      - generic:
+                        - generic:
+                          - generic: AI 咨询助手
+                        - generic:
+                          - generic:
+                            - paragraph: 你好。感受到学习压力是大学阶段常见的情绪反应，你能主动寻求调整方法，是很积极的一步。
+                            - paragraph: 作为 AI 助手，我无法访问你的个人课业数据或档案，但可以提供一些通用的调整建议供你参考：
+                            - list:
+                              - listitem:
+                                - strong: 任务拆解
+                                - text: ：尝试将大的学习目标分解为每天可完成的小任务，每完成一项给自己一点肯定，减少畏难情绪。
+                              - listitem:
+                                - strong: 作息调整
+                                - text: ：保证基本的睡眠和饮食，适当的运动有助于缓解紧张情绪，避免长时间连续学习。
+                              - listitem:
+                                - strong: 寻求支持
+                                - text: ：可以和信任的同学、家人聊聊，或者向任课老师请教学习难点，不要独自承担。
+                              - listitem:
+                                - strong: 专业资源
+                                - text: ：如果压力持续影响睡眠或日常生活，建议联系学校心理健康教育中心寻求专业支持。
+                            - paragraph: 请注意，我只是一个 AI 演示助手。如果你感到情绪极度低落或有伤害自己的念头，请立即联系校内值班老师、拨打心理援助热线或前往医院就诊。
+                            - paragraph: 你愿意具体说说是在哪门课程或哪个环节感到困难吗？这样我可以提供更针对性的学习策略建议。
+                    - generic:
+                      - generic:
+                        - generic:
+                          - paragraph: 我想继续问一个很短的问题，用于测试停止生成。
+                    - generic:
+                      - generic:
+                        - generic:
+                          - generic: AI 咨询助手
+                        - generic:
+                          - generic:
+                            - paragraph: 没问题，请随时提问。我会尽力为您解答。
+                    - generic:
+                      - generic:
+                        - generic:
+                          - paragraph: 请用较长篇幅解释如何把一个大型复习任务拆成七天计划，我会立即测试停止生成按钮。
+                    - generic:
+                      - generic:
+                        - generic:
+                          - paragraph: 你好
+                    - generic:
+                      - generic:
+                        - generic:
+                          - paragraph: 你好
+                    - generic:
+                      - generic:
+                        - generic:
+                          - generic: AI 咨询助手
+                        - generic:
+                          - generic:
+                            - paragraph: 你好！我是南昌航空大学 AI 辅导员 Demo 的学生端助手。
+                            - paragraph: 很高兴再次为你提供服务。无论是学习压力、时间管理，还是生活适应方面的困惑，都可以随时和我聊聊。我会尽力提供清晰、可执行的建议供你参考。
+                            - paragraph: 温馨提示：我无法访问真实的学校数据库或个人档案。如果遇到紧急危机或情绪极度困扰，请务必联系校内值班老师、心理咨询中心或紧急服务。
+                            - paragraph: 今天有什么具体想聊的话题吗？
+                    - generic:
+                      - generic:
+                        - generic:
+                          - paragraph: 你好
+                    - generic:
+                      - generic:
+                        - generic:
+                          - generic: AI 咨询助手
+                        - generic:
+                          - generic:
+                            - paragraph: 你好！我是南昌航空大学 AI 辅导员 Demo 助手。
+                            - paragraph: 很高兴再次见到你。虽然我只是一个人工智能演示助手，无法访问真实的学校档案或个人数据，但我很愿意倾听你的困惑，并提供一些通用、可执行的建议供你参考。
+                            - paragraph: 无论是学习规划、生活适应还是情绪调整，你都可以随时告诉我。今天有什么具体想聊的话题吗？
+                            - paragraph: 温馨提示：如遇紧急危机或严重心理困扰，请及时联系校内值班老师、心理咨询中心或拨打紧急服务电话。
+                    - generic:
+                      - generic:
+                        - generic:
+                          - paragraph: 请用一句话回复：今天的页面烟测。
+                    - generic:
+                      - generic:
+                        - generic:
+                          - generic: AI 咨询助手
+                        - generic:
+                          - generic:
+                            - paragraph: 今天的页面烟测正常。
+                    - generic:
+                      - generic:
+                        - generic:
+                          - paragraph: 请用一句话回复：第二次流式烟测。
+                    - generic:
+                      - generic:
+                        - generic:
+                          - generic: AI 咨询助手
+                        - generic:
+                          - generic:
+                            - paragraph: 第二次流式烟测响应正常。
+                    - generic:
+                      - generic:
+                        - generic:
+                          - paragraph: 请用一句话回复：Assistant UI 最终烟测。
+                    - generic:
+                      - generic:
+                        - generic:
+                          - generic: AI 咨询助手
+                        - generic:
+                          - generic:
+                            - paragraph: Assistant UI 最终烟测响应正常。
+                    - generic:
+                      - generic:
+                        - generic:
+                          - paragraph: 你好
+                    - generic:
+                      - generic:
+                        - generic:
+                          - generic: AI 咨询助手
+                        - generic:
+                          - generic:
+                            - paragraph: 你好！我是南昌航空大学 AI 辅导员 Demo 的学生端助手。
+                            - paragraph: 很高兴为你提供服务。我可以提供学习规划、情绪调整等方面的通用建议，但无法访问真实的学校数据库或个人档案。
+                            - paragraph: 今天有什么具体想聊的话题吗？如有紧急危机，请务必联系校内老师或专业机构。
+                    - generic:
+                      - generic:
+                        - generic:
+                          - paragraph: 你好
+                    - generic:
+                      - generic:
+                        - generic:
+                          - generic: AI 咨询助手
+                        - generic:
+                          - generic:
+                            - paragraph: 你好！我是南昌航空大学 AI 辅导员 Demo 助手。很高兴再次为你服务。
+                            - paragraph: 如果你在学习规划、生活适应或情绪调整方面有任何疑问，欢迎随时告诉我，我会尽力提供清晰、可执行的建议。请注意，我无法访问真实的学校档案或数据库。
+                            - paragraph: 今天有什么具体想聊的话题吗？如遇紧急危机，请及时联系校内值班老师或心理咨询中心。
+                    - generic:
+                      - generic:
+                        - generic:
+                          - paragraph: P3R-N6 smoke 1779840197249
+                    - generic:
+                      - generic:
+                        - generic:
+                          - generic: AI 咨询助手
+                        - generic:
+                          - generic:
+                            - paragraph: 收到 P3R-N6 烟测信号，系统响应正常。
+                  - button [disabled]:
+                    - img
+                    - text: 回到底部
+                  - generic:
+                    - generic:
+                      - textbox:
+                        - /placeholder: 输入你想咨询的问题
+                      - generic:
+                        - generic:
+                          - button [disabled]:
+                            - img
+                            - text: 发送
+  - dialog "AI 咨询助手" [ref=e229]:
+    - generic [ref=e230]:
+      - heading "AI 咨询助手" [level=2] [ref=e231]:
+        - img [ref=e232]
+        - text: AI 咨询助手
+      - paragraph [ref=e235]: 查看会话记录、切换主题或开始新的学生咨询会话。
+    - generic [ref=e236]:
+      - button "学生工作台" [active] [ref=e237] [cursor=pointer]:
+        - img [ref=e238]
+        - text: 学生工作台
+      - generic [ref=e240]:
+        - img [ref=e242]
+        - generic [ref=e245]:
+          - generic [ref=e246]: 会话记录
+          - heading "AI 咨询助手" [level=1] [ref=e247]
+    - generic [ref=e248]:
+      - generic "当前模型" [ref=e249]:
+        - generic [ref=e250]: 当前模型
+        - strong [ref=e251]: Qwen
+      - generic "主题切换" [ref=e252] [cursor=pointer]:
+        - switch "切换到深色模式" [ref=e253]
+        - generic:
+          - img
+          - img
+    - generic "会话记录" [ref=e254]:
+      - button "新会话" [ref=e255]:
+        - img
+        - text: 新会话
+      - generic [ref=e256]:
+        - button "我最近学习压力很大，应该怎么调整？ 22 条消息" [ref=e258] [cursor=pointer]:
+          - generic [ref=e259]: 我最近学习压力很大，应该怎么调整？
+          - generic [ref=e260]: 22 条消息
+        - button "我和室友发生矛盾，不知道怎么开口沟通。 2 条消息" [ref=e262] [cursor=pointer]:
+          - generic [ref=e263]: 我和室友发生矛盾，不知道怎么开口沟通。
+          - generic [ref=e264]: 2 条消息
+    - button "Close" [ref=e265]:
+      - img [ref=e266]
+      - generic [ref=e269]: Close

@@ -5,8 +5,9 @@ import pytest
 from httpx import AsyncClient
 
 from app.api.v1.deps import chat_model_provider
+from app.config import Settings, get_settings
 from app.services.business import store
-from app.services.chat_model import ChatModelMessage
+from app.services.chat_model import ChatModelMessage, DashScopeChatModelProvider
 
 
 async def _login(async_client: AsyncClient, username: str, password: str = "password") -> dict:
@@ -299,6 +300,109 @@ async def test_student_chat_stream_reuses_existing_conversation_context(
         ChatModelMessage(role="user", content="我应该怎么补救？"),
     ]
     app.dependency_overrides.clear()
+
+
+@pytest.mark.asyncio
+async def test_student_chat_stream_limits_model_context(
+    app,
+    async_client: AsyncClient,
+) -> None:
+    provider = _FakeChatProvider(["最近一轮上下文已收到。"])
+    app.dependency_overrides[chat_model_provider] = lambda: provider
+    app.dependency_overrides[get_settings] = lambda: Settings(
+        chat_model_context_message_limit=8,
+    )
+    login = await _login(async_client, "student@example.edu")
+
+    first = await async_client.post(
+        "/api/v1/student/chat/stream",
+        headers=_bearer(login["access_token"]),
+        json={"message": "第一轮问题"},
+    )
+    assert first.status_code == 200
+    conversation_id = next(iter(store.conversations))
+
+    for index in range(1, 5):
+        response = await async_client.post(
+            "/api/v1/student/chat/stream",
+            headers=_bearer(login["access_token"]),
+            json={"conversationId": conversation_id, "message": f"后续问题 {index}"},
+        )
+        assert response.status_code == 200
+
+    assert len(provider.calls[-1]) == 8
+    assert provider.calls[-1][0].content == "最近一轮上下文已收到。"
+    assert provider.calls[-1][-1].content == "后续问题 4"
+    app.dependency_overrides.clear()
+
+
+def test_dashscope_payload_skips_web_search_for_simple_prompts() -> None:
+    provider = DashScopeChatModelProvider(
+        Settings(
+            DASHSCOPE_API_KEY="test-key",
+            DASHSCOPE_MODEL="qwen3.5-flash",
+            chat_model_max_tokens=384,
+            chat_model_web_search_enabled=True,
+            chat_model_web_search_strategy="turbo",
+        )
+    )
+
+    payload = provider._build_payload([ChatModelMessage(role="user", content="请快速回复。")])
+
+    assert payload["model"] == "qwen3.5-flash"
+    assert payload["max_tokens"] == 384
+    assert payload["stream"] is True
+    assert payload["enable_thinking"] is False
+    assert "enable_search" not in payload
+    assert "search_options" not in payload
+
+
+def test_dashscope_payload_skips_web_search_for_temporal_counseling_prompts() -> None:
+    provider = DashScopeChatModelProvider(
+        Settings(
+            DASHSCOPE_API_KEY="test-key",
+            DASHSCOPE_MODEL="qwen3.5-flash",
+            chat_model_web_search_enabled=True,
+            chat_model_web_search_strategy="turbo",
+        )
+    )
+
+    payload = provider._build_payload([ChatModelMessage(role="user", content="我今天心情不好。")])
+
+    assert "enable_search" not in payload
+    assert "search_options" not in payload
+
+    career_stress_payload = provider._build_payload(
+        [ChatModelMessage(role="user", content="我今年就业压力很大。")]
+    )
+
+    assert "enable_search" not in career_stress_payload
+    assert "search_options" not in career_stress_payload
+
+
+def test_dashscope_payload_enables_web_search_for_current_fact_prompts() -> None:
+    provider = DashScopeChatModelProvider(
+        Settings(
+            DASHSCOPE_API_KEY="test-key",
+            DASHSCOPE_MODEL="qwen3.5-flash",
+            chat_model_max_tokens=384,
+            chat_model_web_search_enabled=True,
+            chat_model_web_search_strategy="turbo",
+        )
+    )
+
+    payload = provider._build_payload(
+        [ChatModelMessage(role="user", content="请联网搜索今天最新的学校通知。")]
+    )
+
+    assert payload["model"] == "qwen3.5-flash"
+    assert payload["max_tokens"] == 384
+    assert payload["stream"] is True
+    assert payload["enable_thinking"] is False
+    assert payload["enable_search"] is True
+    assert payload["search_options"] == {
+        "search_strategy": "turbo",
+    }
 
 
 @pytest.mark.asyncio

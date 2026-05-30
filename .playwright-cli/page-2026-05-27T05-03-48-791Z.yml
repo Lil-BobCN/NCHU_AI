@@ -1,0 +1,106 @@
+- generic [ref=e4]:
+  - banner [ref=e5]:
+    - button "NCHU AI" [ref=e6] [cursor=pointer]:
+      - img [ref=e8]:
+        - img [ref=e9]
+      - generic [ref=e12]: NCHU AI
+    - generic [ref=e13]:
+      - generic [ref=e15]: 学生身份
+      - button "学生工作台" [ref=e17] [cursor=pointer]:
+        - generic [ref=e18]: 学生工作台
+  - main [ref=e19]:
+    - main [ref=e77]:
+      - region "学生 AI 咨询助手" [ref=e78]:
+        - generic [ref=e79]:
+          - generic [ref=e80]:
+            - generic [ref=e81]:
+              - button "打开会话记录" [ref=e82]:
+                - img
+              - generic [ref=e83]:
+                - generic [ref=e84]: 学生端咨询
+                - heading "我和室友发生矛盾，不知道怎么开口沟通。" [level=2] [ref=e85]
+            - button "就绪" [disabled] [ref=e87]
+          - generic [ref=e88]:
+            - generic [ref=e89]:
+              - paragraph [ref=e93]: 我和室友发生矛盾，不知道怎么开口沟通。
+              - generic [ref=e95]:
+                - generic [ref=e97]: AI 咨询助手
+                - generic [ref=e99]:
+                  - paragraph [ref=e100]: 你好。室友之间因生活习惯、作息或观念不同产生摩擦，是大学期间非常常见的情况。感到困扰或不知道如何开口，是很正常的情绪反应。
+                  - paragraph [ref=e101]: 作为 AI 助手，我无法介入你们的私人关系，但可以给你一些沟通上的建议，供你参考：
+                  - paragraph [ref=e102]:
+                    - strong [ref=e103]: 1. 沟通前的准备
+                  - list [ref=e104]:
+                    - listitem [ref=e105]:
+                      - strong [ref=e106]: 冷静情绪：
+                      - text: 避免在愤怒或情绪激动时沟通，先给自己一点时间平复。
+                    - listitem [ref=e107]:
+                      - strong [ref=e108]: 明确诉求：
+                      - text: 想清楚你希望解决的具体问题是什么（例如：噪音、卫生、作息），而不是针对对方的人格。
+                  - paragraph [ref=e109]:
+                    - strong [ref=e110]: 2. 选择合适的时机与方式
+                  - list [ref=e111]:
+                    - listitem [ref=e112]:
+                      - strong [ref=e113]: 私下交流：
+                      - text: 找一个双方都比较放松、没有第三方在场的时间，避免在公共场合或群里争执。
+                    - listitem [ref=e114]:
+                      - strong [ref=e115]: 温和开场：
+                      - text: 可以尝试用“最近感觉我们之间有些误会，想和你聊聊”作为开场白，而不是直接指责。
+                  - paragraph [ref=e116]:
+                    - strong [ref=e117]: 3. 使用非暴力沟通方式
+                  - list [ref=e118]:
+                    - listitem [ref=e119]:
+                      - strong [ref=e120]: 多用“我”字句：
+                      - text: 表达你的感受，而不是评判对方。例如：“我最近睡眠比较浅，晚上听到声音容易醒”，而不是“你晚上太吵了”。
+                    - listitem [ref=e121]:
+                      - strong [ref=e122]: 倾听对方：
+                      - text: 给对方表达的机会，也许对方也有未说出的困扰。
+                  - paragraph [ref=e123]:
+                    - strong [ref=e124]: 4. 寻求外部支持（如果沟通无效）
+                  - list [ref=e125]:
+                    - listitem [ref=e126]:
+                      - strong [ref=e127]: 联系辅导员：
+                      - text: 如果矛盾无法自行化解，可以联系你的年级辅导员，他们经验丰富，能协助调解。
+                    - listitem [ref=e128]:
+                      - strong [ref=e129]: 心理咨询中心：
+                      - text: 如果这件事让你感到焦虑或压力过大，南昌航空大学心理健康教育中心可以提供专业的心理支持。
+                    - listitem [ref=e130]:
+                      - strong [ref=e131]: 宿舍调整：
+                      - text: 在极个别情况下，如果确实无法共存，可咨询学院是否有宿舍调整的政策。
+                  - paragraph [ref=e132]:
+                    - strong [ref=e133]: ⚠️ 重要提醒
+                  - list [ref=e134]:
+                    - listitem [ref=e135]:
+                      - text: 如果矛盾升级为
+                      - strong [ref=e136]: 言语威胁、肢体冲突
+                      - text: ，或你感到
+                      - strong [ref=e137]: 人身安全受到威胁
+                      - text: ，请立即离开现场，联系学校保卫处或拨打 110。
+                    - listitem [ref=e138]: 如果你感到情绪极度低落、有伤害自己或他人的念头，请务必立即联系信任的老师、家人，或前往医院就诊。
+                  - paragraph [ref=e139]: 我是 AI 辅导员 Demo，以上建议仅供参考。希望你能顺利解决困扰，照顾好自己。
+              - paragraph [ref=e143]: 你好
+              - generic [ref=e145]:
+                - generic [ref=e147]: AI 咨询助手
+                - generic [ref=e149]:
+                  - paragraph [ref=e150]: 你好！我是南昌航空大学 AI 辅导员 Demo 的学生端助手。
+                  - paragraph [ref=e151]: 很高兴再次见到你。关于之前提到的室友沟通问题，或者你现在面临的其他困惑（如学业压力、情绪调节、生涯规划等），都可以随时和我聊聊。
+                  - paragraph [ref=e152]: 我会尽力提供清晰、可执行的建议。请注意，我是 AI 助手，提供的建议仅供参考。如果遇到紧急危机或需要具体行政帮助，请及时联系真实辅导员、学校相关部门或专业机构。
+                  - paragraph [ref=e153]: 今天有什么具体想聊的吗？
+              - paragraph [ref=e157]: 你好
+              - generic [ref=e159]:
+                - generic [ref=e161]: AI 咨询助手
+                - generic [ref=e163]:
+                  - paragraph [ref=e164]: 你好呀！我是南昌航空大学 AI 辅导员 Demo 助手。
+                  - paragraph [ref=e165]: 很高兴能继续为你提供帮助。无论是刚才提到的室友关系问题，还是新的学习、生活或情绪方面的困惑，都可以随时和我聊聊。
+                  - paragraph [ref=e166]: 我会尽力给出清晰、可执行的建议。但请记住，我只是 AI 助手，无法替代真实的老师或专业咨询师。如果遇到紧急危机或需要行政帮助，请务必联系学校相关部门或专业人士。
+                  - paragraph [ref=e167]: 今天想聊些什么呢？
+            - button "回到底部" [disabled]:
+              - img
+              - text: 回到底部
+            - generic [ref=e169]:
+              - textbox "输入咨询内容" [active] [ref=e171]:
+                - /placeholder: 输入你想咨询的问题
+              - generic [ref=e173]:
+                - button "发送" [disabled]:
+                  - img
+                  - text: 发送

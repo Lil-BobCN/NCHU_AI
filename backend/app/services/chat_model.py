@@ -47,8 +47,11 @@ class DashScopeChatModelProvider:
         self._base_url = settings.dashscope_api_base_url.strip().rstrip("/")
         self._model = settings.dashscope_model.strip()
         self._timeout_seconds = settings.chat_model_timeout_seconds
+        self._max_tokens = settings.chat_model_max_tokens
         self._system_prompt = settings.chat_model_system_prompt.strip()
         self._enable_thinking = settings.enable_thinking
+        self._web_search_enabled = settings.chat_model_web_search_enabled
+        self._web_search_strategy = settings.chat_model_web_search_strategy
 
     @property
     def configured(self) -> bool:
@@ -61,13 +64,7 @@ class DashScopeChatModelProvider:
                 "DASHSCOPE_MODEL, or the legacy QWEN_API_KEY and QWEN_MODEL aliases."
             )
 
-        payload: dict[str, Any] = {
-            "model": self._model,
-            "messages": self._build_messages(messages),
-            "stream": True,
-        }
-        if self._enable_thinking:
-            payload["enable_thinking"] = True
+        payload = self._build_payload(messages)
 
         timeout = httpx.Timeout(self._timeout_seconds)
         headers = {
@@ -95,10 +92,94 @@ class DashScopeChatModelProvider:
         except httpx.HTTPError as exc:
             raise ChatModelProviderError(f"Qwen provider request failed: {exc}") from exc
 
+    def _build_payload(self, messages: list[ChatModelMessage]) -> dict[str, Any]:
+        payload: dict[str, Any] = {
+            "model": self._model,
+            "messages": self._build_messages(messages),
+            "max_tokens": self._max_tokens,
+            "stream": True,
+            "enable_thinking": self._enable_thinking,
+        }
+        if self._web_search_enabled and self._should_enable_web_search(messages):
+            payload["enable_search"] = True
+            payload["search_options"] = {
+                "search_strategy": self._web_search_strategy,
+            }
+        return payload
+
     def _build_messages(self, messages: list[ChatModelMessage]) -> list[dict[str, str]]:
         rendered = [{"role": "system", "content": self._system_prompt}]
         rendered.extend({"role": item.role, "content": item.content} for item in messages)
         return rendered
+
+    @staticmethod
+    def _should_enable_web_search(messages: list[ChatModelMessage]) -> bool:
+        latest_user_message = next(
+            (item.content for item in reversed(messages) if item.role == "user"),
+            "",
+        )
+        text = latest_user_message.strip().lower()
+        if not text:
+            return False
+
+        explicit_search_terms = (
+            "联网",
+            "搜索",
+            "检索",
+            "查一下",
+            "帮我查",
+            "网上",
+            "官网",
+            "网址",
+            "链接",
+            "新闻",
+            "最新",
+            "实时",
+            "search",
+            "web",
+            "internet",
+            "online",
+            "official site",
+            "url",
+            "link",
+            "news",
+            "latest",
+            "real-time",
+        )
+        if any(term in text for term in explicit_search_terms):
+            return True
+
+        temporal_terms = (
+            "今天",
+            "现在",
+            "当前",
+            "今年",
+            "本周",
+            "today",
+            "current",
+            "this week",
+            "this year",
+        )
+        fact_terms = (
+            "政策",
+            "通知",
+            "公告",
+            "分数线",
+            "招生",
+            "排名",
+            "比赛",
+            "考试安排",
+            "录取",
+            "policy",
+            "notice",
+            "announcement",
+            "admission",
+            "ranking",
+            "schedule",
+        )
+        return any(term in text for term in temporal_terms) and any(
+            term in text for term in fact_terms
+        )
 
     @staticmethod
     def _parse_sse_line(line: str) -> str:

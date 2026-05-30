@@ -1,4 +1,52 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
 :root {
+  --radius: 8px;
+  --background: #faf9f5;
+  --foreground: #242321;
+  --card: #fffdf8;
+  --card-foreground: #242321;
+  --popover: #fffdf8;
+  --popover-foreground: #242321;
+  --primary: #122e8a;
+  --primary-foreground: #fbf8f2;
+  --secondary: #d8dcea;
+  --secondary-foreground: #141413;
+  --muted: #f0eee7;
+  --muted-foreground: #53534f;
+  --accent: #e7e3da;
+  --accent-foreground: #141413;
+  --destructive: #a64033;
+  --destructive-foreground: #fbf8f2;
+  --border: rgba(20, 20, 19, 0.14);
+  --input: rgba(20, 20, 19, 0.18);
+  --ring: rgba(18, 46, 138, 0.42);
   color: #111827;
   background: #f6f8fb;
   font-family: Inter, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;

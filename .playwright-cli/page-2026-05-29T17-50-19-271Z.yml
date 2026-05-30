@@ -1,0 +1,67 @@
+- main [ref=e5]:
+  - main [ref=e6]:
+    - region "学生 AI 咨询助手" [ref=e7]:
+      - complementary "会话侧边栏" [ref=e8]:
+        - generic [ref=e9]:
+          - button "学生工作台" [ref=e10] [cursor=pointer]:
+            - img [ref=e11]
+            - text: 学生工作台
+          - generic [ref=e14]:
+            - generic [ref=e15]: 学生端
+            - heading "AI 咨询助手" [level=1] [ref=e16]
+        - generic [ref=e17]:
+          - generic "当前模型" [ref=e18]:
+            - generic [ref=e19]: 模型
+            - strong [ref=e20]: Qwen
+          - generic "主题切换" [ref=e21] [cursor=pointer]:
+            - switch "切换到深色模式" [ref=e22]
+            - generic:
+              - img
+              - img
+        - generic "会话记录" [ref=e23]:
+          - button "新会话" [ref=e24]:
+            - img
+            - text: 新会话
+          - generic [ref=e25]:
+            - button "?? 2 条消息" [ref=e53] [cursor=pointer]:
+              - generic [ref=e54]: "??"
+              - generic [ref=e55]: 2 条消息
+            - button "?? 2 条消息" [ref=e57] [cursor=pointer]:
+              - generic [ref=e58]: "??"
+              - generic [ref=e59]: 2 条消息
+            - button "?????????????????????????? 2 条消息" [ref=e61] [cursor=pointer]:
+              - generic [ref=e62]: "??????????????????????????"
+              - generic [ref=e63]: 2 条消息
+            - button "Please search the web for today' 2 条消息" [ref=e65] [cursor=pointer]:
+              - generic [ref=e66]: Please search the web for today'
+              - generic [ref=e67]: 2 条消息
+            - button "请联网搜索今天最新的一条人工智能新闻，用一句话回答。 2 条消息" [ref=e69] [cursor=pointer]:
+              - generic [ref=e70]: 请联网搜索今天最新的一条人工智能新闻，用一句话回答。
+              - generic [ref=e71]: 2 条消息
+      - generic [ref=e26]:
+        - generic [ref=e27]:
+          - generic [ref=e29]:
+            - generic [ref=e30]: AI 咨询助手
+            - heading "新会话" [level=2] [ref=e104]
+          - button "新会话" [active] [ref=e34] [cursor=pointer]:
+            - img [ref=e35]
+            - text: 新会话
+        - generic [ref=e36]:
+          - generic [ref=e105]:
+            - heading "今天想先聊哪件事？" [level=3] [ref=e106]
+            - paragraph [ref=e107]: 可以从学习压力、沟通困扰、作业安排或校园资源开始。回复由 AI 生成，重要事项请联系辅导员确认。
+            - generic [ref=e108]:
+              - button "我最近学习压力很大，应该怎么调整？" [ref=e109] [cursor=pointer]
+              - button "我和室友发生矛盾，不知道怎么开口沟通。" [ref=e110] [cursor=pointer]
+              - button "我错过了一次作业截止时间，应该怎么补救？" [ref=e111] [cursor=pointer]
+          - button "回到底部" [disabled]:
+            - img
+            - text: 回到底部
+          - generic [ref=e46]:
+            - textbox "输入咨询内容" [ref=e48]:
+              - /placeholder: 发消息给 AI 咨询助手
+            - generic [ref=e49]:
+              - generic [ref=e50]: AI 生成内容仅供参考
+              - generic [ref=e51]:
+                - button "发送" [disabled]:
+                  - img

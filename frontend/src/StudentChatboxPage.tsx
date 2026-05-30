@@ -1,25 +1,23 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { AppendMessage, MessageStatus, ThreadMessageLike } from '@assistant-ui/react'
-import {
-  ActionBarPrimitive,
-  AssistantRuntimeProvider,
-  AuiIf,
-  ComposerPrimitive,
-  MessagePartPrimitive,
-  MessagePrimitive,
-  ThreadListItemPrimitive,
-  ThreadListPrimitive,
-  ThreadPrimitive,
-  useAuiState,
-  useExternalStoreRuntime,
-} from '@assistant-ui/react'
-import gsap from 'gsap'
-import { useGSAP } from '@gsap/react'
+import { AssistantRuntimeProvider, useExternalStoreRuntime } from '@assistant-ui/react'
 import { Navigate, useNavigate } from 'react-router-dom'
-import { TextScramble } from './components/ui/text-scramble'
+import {
+  AssistantMobileSidebar,
+  AssistantSidebar,
+} from '@/components/assistant-ui/assistant-sidebar'
+import type { AssistantConversationMeta } from '@/components/assistant-ui/thread-list'
+import {
+  ArrowLeft,
+  Moon,
+  Plus,
+  Sun,
+} from '@/components/assistant-ui/chat-icons'
+import { StudentAssistantThread } from '@/components/assistant-ui/thread'
 
 type StudentChatboxPageProps = {
   apiBase: string
+  onSessionExpired: () => void
   session: {
     token: string
     user: {
@@ -53,10 +51,23 @@ type ChatMessage = {
 
 type StreamStatus = 'idle' | 'loading' | 'streaming' | 'error' | 'stopped'
 
+type ChatTheme = 'light' | 'dark'
+
 type StreamEvent = {
   event: string
   data: Record<string, string>
 }
+
+class ApiRequestError extends Error {
+  readonly status: number
+
+  constructor(message: string, status: number) {
+    super(message)
+    this.status = status
+  }
+}
+
+const expiredSessionMessage = '登录状态已失效，请重新登录后再发送。'
 
 const promptStarters = [
   '我最近学习压力很大，应该怎么调整？',
@@ -66,13 +77,14 @@ const promptStarters = [
 
 const assistantDisplayName = 'AI 咨询助手'
 
-const composerPromptPhrases = [
-  'I want to understand scholarships, mental health support, or campus life...',
-]
+const chatThemeStorageKey = 'nchu-ai-chat-theme'
 
-export default function StudentChatboxPage({ apiBase, session }: StudentChatboxPageProps) {
+export default function StudentChatboxPage({
+  apiBase,
+  onSessionExpired,
+  session,
+}: StudentChatboxPageProps) {
   const navigate = useNavigate()
-  const pageRef = useRef<HTMLElement | null>(null)
   const abortRef = useRef<AbortController | null>(null)
   const initialHistoryLoadedRef = useRef(false)
   const [conversations, setConversations] = useState<ApiConversation[]>([])
@@ -81,11 +93,18 @@ export default function StudentChatboxPage({ apiBase, session }: StudentChatboxP
   const [status, setStatus] = useState<StreamStatus>('idle')
   const [error, setError] = useState('')
   const [lastPrompt, setLastPrompt] = useState('')
+  const [chatTheme, setChatTheme] = useState<ChatTheme>(getInitialChatTheme)
 
   const token = session?.token ?? ''
   const activeConversation = conversations.find((item) => item.id === activeConversationId)
   const isBusy = status === 'loading' || status === 'streaming'
   const canRetry = Boolean(lastPrompt) && !isBusy
+  const conversationMeta: AssistantConversationMeta[] = conversations.map((conversation) => ({
+    id: conversation.id,
+    title: conversation.title || '未命名会话',
+    messageCount: conversation.messages.length,
+    updatedAt: conversation.updated_at,
+  }))
 
   const appendAssistantChunk = useCallback((messageId: string, chunk: string) => {
     if (!chunk) {
@@ -198,8 +217,7 @@ export default function StudentChatboxPage({ apiBase, session }: StudentChatboxP
         })
 
         if (!response.ok) {
-          const detail = await response.json().catch(() => ({ detail: '模型接口调用失败' }))
-          throw new Error(detail.detail ?? '模型接口调用失败')
+          throw await requestError(response, '模型接口调用失败')
         }
 
         if (!response.body) {
@@ -251,14 +269,31 @@ export default function StudentChatboxPage({ apiBase, session }: StudentChatboxP
           setStatus('stopped')
           return
         }
-        const message = sendError instanceof Error ? sendError.message : '模型生成失败'
+        const message = isAuthError(sendError)
+          ? expiredSessionMessage
+          : sendError instanceof Error
+            ? sendError.message
+            : '模型生成失败'
         setStatus('error')
         setError(message)
+        setMessages((current) =>
+          current.map((item) =>
+            item.id === assistantId
+              ? {
+                  ...item,
+                  content: message,
+                }
+              : item,
+          ),
+        )
         markAssistantStatus(assistantId, {
           type: 'incomplete',
           reason: 'error',
           error: message,
         })
+        if (isAuthError(sendError)) {
+          onSessionExpired()
+        }
       } finally {
         if (abortRef.current === controller) {
           abortRef.current = null
@@ -271,6 +306,7 @@ export default function StudentChatboxPage({ apiBase, session }: StudentChatboxP
       appendAssistantChunk,
       isBusy,
       markAssistantStatus,
+      onSessionExpired,
       refreshConversations,
       token,
     ],
@@ -339,13 +375,21 @@ export default function StudentChatboxPage({ apiBase, session }: StudentChatboxP
         if (ignore) {
           return
         }
-        const message = loadError instanceof Error ? loadError.message : '聊天记录读取失败'
+        const message = isAuthError(loadError)
+          ? expiredSessionMessage
+          : loadError instanceof Error
+            ? loadError.message
+            : '聊天记录读取失败'
         setError(message)
+        setStatus('error')
+        if (isAuthError(loadError)) {
+          onSessionExpired()
+        }
       })
     return () => {
       ignore = true
     }
-  }, [apiBase, token])
+  }, [apiBase, onSessionExpired, token])
 
   useEffect(() => {
     return () => {
@@ -353,53 +397,9 @@ export default function StudentChatboxPage({ apiBase, session }: StudentChatboxP
     }
   }, [])
 
-  useGSAP(
-    () => {
-      const mm = gsap.matchMedia()
-      mm.add(
-        {
-          reduceMotion: '(prefers-reduced-motion: reduce)',
-        },
-        (context) => {
-          const { reduceMotion } = context.conditions as { reduceMotion: boolean }
-          if (reduceMotion) {
-            gsap.set('.conversation-rail, .chat-workspace, .chat-composer-panel', {
-              clearProps: 'all',
-            })
-            return undefined
-          }
-          const timeline = gsap.timeline({ defaults: { duration: 0.36, ease: 'power3.out' } })
-          timeline
-            .from('.conversation-rail', { x: -18, autoAlpha: 0 })
-            .from('.chat-workspace', { y: 16, autoAlpha: 0 }, '<0.08')
-            .from('.chat-composer-panel', { y: 12, autoAlpha: 0 }, '<0.08')
-          return undefined
-        },
-      )
-      return () => mm.revert()
-    },
-    { scope: pageRef },
-  )
-
-  useGSAP(
-    () => {
-      const root = pageRef.current
-      if (!root || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-        return
-      }
-      const items = root.querySelectorAll('.chat-message')
-      const lastItem = items[items.length - 1]
-      if (!lastItem) {
-        return
-      }
-      gsap.fromTo(
-        lastItem,
-        { y: 10, autoAlpha: 0 },
-        { y: 0, autoAlpha: 1, duration: 0.22, ease: 'power2.out' },
-      )
-    },
-    { dependencies: [messages.length], scope: pageRef },
-  )
+  useEffect(() => {
+    window.localStorage.setItem(chatThemeStorageKey, chatTheme)
+  }, [chatTheme])
 
   if (!session) {
     return <Navigate to="/login" replace />
@@ -409,213 +409,84 @@ export default function StudentChatboxPage({ apiBase, session }: StudentChatboxP
     return <Navigate to="/app" replace />
   }
 
+  const sidebarHeader = (
+    <div className="aui-sidebar-header">
+      <button className="aui-back-button" onClick={() => navigate('/app/student')} type="button">
+        <ArrowLeft data-icon="inline-start" />
+        学生工作台
+      </button>
+      <div className="aui-sidebar-brand">
+        <div>
+          <span className="aui-sidebar-eyebrow">学生端</span>
+          <h1>{assistantDisplayName}</h1>
+        </div>
+      </div>
+    </div>
+  )
+
+  const sidebarUtility = (
+    <div className="aui-sidebar-utility">
+      <div className="aui-model-card" aria-label="当前模型">
+        <span>模型</span>
+        <strong>Qwen</strong>
+      </div>
+      <label className="aui-theme-switch" aria-label="主题切换">
+        <input
+          aria-label={chatTheme === 'dark' ? '切换到浅色模式' : '切换到深色模式'}
+          checked={chatTheme === 'dark'}
+          onChange={(event) => setChatTheme(event.target.checked ? 'dark' : 'light')}
+          role="switch"
+          type="checkbox"
+        />
+        <span aria-hidden="true">
+          <Sun />
+          <Moon />
+        </span>
+      </label>
+    </div>
+  )
+
+  const threadToolbar = (
+    <div className="aui-thread-toolbar">
+      <button className="aui-thread-new-button" onClick={startNewChat} type="button">
+        <Plus data-icon="inline-start" />
+        新会话
+      </button>
+    </div>
+  )
+
+  const mobileSidebar = (
+    <AssistantMobileSidebar
+      conversations={conversationMeta}
+      header={sidebarHeader}
+      theme={chatTheme}
+      utility={sidebarUtility}
+    />
+  )
+
   return (
-    <main className="student-chat-page" ref={pageRef}>
+    <main className="student-chat-page" data-chat-theme={chatTheme}>
       <AssistantRuntimeProvider runtime={runtime}>
-        <section className="chat-shell" aria-label="学生 AI 咨询助手">
-          <ThreadListPrimitive.Root className="conversation-rail" aria-label="会话记录">
-            <div className="rail-header">
-              <button className="rail-back-button" onClick={() => navigate('/app/student')} type="button">
-                <span aria-hidden="true">←</span>
-                学生工作台
-              </button>
-              <div>
-                <span className="rail-eyebrow">会话记录</span>
-                <h1>{assistantDisplayName}</h1>
-              </div>
-              <ThreadListPrimitive.New className="new-thread-button">
-                <span aria-hidden="true">＋</span>
-                新会话
-              </ThreadListPrimitive.New>
-            </div>
-
-            <div className="rail-model-card" aria-label="当前模型">
-              <span>当前模型</span>
-              <strong>Qwen</strong>
-            </div>
-
-            <div className="conversation-list">
-              {conversations.length === 0 ? (
-                <div className="conversation-empty">还没有保存的会话，发送第一条消息后会自动出现在这里。</div>
-              ) : (
-                <ThreadListPrimitive.Items>
-                  {({ threadListItem }) => {
-                    const conversation = conversations.find((item) => item.id === threadListItem.id)
-                    return (
-                      <ThreadListItemPrimitive.Root className="conversation-item">
-                        <ThreadListItemPrimitive.Trigger className="conversation-item-trigger">
-                          <span className="conversation-item-title">
-                            <ThreadListItemPrimitive.Title
-                              fallback={conversation?.title || '未命名会话'}
-                            />
-                          </span>
-                          <span className="conversation-item-meta">
-                            {conversation ? `${conversation.messages.length} 条消息` : '继续会话'}
-                          </span>
-                        </ThreadListItemPrimitive.Trigger>
-                      </ThreadListItemPrimitive.Root>
-                    )
-                  }}
-                </ThreadListPrimitive.Items>
-              )}
-            </div>
-          </ThreadListPrimitive.Root>
-
-          <ThreadPrimitive.Root className="chat-workspace">
-            <div className="chat-topbar">
-              <div className="chat-title-block">
-                <span className="chat-kicker">学生端咨询</span>
-                <h2>{activeConversation?.title ?? '新会话'}</h2>
-              </div>
-              <div className="chat-topbar-actions">
-                <span className={`chat-status-pill ${status}`}>{statusLabel(status)}</span>
-                <button
-                  className="chat-text-button"
-                  disabled={!canRetry}
-                  onClick={() => void retryLastPrompt()}
-                  type="button"
-                >
-                  重试
-                </button>
-              </div>
-            </div>
-
-            {error ? (
-              <div className="chat-error" role="alert">
-                <div>
-                  <strong>回复没有完成</strong>
-                  <span>{error}</span>
-                </div>
-                <button disabled={!canRetry} onClick={() => void retryLastPrompt()} type="button">
-                  重新发送
-                </button>
-              </div>
-            ) : null}
-
-            <ThreadPrimitive.Viewport className="message-list" turnAnchor="bottom">
-              <ThreadPrimitive.Empty>
-                <div className="chat-empty-state">
-                  <span className="empty-mark" aria-hidden="true">
-                    ✦
-                  </span>
-                  <h3>今天想先聊哪件事？</h3>
-                  <p>
-                    可以从学习压力、沟通困扰、作业安排或校园资源开始。回复由 AI 生成，重要事项请联系辅导员确认。
-                  </p>
-                  <div className="prompt-starters">
-                    {promptStarters.map((prompt) => (
-                      <ThreadPrimitive.Suggestion
-                        className="prompt-starter"
-                        key={prompt}
-                        prompt={prompt}
-                      />
-                    ))}
-                  </div>
-                </div>
-              </ThreadPrimitive.Empty>
-
-              <div className="message-stack" aria-live="polite">
-                <ThreadPrimitive.Messages>
-                  {({ message }) => <ChatMessageItem role={message.role} />}
-                </ThreadPrimitive.Messages>
-              </div>
-
-              <ThreadPrimitive.ScrollToBottom className="scroll-to-bottom-button">
-                回到底部
-              </ThreadPrimitive.ScrollToBottom>
-
-              <ThreadPrimitive.ViewportFooter className="chat-composer-panel">
-                <ComposerPrimitive.Root className="composer-form">
-                  <div className="composer-input-wrap">
-                    <ComposerPrimitive.Input
-                      addAttachmentOnPaste={false}
-                      aria-label="输入咨询内容"
-                      autoFocus
-                      className="composer-input"
-                      maxRows={6}
-                      minRows={1}
-                      placeholder=""
-                      submitMode="enter"
-                      unstable_insertNewlineOnTouchEnter
-                    />
-                    <AuiIf condition={(state) => state.composer.isEmpty && !state.thread.isRunning}>
-                      <TextScramble
-                        className="composer-typewriter-placeholder"
-                        cursorClassName="composer-typewriter-cursor"
-                        phrases={composerPromptPhrases}
-                      />
-                    </AuiIf>
-                  </div>
-                  <div className="composer-footer">
-                    <span>Enter 发送，Shift + Enter 换行</span>
-                    <div className="composer-actions">
-                      <AuiIf condition={(state) => state.thread.isRunning}>
-                        <ComposerPrimitive.Cancel className="composer-stop-button">
-                          停止
-                        </ComposerPrimitive.Cancel>
-                      </AuiIf>
-                      <AuiIf condition={(state) => !state.thread.isRunning}>
-                        <ComposerPrimitive.Send className="composer-send-button">
-                          发送
-                        </ComposerPrimitive.Send>
-                      </AuiIf>
-                    </div>
-                  </div>
-                </ComposerPrimitive.Root>
-              </ThreadPrimitive.ViewportFooter>
-            </ThreadPrimitive.Viewport>
-          </ThreadPrimitive.Root>
+        <section className="aui-chat-shell" aria-label="学生 AI 咨询助手">
+          <AssistantSidebar
+            conversations={conversationMeta}
+            header={sidebarHeader}
+            utility={sidebarUtility}
+          />
+          <StudentAssistantThread
+            assistantName={assistantDisplayName}
+            canRetry={canRetry}
+            error={error}
+            mobileSidebarTrigger={mobileSidebar}
+            onRetry={() => void retryLastPrompt()}
+            promptStarters={promptStarters}
+            status={status}
+            toolbar={threadToolbar}
+            title={activeConversation?.title ?? '新会话'}
+          />
         </section>
       </AssistantRuntimeProvider>
     </main>
-  )
-}
-
-function ChatMessageItem({ role }: { role: 'assistant' | 'user' | 'system' }) {
-  const isAssistant = role === 'assistant'
-  const isRunning = useAuiState((state) => state.message.status?.type === 'running')
-
-  if (role === 'system') {
-    return null
-  }
-
-  return (
-    <MessagePrimitive.Root className={`chat-message ${isAssistant ? 'assistant' : 'student'}`}>
-      <div className="message-avatar" aria-hidden="true">
-        {isAssistant ? 'AI' : '我'}
-      </div>
-      <div className="message-content">
-        <div className="message-heading">
-          <span>{isAssistant ? assistantDisplayName : '你'}</span>
-          {isRunning ? <small>正在回复</small> : null}
-        </div>
-        <div className="message-bubble">
-          <MessagePrimitive.Parts
-            components={{
-              Text: () => (
-                <MessagePartPrimitive.Text
-                  className="message-text"
-                  component="p"
-                  smooth={isAssistant}
-                />
-              ),
-            }}
-          />
-          <ActionBarPrimitive.Root
-            autohide="not-last"
-            className="message-actions"
-            hideWhenRunning
-          >
-            <ActionBarPrimitive.Copy className="message-action-button">
-              复制
-            </ActionBarPrimitive.Copy>
-            <ActionBarPrimitive.Reload className="message-action-button">
-              重试
-            </ActionBarPrimitive.Reload>
-          </ActionBarPrimitive.Root>
-        </div>
-      </div>
-    </MessagePrimitive.Root>
   )
 }
 
@@ -626,10 +497,18 @@ async function loadConversations(apiBase: string, token: string): Promise<ApiCon
     },
   })
   if (!response.ok) {
-    const detail = await response.json().catch(() => ({ detail: '聊天记录读取失败' }))
-    throw new Error(detail.detail ?? '聊天记录读取失败')
+    throw await requestError(response, '聊天记录读取失败')
   }
   return response.json() as Promise<ApiConversation[]>
+}
+
+async function requestError(response: Response, fallback: string): Promise<ApiRequestError> {
+  const detail = await response.json().catch(() => ({ detail: fallback }))
+  return new ApiRequestError(detail.detail ?? fallback, response.status)
+}
+
+function isAuthError(error: unknown): boolean {
+  return error instanceof ApiRequestError && error.status === 401
 }
 
 function toChatMessage(message: ApiMessage): ChatMessage {
@@ -702,18 +581,7 @@ function parseSseEvent(block: string): StreamEvent[] {
   }
 }
 
-function statusLabel(status: StreamStatus): string {
-  if (status === 'loading') {
-    return '连接中'
-  }
-  if (status === 'streaming') {
-    return '正在回复'
-  }
-  if (status === 'error') {
-    return '需要重试'
-  }
-  if (status === 'stopped') {
-    return '已停止'
-  }
-  return '就绪'
+function getInitialChatTheme(): ChatTheme {
+  const savedTheme = window.localStorage.getItem(chatThemeStorageKey)
+  return savedTheme === 'dark' ? 'dark' : 'light'
 }

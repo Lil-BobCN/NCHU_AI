@@ -39,8 +39,10 @@ flowchart TD
     H12 --> H13[P2-N3 首页电影感首屏与强滚动叙事实现<br/>DONE]
     H13 --> H14[P2-N3 产品经理浏览器复核与视觉微调<br/>IN PROGRESS]
     H14 --> H15[P2-N3 暗色高级动效评审原型增强<br/>DONE]
-    H15 --> H16[P2-N3 产品经理复核增强版原型<br/>NEXT]
-    H16 --> P3R0[SDAR-0008 真实模型学生 Chatbox 边界<br/>APPROVED]
+    H15 --> H16[P2-N3 产品经理复核增强版原型<br/>DONE]
+    H16 --> H17[P2-N3 评审原型迁移至正式 React 首页<br/>DONE]
+    H17 --> H18[P2-N3 正式首页产品经理验收与后续微调<br/>NEXT]
+    H18 --> P3R0[SDAR-0008 真实模型学生 Chatbox 边界<br/>APPROVED]
     P3R0 --> I[Phase 3R 学生 Chatbox 小闭环<br/>IN PROGRESS]
     I --> J[Phase 4 管理员知识域与 Demo 重置<br/>TODO]
     J --> K[Phase 5 辅导员流程<br/>TODO]
@@ -67,7 +69,9 @@ flowchart TD
     style H13 fill:#ecfdf5,stroke:#10b981
     style H14 fill:#fff7ed,stroke:#f97316,stroke-width:2px
     style H15 fill:#ecfdf5,stroke:#10b981
-    style H16 fill:#fff7ed,stroke:#f97316,stroke-width:2px
+    style H16 fill:#ecfdf5,stroke:#10b981
+    style H17 fill:#ecfdf5,stroke:#10b981
+    style H18 fill:#fff7ed,stroke:#f97316,stroke-width:2px
     style P3R0 fill:#ecfdf5,stroke:#10b981
     style I fill:#fff7ed,stroke:#f97316,stroke-width:2px
     style F fill:#ecfeff,stroke:#06b6d4,stroke-width:1.5px
@@ -82,16 +86,16 @@ flowchart TD
 ### 当前正在做什么
 
 - 当前节点：`Phase 2 登录与角色路由`
-- 当前任务：P2-N3 产品经理浏览器复核首页暗色高级动效多版本评审原型
+- 当前任务：P2-N3 正式 React 首页产品经理验收与后续微调
 - 当前门控：P2-N1/P2-N2 已完成并通过自动验证；SDAR-0007 已批准并完成第一版实现；Phase 2 后续仍不得引入真实学生数据、生产 SSO、数据库 schema、RAG/vector/provider
 - 并行审批包：`SDAR-0008` 真实模型学生 Chatbox 边界已由产品经理在文件中审阅通过；Phase 3R 可进入执行，但必须复用项目文件中已配置好的 Qwen 模型 API，不新增第二套模型 API 配置。
 
 ### 下一步
 
-1. 产品经理打开评审原型：`http://127.0.0.1:5188/.omx/prototypes/homepage-dark-hud-variants.html`。
-2. 重点检查：A1/A2/A3 三版暗色高级质感、Linear-like 顶部栏、C 式 HUD 启动动效、右侧视频/HUD 占位、下滑章节结构。
-3. 若其中一版通过，再将该方向落到正式 React 首页；若不通过，继续在评审原型范围内微调，不直接改正式首页。
-4. Phase 3R 进入 P3R-N2：读取既有 Qwen 配置并实现后端真实模型流式代理；随后进入 P3R-N3：实现独立学生 Chatbox 页面。
+1. 产品经理打开正式首页：`http://127.0.0.1:5173/`。
+2. 重点检查：Claude 风格主站结构、Light/Dark 主题、中文产品语境、顶部导航、首屏提问框、右侧能力图、平台能力/角色/治理章节动效。
+3. 若通过，继续进入正式首页细节微调或后续阶段；若不通过，在正式 React 首页范围内做小步调整。
+4. Phase 3R 已具备实现基础，后续仍需遵守不引入真实学生数据、生产 SSO、数据库 schema、RAG/vector/provider 的 Phase 2/3R 门控。
 
 ## 4. 已完成节点
 
@@ -136,7 +140,11 @@ flowchart TD
 - 最新验证证据：Playwright CLI 检查控制台 `0 errors / 0 warnings`；运行态为 `data-idle-motion="running"`，active hero class 为 `hero-variant is-active is-ambient-ready is-idle-playing`，状态栏为 `常驻动效运行中：A1 黑曜指挥舱 / A 呼吸光`；飞翼 transform、CTA transform、HUD line transform 在间隔采样中发生变化；横向溢出为 `0`；截图为 `output/playwright/homepage-persistent-idle-after.png`。详情见 `.omx/logs/homepage-persistent-idle-motion-20260525.md`。
 - 已完成：根据产品经理复核反馈“当前打开 `#features` 仍看不到常驻动效”，修复暗色高级评审原型的章节区常驻动效覆盖范围。此前常驻 idle 主要绑定首屏 `.hero-variant`，本次新增 `#features` / `.story-section` 的 `is-story-idle` 状态、CSS 常驻扫光/呼吸/设备扫描层，以及独立 GSAP `storyIdleTimeline`，覆盖左侧四张 `[data-story-card]`、右侧 `[data-chapter-panel]`、`.chapter-screen`、`.chapter-device` 和线条 HUD。
 - 最新验证证据：内联脚本编译检查 `4/4 scripts ok`；`http://127.0.0.1:5188/.omx/prototypes/homepage-dark-hud-variants.html#features` 返回 200；真实浏览器脚本先进入首页再滚动到 `#features` 后采样，控制台错误为 `[]`，运行态为 `window.__nchuStoryIdleMotion.active=true`、`.story-section` class 为 `story-section is-story-idle`、`data-story-idle="running"`；1.4 秒间隔内 active card、chapter screen、active panel、chapter device、device line 的 transform 均发生变化；截图为 `output/playwright/homepage-features-idle-verified.png`，延时对比截图为 `output/playwright/homepage-features-idle-t3800.png`、`output/playwright/homepage-features-idle-t5400.png`、`output/playwright/homepage-features-idle-final.png`。
-- 下一步：产品经理复核增强版暗色高级多版本评审原型；通过后再进入正式 React 首页落地，不通过则继续在原型中微调。
+- 已完成：根据产品经理要求，将 `.omx/prototypes/homepage-dark-hud-variants.html` 方向迁移到正式 React 首页 `/`。新增 `frontend/src/ProductionHomePage.tsx` 与 `frontend/src/ProductionHomePage.css`，保留原型的 Claude 风格布局、Light/Dark 主题、中文产品语境、首屏提问框、能力网络图、滚动 reveal 和平台章节回退重播逻辑。
+- 已完成：`frontend/src/App.tsx` 首页路由改为渲染 `ProductionHomePage`；首页隐藏旧 AppShell 顶栏，避免与新首页自带导航重复；`/login` 和角色工作台路由保持原有逻辑。
+- 最新验证证据：`npm run lint` 通过；`npm run build` 通过；`http://127.0.0.1:5173/` 返回 200；Playwright CLI 截图已生成 `output/playwright/production-homepage-migration-smoke.png`。
+- 已知非阻塞项：Playwright 临时 test runner 未能在当前环境解析 `@playwright/test` 包，因此未保留自动化测试文件；Vite build 仍有既有 chunk size warning。
+- 下一步：产品经理打开正式首页 `http://127.0.0.1:5173/` 做视觉验收与后续微调。
 
 ## 6. 更新规则
 

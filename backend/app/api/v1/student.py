@@ -10,6 +10,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import StreamingResponse
 
 from app.api.v1.deps import chat_model_provider, current_user
+from app.config import Settings, get_settings
 from app.schemas.business import (
     ConversationCreate,
     ConversationMessageCreate,
@@ -45,6 +46,7 @@ async def stream_student_chat(
     payload: StudentChatRequest,
     user: Annotated[User, Depends(current_user)],
     provider: Annotated[ChatModelProvider, Depends(chat_model_provider)],
+    settings: Annotated[Settings, Depends(get_settings)],
 ) -> StreamingResponse:
     """Stream a real-model assistant reply for the isolated student Chatbox."""
     if user.role != "student":
@@ -63,7 +65,10 @@ async def stream_student_chat(
 
     conversation = _student_chat_conversation(payload, user)
     store.append_conversation_message(conversation, "student", payload.message)
-    model_messages = _conversation_model_messages(conversation)
+    model_messages = _conversation_model_messages(
+        conversation,
+        limit=settings.chat_model_context_message_limit,
+    )
 
     return StreamingResponse(
         _stream_chat_events(conversation, user, provider, model_messages),
@@ -168,13 +173,18 @@ def _student_chat_conversation(payload: StudentChatRequest, user: User) -> Conve
     return store.create_empty_conversation(user.id, title)
 
 
-def _conversation_model_messages(conversation: Conversation) -> list[ChatModelMessage]:
+def _conversation_model_messages(
+    conversation: Conversation,
+    *,
+    limit: int,
+) -> list[ChatModelMessage]:
     role_map = {"student": "user", "assistant": "assistant"}
-    return [
+    messages = [
         ChatModelMessage(role=role_map[message.role], content=message.content)
         for message in conversation.messages
         if message.role in role_map and message.content.strip()
     ]
+    return messages[-limit:]
 
 
 async def _stream_chat_events(
