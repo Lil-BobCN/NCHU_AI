@@ -4,7 +4,7 @@ from __future__ import annotations
 import asyncio
 import json
 from collections.abc import AsyncIterator
-from typing import Annotated
+from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import StreamingResponse
@@ -26,6 +26,7 @@ from app.services.chat_model import (
     ChatModelError,
     ChatModelMessage,
     ChatModelProvider,
+    ChatModelStreamEvent,
 )
 
 router = APIRouter(prefix="/student", tags=["student"])
@@ -196,9 +197,12 @@ async def _stream_chat_events(
     chunks: list[str] = []
     yield _sse("conversation", {"conversationId": conversation.id})
     try:
-        async for chunk in provider.stream_reply(model_messages):
-            chunks.append(chunk)
-            yield _sse("delta", {"content": chunk})
+        async for event in _provider_stream_events(provider, model_messages):
+            if event.type == "delta":
+                content = event.data.get("content")
+                if isinstance(content, str):
+                    chunks.append(content)
+            yield _sse(event.type, event.data)
     except ChatModelConfigurationError as exc:
         yield _sse("error", {"detail": str(exc)})
         return
@@ -234,5 +238,18 @@ async def _stream_chat_events(
     yield _sse("done", {"conversationId": conversation.id})
 
 
-def _sse(event: str, data: dict[str, str]) -> str:
+async def _provider_stream_events(
+    provider: ChatModelProvider,
+    model_messages: list[ChatModelMessage],
+) -> AsyncIterator[ChatModelStreamEvent]:
+    stream_events = getattr(provider, "stream_events", None)
+    if callable(stream_events):
+        async for event in stream_events(model_messages):
+            yield event
+        return
+    async for chunk in provider.stream_reply(model_messages):
+        yield ChatModelStreamEvent.delta(chunk)
+
+
+def _sse(event: str, data: dict[str, Any]) -> str:
     return f"event: {event}\ndata: {json.dumps(data, ensure_ascii=False)}\n\n"

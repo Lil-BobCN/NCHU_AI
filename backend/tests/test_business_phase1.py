@@ -7,7 +7,11 @@ from httpx import AsyncClient
 from app.api.v1.deps import chat_model_provider
 from app.config import Settings, get_settings
 from app.services.business import store
-from app.services.chat_model import ChatModelMessage, DashScopeChatModelProvider
+from app.services.chat_model import (
+    ChatModelMessage,
+    ChatModelStreamEvent,
+    DashScopeChatModelProvider,
+)
 
 
 async def _login(async_client: AsyncClient, username: str, password: str = "password") -> dict:
@@ -213,6 +217,28 @@ class _FakeChatProvider:
             yield chunk
 
 
+class _FakeEventProvider:
+    def __init__(self, events: list[ChatModelStreamEvent], configured: bool = True) -> None:
+        self.events = events
+        self._configured = configured
+        self.calls: list[list[ChatModelMessage]] = []
+
+    @property
+    def configured(self) -> bool:
+        return self._configured
+
+    async def stream_events(self, messages: list[ChatModelMessage]):
+        self.calls.append(messages)
+        for event in self.events:
+            yield event
+
+    async def stream_reply(self, messages: list[ChatModelMessage]):
+        self.calls.append(messages)
+        for event in self.events:
+            if event.type == "delta":
+                yield event.data["content"]
+
+
 @pytest.mark.asyncio
 async def test_student_chat_stream_fails_clearly_without_model_config(
     app,
@@ -260,6 +286,46 @@ async def test_student_chat_stream_writes_runtime_history(
         role="user",
         content="我最近学习压力很大。",
     )
+    app.dependency_overrides.clear()
+
+
+@pytest.mark.asyncio
+async def test_student_chat_stream_forwards_structured_model_events(
+    app,
+    async_client: AsyncClient,
+) -> None:
+    provider = _FakeEventProvider(
+        [
+            ChatModelStreamEvent.phase("searching"),
+            ChatModelStreamEvent.source(
+                {
+                    "title": "Official notice",
+                    "url": "https://example.edu/notice",
+                    "snippet": "Campus notice summary",
+                }
+            ),
+            ChatModelStreamEvent.reasoning("正在整理检索结果。"),
+            ChatModelStreamEvent.delta("可以先查看官方通知。"),
+        ]
+    )
+    app.dependency_overrides[chat_model_provider] = lambda: provider
+    login = await _login(async_client, "student@example.edu")
+
+    response = await async_client.post(
+        "/api/v1/student/chat/stream",
+        headers=_bearer(login["access_token"]),
+        json={"message": "请联网搜索今天最新的学校通知。"},
+    )
+
+    assert response.status_code == 200
+    assert "event: phase" in response.text
+    assert "event: source" in response.text
+    assert "https://example.edu/notice" in response.text
+    assert "event: reasoning" in response.text
+    assert "event: delta" in response.text
+
+    conversation = next(iter(store.conversations.values()))
+    assert conversation.messages[1].content == "可以先查看官方通知。"
     app.dependency_overrides.clear()
 
 
@@ -403,6 +469,132 @@ def test_dashscope_payload_enables_web_search_for_current_fact_prompts() -> None
     assert payload["search_options"] == {
         "search_strategy": "turbo",
     }
+
+
+def test_dashscope_generation_payload_enables_sources_and_citations() -> None:
+    provider = DashScopeChatModelProvider(
+        Settings(
+            DASHSCOPE_API_KEY="test-key",
+            DASHSCOPE_MODEL="qwen-plus",
+            DASHSCOPE_API_MODE="generation",
+            chat_model_max_tokens=384,
+            chat_model_web_search_enabled=True,
+            chat_model_web_search_strategy="turbo",
+            chat_model_search_source_enabled=True,
+            chat_model_search_citation_enabled=True,
+            chat_model_search_prepend_results=True,
+        )
+    )
+
+    payload = provider._build_generation_payload(
+        [ChatModelMessage(role="user", content="请联网搜索今天最新的学校通知。")]
+    )
+
+    assert payload["model"] == "qwen-plus"
+    assert payload["input"]["messages"][-1] == {
+        "role": "user",
+        "content": "请联网搜索今天最新的学校通知。",
+    }
+    assert payload["parameters"]["incremental_output"] is True
+    assert payload["parameters"]["max_tokens"] == 384
+    assert payload["parameters"]["enable_search"] is True
+    assert payload["parameters"]["search_options"] == {
+        "search_strategy": "turbo",
+        "enable_source": True,
+        "enable_citation": True,
+        "citation_format": "[ref_<number>]",
+        "prepend_search_result": True,
+    }
+
+
+def test_dashscope_generation_payload_skips_sources_without_search() -> None:
+    provider = DashScopeChatModelProvider(
+        Settings(
+            DASHSCOPE_API_KEY="test-key",
+            DASHSCOPE_MODEL="qwen-plus",
+            DASHSCOPE_API_MODE="generation",
+            chat_model_web_search_enabled=True,
+        )
+    )
+
+    payload = provider._build_generation_payload(
+        [ChatModelMessage(role="user", content="我今天心情不好。")]
+    )
+
+    assert "enable_search" not in payload["parameters"]
+    assert "search_options" not in payload["parameters"]
+
+
+def test_dashscope_generation_uses_native_model_config() -> None:
+    provider = DashScopeChatModelProvider(
+        Settings(
+            DASHSCOPE_API_KEY="test-key",
+            DASHSCOPE_MODEL="qwen3.5-flash",
+            DASHSCOPE_API_MODE="generation",
+        )
+    )
+
+    payload = provider._build_generation_payload(
+        [ChatModelMessage(role="user", content="你好")]
+    )
+
+    assert payload["model"] == "qwen-plus"
+
+
+def test_dashscope_generation_parser_extracts_source_reasoning_and_delta() -> None:
+    line = (
+        'data: {"output": {"search_info": {"search_results": ['
+        '{"index": 1, "title": "学校官网通知", "url": "https://example.edu/news", '
+        '"snippet": "通知摘要"}]}, "choices": [{"message": {'
+        '"reasoning_content": "正在核对来源。", "content": "请参考学校官网通知。"}}]}}'
+    )
+
+    events = DashScopeChatModelProvider._parse_generation_sse_line(line)
+
+    assert events[0] == ChatModelStreamEvent.source(
+        {
+            "title": "学校官网通知",
+            "url": "https://example.edu/news",
+            "snippet": "通知摘要",
+            "index": 1,
+        }
+    )
+    assert events[1] == ChatModelStreamEvent.reasoning("正在核对来源。")
+    assert events[2] == ChatModelStreamEvent.delta("请参考学校官网通知。")
+
+
+def test_dashscope_generation_parser_surfaces_provider_errors() -> None:
+    line = (
+        'data: {"code": "InvalidParameter", "message": "url error, please check url", '
+        '"request_id": "request-1"}'
+    )
+
+    events = DashScopeChatModelProvider._parse_generation_sse_line(line)
+
+    assert events == [
+        ChatModelStreamEvent(
+            "provider_error",
+            {
+                "message": "url error, please check url",
+                "code": "InvalidParameter",
+                "requestId": "request-1",
+            },
+        )
+    ]
+
+
+def test_dashscope_compatible_parser_extracts_reasoning_and_delta() -> None:
+    line = (
+        'data: {"choices": [{"delta": {'
+        '"reasoning_content": "正在拆解问题。", "content": "可以先列出任务。"}}]}'
+    )
+
+    events = DashScopeChatModelProvider._parse_compatible_sse_line(line)
+
+    assert events == [
+        ChatModelStreamEvent.reasoning("正在拆解问题。"),
+        ChatModelStreamEvent.delta("可以先列出任务。"),
+    ]
 
 
 @pytest.mark.asyncio

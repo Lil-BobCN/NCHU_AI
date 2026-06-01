@@ -64,9 +64,21 @@ class Settings(BaseSettings):
         default="https://dashscope.aliyuncs.com/compatible-mode/v1",
         validation_alias=AliasChoices("DASHSCOPE_API_BASE_URL", "QWEN_API_BASE_URL"),
     )
+    dashscope_native_api_base_url: str = Field(
+        default="https://dashscope.aliyuncs.com/api/v1",
+        validation_alias=AliasChoices("DASHSCOPE_NATIVE_API_BASE_URL", "QWEN_NATIVE_API_BASE_URL"),
+    )
+    dashscope_api_mode: str = Field(
+        default="compatible",
+        validation_alias=AliasChoices("DASHSCOPE_API_MODE", "QWEN_API_MODE"),
+    )
     dashscope_model: str = Field(
         default="qwen3.5-flash",
         validation_alias=AliasChoices("DASHSCOPE_MODEL", "QWEN_MODEL"),
+    )
+    dashscope_native_model: str = Field(
+        default="qwen-plus",
+        validation_alias=AliasChoices("DASHSCOPE_NATIVE_MODEL", "QWEN_NATIVE_MODEL"),
     )
     enable_thinking: bool = Field(
         default=False,
@@ -77,6 +89,10 @@ class Settings(BaseSettings):
     chat_model_context_message_limit: int = Field(default=8, gt=0)
     chat_model_web_search_enabled: bool = Field(default=True)
     chat_model_web_search_strategy: str = "turbo"
+    chat_model_search_source_enabled: bool = Field(default=True)
+    chat_model_search_citation_enabled: bool = Field(default=True)
+    chat_model_search_prepend_results: bool = Field(default=True)
+    chat_model_search_citation_format: str = "[ref_<number>]"
     chat_model_system_prompt: str = (
         "你是南昌航空大学 AI 辅导员 Demo 的学生端助手。"
         "请用中文给出清晰、克制、可执行的支持建议；"
@@ -107,6 +123,15 @@ class Settings(BaseSettings):
     def normalize_milvus_uppercase(cls, value: str) -> str:
         """Normalize Milvus enum-like settings."""
         return value.upper()
+
+    @field_validator("dashscope_api_mode")
+    @classmethod
+    def normalize_dashscope_api_mode(cls, value: str) -> str:
+        """Normalize the selected DashScope API adapter mode."""
+        normalized = value.strip().lower()
+        if normalized not in {"compatible", "generation"}:
+            raise ValueError("dashscope_api_mode must be one of 'compatible' or 'generation'")
+        return normalized
 
     @field_validator("chat_model_web_search_strategy")
     @classmethod
