@@ -3,8 +3,11 @@ from __future__ import annotations
 
 import asyncio
 import json
+import time
 from collections.abc import AsyncIterator
+from datetime import UTC, datetime
 from typing import Annotated, Any
+from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import StreamingResponse
@@ -26,6 +29,7 @@ from app.services.chat_model import (
     ChatModelError,
     ChatModelMessage,
     ChatModelProvider,
+    ChatModelRunOptions,
     ChatModelStreamEvent,
 )
 
@@ -72,7 +76,7 @@ async def stream_student_chat(
     )
 
     return StreamingResponse(
-        _stream_chat_events(conversation, user, provider, model_messages),
+        _stream_chat_events(conversation, user, provider, model_messages, payload),
         media_type="text/event-stream",
         headers={
             "Cache-Control": "no-cache",
@@ -193,18 +197,68 @@ async def _stream_chat_events(
     user: User,
     provider: ChatModelProvider,
     model_messages: list[ChatModelMessage],
+    request: StudentChatRequest,
 ) -> AsyncIterator[str]:
     chunks: list[str] = []
+    run = _ChatRunSseBuilder(conversation.id)
+    source_count = 0
+    tool_count = 0
+    started_at = time.perf_counter()
+    options = ChatModelRunOptions(
+        web_search=request.web_search,
+        profile=request.profile,
+        mode=request.mode,
+    )
+
     yield _sse("conversation", {"conversationId": conversation.id})
+    yield run.sse(
+        "run_started",
+        {
+            "conversationId": conversation.id,
+            "messageId": run.message_id,
+            "status": "running",
+        },
+    )
+    yield run.sse(
+        "profile",
+        {
+            "provider": "qwen",
+            "profile": request.profile,
+            "mode": request.mode,
+            "webSearch": request.web_search,
+            "attachments": "disabled" if request.attachments else "none",
+        },
+    )
+    yield run.sse("phase", {"phase": "analyzing", "detail": "Analyzing request."})
+    if request.attachments:
+        yield run.sse(
+            "notice",
+            {
+                "code": "attachments_disabled",
+                "detail": "Attachments are reserved for a later approved phase and were not read.",
+            },
+        )
     try:
-        async for event in _provider_stream_events(provider, model_messages):
+        async for event in _provider_stream_events(provider, model_messages, options):
+            event_type, event_payload = _standard_payload(event, source_count + 1)
             if event.type == "delta":
                 content = event.data.get("content")
                 if isinstance(content, str):
                     chunks.append(content)
-            yield _sse(event.type, event.data)
+            if event.type == "source":
+                source_count += 1
+            if event.type == "tool_started":
+                tool_count += 1
+            if event_type:
+                yield run.sse(event_type, event_payload)
+                legacy = _legacy_sse(event_type, event_payload, conversation.id)
+                if legacy:
+                    yield legacy
     except ChatModelConfigurationError as exc:
-        yield _sse("error", {"detail": str(exc)})
+        yield run.sse("usage", _usage_payload(chunks, source_count, tool_count, started_at))
+        error_payload = {"detail": str(exc), "code": "configuration_error"}
+        yield run.sse("error", error_payload)
+        yield _sse("error", error_payload)
         return
     except ChatModelError as exc:
         store.record_audit(
@@ -216,13 +270,41 @@ async def _stream_chat_events(
             event_tags=["chat:model:qwen"],
             counter_key="student.chat.stream.failure.count",
         )
-        yield _sse("error", {"detail": str(exc)})
+        yield run.sse("usage", _usage_payload(chunks, source_count, tool_count, started_at))
+        error_payload = {"detail": str(exc), "code": "provider_error"}
+        yield run.sse("error", error_payload)
+        yield _sse("error", error_payload)
         return
     except asyncio.CancelledError:
         partial_reply = "".join(chunks).strip()
         if partial_reply:
             store.append_conversation_message(conversation, "assistant", partial_reply)
-        raise
+        yield run.sse("usage", _usage_payload(chunks, source_count, tool_count, started_at))
+        yield run.sse(
+            "aborted",
+            {
+                "conversationId": conversation.id,
+                "detail": "The chat run was cancelled by the client.",
+            },
+        )
+        return
+
+    if source_count == 0:
+        yield run.sse(
+            "notice",
+            {
+                "code": "no_external_sources",
+                "detail": "No external sources were returned for this run.",
+            },
+        )
+    if tool_count == 0:
+        yield run.sse(
+            "notice",
+            {
+                "code": "no_external_tools",
+                "detail": "No tool calls were executed for this run.",
+            },
+        )
 
     reply = "".join(chunks).strip()
     if reply:
@@ -235,21 +317,146 @@ async def _stream_chat_events(
         event_tags=["chat:model:qwen"],
         counter_key="student.chat.stream.success.count",
     )
-    yield _sse("done", {"conversationId": conversation.id})
+    yield run.sse("usage", _usage_payload(chunks, source_count, tool_count, started_at))
+    done_payload = {"conversationId": conversation.id}
+    yield run.sse("done", done_payload)
+    yield _sse("done", done_payload)
 
 
 async def _provider_stream_events(
     provider: ChatModelProvider,
     model_messages: list[ChatModelMessage],
+    options: ChatModelRunOptions,
 ) -> AsyncIterator[ChatModelStreamEvent]:
     stream_events = getattr(provider, "stream_events", None)
     if callable(stream_events):
-        async for event in stream_events(model_messages):
+        async for event in stream_events(model_messages, options):
             yield event
         return
-    async for chunk in provider.stream_reply(model_messages):
+    async for chunk in provider.stream_reply(model_messages, options):
         yield ChatModelStreamEvent.delta(chunk)
 
 
 def _sse(event: str, data: dict[str, Any]) -> str:
     return f"event: {event}\ndata: {json.dumps(data, ensure_ascii=False)}\n\n"
+
+
+class _ChatRunSseBuilder:
+    schema_version = "chat.run.v1"
+
+    def __init__(self, conversation_id: str) -> None:
+        self.run_id = f"run_{uuid4().hex}"
+        self.message_id = f"msg_{uuid4().hex}"
+        self.conversation_id = conversation_id
+        self._seq = 0
+
+    def sse(self, event_type: str, payload: dict[str, Any]) -> str:
+        self._seq += 1
+        data = {
+            "schema_version": self.schema_version,
+            "run_id": self.run_id,
+            "message_id": self.message_id,
+            "conversation_id": self.conversation_id,
+            "seq": self._seq,
+            "type": event_type,
+            "ts": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
+            "payload": payload,
+        }
+        for key, value in payload.items():
+            if key not in data:
+                data[key] = value
+        return _sse(event_type, data)
+
+
+def _standard_payload(
+    event: ChatModelStreamEvent,
+    next_source_index: int,
+) -> tuple[str | None, dict[str, Any]]:
+    data = event.data
+    if event.type == "delta":
+        return "answer_delta", {"content": _string_value(data.get("content"))}
+    if event.type == "reasoning":
+        return "reasoning_summary_delta", {"content": _string_value(data.get("content"))}
+    if event.type == "phase":
+        return "phase", {"phase": _string_value(data.get("phase"))}
+    if event.type == "source":
+        return "source", _source_payload(data, next_source_index)
+    if event.type == "citation":
+        return "citation", _citation_payload(data)
+    if event.type in {"tool_started", "tool_delta", "tool_done"}:
+        return event.type, _tool_payload(data)
+    if event.type == "notice":
+        return "notice", dict(data)
+    return None, {}
+
+
+def _source_payload(source: dict[str, Any], index: int) -> dict[str, Any]:
+    payload = dict(source)
+    source_id = payload.get("source_id") or payload.get("sourceId")
+    if not isinstance(source_id, str) or not source_id:
+        source_id = f"source-{index}"
+    payload["source_id"] = source_id
+    payload["sourceId"] = source_id
+    return payload
+
+
+def _citation_payload(citation: dict[str, Any]) -> dict[str, Any]:
+    payload = dict(citation)
+    citation_id = payload.get("citation_id") or payload.get("citationId")
+    if isinstance(citation_id, str) and citation_id:
+        payload["citation_id"] = citation_id
+        payload["citationId"] = citation_id
+    return payload
+
+
+def _tool_payload(data: dict[str, Any]) -> dict[str, Any]:
+    payload = dict(data)
+    tool_call_id = payload.get("tool_call_id") or payload.get("toolCallId")
+    tool_name = payload.get("tool_name") or payload.get("toolName")
+    if tool_call_id is not None:
+        payload["tool_call_id"] = tool_call_id
+        payload["toolCallId"] = tool_call_id
+    if tool_name is not None:
+        payload["tool_name"] = tool_name
+        payload["toolName"] = tool_name
+    return payload
+
+
+def _usage_payload(
+    chunks: list[str],
+    source_count: int,
+    tool_count: int,
+    started_at: float,
+) -> dict[str, Any]:
+    return {
+        "output_chars": len("".join(chunks)),
+        "source_count": source_count,
+        "tool_count": tool_count,
+        "elapsed_ms": int((time.perf_counter() - started_at) * 1000),
+    }
+
+
+def _legacy_sse(
+    event_type: str,
+    payload: dict[str, Any],
+    conversation_id: str,
+) -> str | None:
+    if event_type == "answer_delta":
+        return _sse("delta", {"content": payload.get("content", "")})
+    if event_type == "reasoning_summary_delta":
+        return _sse("reasoning", {"content": payload.get("content", "")})
+    if event_type == "source":
+        return _sse("source", payload)
+    if event_type == "phase":
+        return _sse("phase", payload)
+    if event_type == "notice":
+        return _sse("notice", payload)
+    if event_type == "done":
+        return _sse("done", {"conversationId": conversation_id})
+    if event_type == "error":
+        return _sse("error", payload)
+    return None
+
+
+def _string_value(value: Any) -> str:
+    return value if isinstance(value, str) else ""

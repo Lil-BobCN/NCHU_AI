@@ -1,6 +1,8 @@
 """Acceptance tests for the Phase 1 business API surface."""
 from __future__ import annotations
 
+import json
+
 import pytest
 from httpx import AsyncClient
 
@@ -8,7 +10,9 @@ from app.api.v1.deps import chat_model_provider
 from app.config import Settings, get_settings
 from app.services.business import store
 from app.services.chat_model import (
+    ChatModelError,
     ChatModelMessage,
+    ChatModelRunOptions,
     ChatModelStreamEvent,
     DashScopeChatModelProvider,
 )
@@ -25,6 +29,29 @@ async def _login(async_client: AsyncClient, username: str, password: str = "pass
 
 def _bearer(token: str) -> dict[str, str]:
     return {"Authorization": f"Bearer {token}"}
+
+
+def _sse_events(text: str) -> list[tuple[str, dict]]:
+    events: list[tuple[str, dict]] = []
+    for block in text.replace("\r\n", "\n").strip().split("\n\n"):
+        event = "message"
+        data_lines: list[str] = []
+        for line in block.split("\n"):
+            if line.startswith("event:"):
+                event = line.removeprefix("event:").strip()
+            if line.startswith("data:"):
+                data_lines.append(line.removeprefix("data:").strip())
+        if data_lines:
+            events.append((event, json.loads("\n".join(data_lines))))
+    return events
+
+
+def _standard_sse_events(text: str) -> list[tuple[str, dict]]:
+    return [
+        (event, data)
+        for event, data in _sse_events(text)
+        if data.get("schema_version") == "chat.run.v1"
+    ]
 
 
 @pytest.mark.asyncio
@@ -206,13 +233,19 @@ class _FakeChatProvider:
         self.chunks = chunks
         self._configured = configured
         self.calls: list[list[ChatModelMessage]] = []
+        self.options: list[ChatModelRunOptions | None] = []
 
     @property
     def configured(self) -> bool:
         return self._configured
 
-    async def stream_reply(self, messages: list[ChatModelMessage]):
+    async def stream_reply(
+        self,
+        messages: list[ChatModelMessage],
+        options: ChatModelRunOptions | None = None,
+    ):
         self.calls.append(messages)
+        self.options.append(options)
         for chunk in self.chunks:
             yield chunk
 
@@ -222,21 +255,44 @@ class _FakeEventProvider:
         self.events = events
         self._configured = configured
         self.calls: list[list[ChatModelMessage]] = []
+        self.options: list[ChatModelRunOptions | None] = []
 
     @property
     def configured(self) -> bool:
         return self._configured
 
-    async def stream_events(self, messages: list[ChatModelMessage]):
+    async def stream_events(
+        self,
+        messages: list[ChatModelMessage],
+        options: ChatModelRunOptions | None = None,
+    ):
         self.calls.append(messages)
+        self.options.append(options)
         for event in self.events:
             yield event
 
-    async def stream_reply(self, messages: list[ChatModelMessage]):
+    async def stream_reply(
+        self,
+        messages: list[ChatModelMessage],
+        options: ChatModelRunOptions | None = None,
+    ):
         self.calls.append(messages)
+        self.options.append(options)
         for event in self.events:
             if event.type == "delta":
                 yield event.data["content"]
+
+
+class _FailingEventProvider(_FakeEventProvider):
+    async def stream_events(
+        self,
+        messages: list[ChatModelMessage],
+        options: ChatModelRunOptions | None = None,
+    ):
+        self.calls.append(messages)
+        self.options.append(options)
+        yield ChatModelStreamEvent.delta("partial")
+        raise ChatModelError("provider failed")
 
 
 @pytest.mark.asyncio
@@ -326,6 +382,177 @@ async def test_student_chat_stream_forwards_structured_model_events(
 
     conversation = next(iter(store.conversations.values()))
     assert conversation.messages[1].content == "可以先查看官方通知。"
+    app.dependency_overrides.clear()
+
+
+@pytest.mark.asyncio
+async def test_student_chat_stream_wraps_events_in_standard_run_envelope(
+    app,
+    async_client: AsyncClient,
+) -> None:
+    provider = _FakeEventProvider(
+        [
+            ChatModelStreamEvent.phase("searching"),
+            ChatModelStreamEvent.tool_started(
+                "web_search",
+                tool_call_id="search-1",
+                title="Provider web search",
+            ),
+            ChatModelStreamEvent.tool_delta(
+                "web_search",
+                tool_call_id="search-1",
+                detail="Search request accepted.",
+            ),
+            ChatModelStreamEvent.source(
+                {
+                    "title": "Official notice",
+                    "type": "provider-source",
+                    "url": "https://example.edu/notice",
+                }
+            ),
+            ChatModelStreamEvent.tool_done(
+                "web_search",
+                tool_call_id="search-1",
+                status="success",
+                detail="Provider returned 1 source.",
+                result_count=1,
+            ),
+            ChatModelStreamEvent.delta("Use the official notice."),
+        ]
+    )
+    app.dependency_overrides[chat_model_provider] = lambda: provider
+    login = await _login(async_client, "student@example.edu")
+
+    response = await async_client.post(
+        "/api/v1/student/chat/stream",
+        headers=_bearer(login["access_token"]),
+        json={"message": "Please search the latest school notice."},
+    )
+
+    assert response.status_code == 200
+    assert "event: conversation" in response.text
+    assert "event: delta" in response.text
+    events = _standard_sse_events(response.text)
+    payloads = [data for _, data in events]
+    run_id = payloads[0]["run_id"]
+    message_id = payloads[0]["message_id"]
+
+    assert payloads[0]["schema_version"] == "chat.run.v1"
+    assert payloads[0]["type"] == "run_started"
+    assert payloads[0]["payload"]["conversationId"] == payloads[0]["conversationId"]
+    assert all(data["run_id"] == run_id for data in payloads)
+    assert all(data["message_id"] == message_id for data in payloads)
+    assert [data["seq"] for data in payloads] == list(range(1, len(payloads) + 1))
+
+    delta = next(data for event, data in events if event == "answer_delta")
+    assert delta["type"] == "answer_delta"
+    assert delta["payload"]["content"] == "Use the official notice."
+    assert delta["content"] == "Use the official notice."
+
+    source = next(data for event, data in events if event == "source")
+    assert source["type"] == "source"
+    assert source["payload"]["type"] == "provider-source"
+    assert source["payload"]["url"] == "https://example.edu/notice"
+    assert source["url"] == "https://example.edu/notice"
+
+    terminal_types = [
+        data["type"]
+        for _, data in events
+        if data["type"] in {"done", "error", "aborted"}
+    ]
+    assert terminal_types == ["done"]
+    usage_index = next(index for index, data in enumerate(payloads) if data["type"] == "usage")
+    done_index = next(index for index, data in enumerate(payloads) if data["type"] == "done")
+    assert usage_index < done_index
+    app.dependency_overrides.clear()
+
+
+@pytest.mark.asyncio
+async def test_student_chat_stream_emits_no_source_no_tool_notices(
+    app,
+    async_client: AsyncClient,
+) -> None:
+    provider = _FakeChatProvider(["Plain answer."])
+    app.dependency_overrides[chat_model_provider] = lambda: provider
+    login = await _login(async_client, "student@example.edu")
+
+    response = await async_client.post(
+        "/api/v1/student/chat/stream",
+        headers=_bearer(login["access_token"]),
+        json={"message": "I feel stressed today."},
+    )
+
+    assert response.status_code == 200
+    notices = [
+        data["payload"]["code"]
+        for event, data in _standard_sse_events(response.text)
+        if event == "notice"
+    ]
+    assert notices == ["no_external_sources", "no_external_tools"]
+    assert "event: done" in response.text
+    app.dependency_overrides.clear()
+
+
+@pytest.mark.asyncio
+async def test_student_chat_stream_passes_request_run_options(
+    app,
+    async_client: AsyncClient,
+) -> None:
+    provider = _FakeChatProvider(["Plain answer."])
+    app.dependency_overrides[chat_model_provider] = lambda: provider
+    login = await _login(async_client, "student@example.edu")
+
+    response = await async_client.post(
+        "/api/v1/student/chat/stream",
+        headers=_bearer(login["access_token"]),
+        json={
+            "message": "Please search the latest school notice.",
+            "webSearch": False,
+            "profile": "student",
+            "mode": "focus",
+            "attachments": [{"id": "a1", "name": "note.pdf"}],
+        },
+    )
+
+    assert response.status_code == 200
+    assert provider.options[0] == ChatModelRunOptions(
+        web_search=False,
+        profile="student",
+        mode="focus",
+    )
+    notices = [
+        data["payload"]["code"]
+        for event, data in _standard_sse_events(response.text)
+        if event == "notice"
+    ]
+    assert "attachments_disabled" in notices
+    app.dependency_overrides.clear()
+
+
+@pytest.mark.asyncio
+async def test_student_chat_stream_error_flow_has_single_standard_terminal(
+    app,
+    async_client: AsyncClient,
+) -> None:
+    provider = _FailingEventProvider([])
+    app.dependency_overrides[chat_model_provider] = lambda: provider
+    login = await _login(async_client, "student@example.edu")
+
+    response = await async_client.post(
+        "/api/v1/student/chat/stream",
+        headers=_bearer(login["access_token"]),
+        json={"message": "Please answer."},
+    )
+
+    assert response.status_code == 200
+    events = _standard_sse_events(response.text)
+    terminal_types = [
+        data["type"]
+        for _, data in events
+        if data["type"] in {"done", "error", "aborted"}
+    ]
+    assert terminal_types == ["error"]
+    assert "event: done" not in response.text
     app.dependency_overrides.clear()
 
 
@@ -471,6 +698,30 @@ def test_dashscope_payload_enables_web_search_for_current_fact_prompts() -> None
     }
 
 
+def test_dashscope_payload_honors_explicit_web_search_override() -> None:
+    provider = DashScopeChatModelProvider(
+        Settings(
+            DASHSCOPE_API_KEY="test-key",
+            DASHSCOPE_MODEL="qwen3.5-flash",
+            chat_model_web_search_enabled=True,
+            chat_model_web_search_strategy="turbo",
+        )
+    )
+
+    disabled_payload = provider._build_payload(
+        [ChatModelMessage(role="user", content="Please search the latest school notice.")],
+        ChatModelRunOptions(web_search=False),
+    )
+    enabled_payload = provider._build_payload(
+        [ChatModelMessage(role="user", content="Please reply without extra context.")],
+        ChatModelRunOptions(web_search=True),
+    )
+
+    assert "enable_search" not in disabled_payload
+    assert enabled_payload["enable_search"] is True
+    assert enabled_payload["search_options"] == {"search_strategy": "turbo"}
+
+
 def test_dashscope_generation_payload_enables_sources_and_citations() -> None:
     provider = DashScopeChatModelProvider(
         Settings(
@@ -561,6 +812,29 @@ def test_dashscope_generation_parser_extracts_source_reasoning_and_delta() -> No
     )
     assert events[1] == ChatModelStreamEvent.reasoning("正在核对来源。")
     assert events[2] == ChatModelStreamEvent.delta("请参考学校官网通知。")
+
+
+def test_dashscope_generation_parser_extracts_real_citation_fields() -> None:
+    line = (
+        'data: {"output": {"choices": [{"message": {'
+        '"citations": [{"marker": "[ref_1]", "title": "Notice", '
+        '"url": "https://example.edu/news", "source_index": 1}], '
+        '"content": "See [ref_1]."}}]}}'
+    )
+
+    events = DashScopeChatModelProvider._parse_generation_sse_line(line)
+
+    assert events == [
+        ChatModelStreamEvent.citation(
+            {
+                "marker": "[ref_1]",
+                "title": "Notice",
+                "url": "https://example.edu/news",
+                "sourceIndex": 1,
+            }
+        ),
+        ChatModelStreamEvent.delta("See [ref_1]."),
+    ]
 
 
 def test_dashscope_generation_parser_surfaces_provider_errors() -> None:

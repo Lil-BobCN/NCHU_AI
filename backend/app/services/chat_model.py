@@ -18,6 +18,13 @@ class ChatModelMessage:
 
 
 @dataclass(frozen=True, slots=True)
+class ChatModelRunOptions:
+    web_search: bool | None = None
+    profile: str | None = None
+    mode: str | None = None
+
+
+@dataclass(frozen=True, slots=True)
 class ChatModelStreamEvent:
     type: str
     data: dict[str, Any]
@@ -38,6 +45,69 @@ class ChatModelStreamEvent:
     def source(cls, source: dict[str, Any]) -> ChatModelStreamEvent:
         return cls("source", source)
 
+    @classmethod
+    def citation(cls, citation: dict[str, Any]) -> ChatModelStreamEvent:
+        return cls("citation", citation)
+
+    @classmethod
+    def notice(cls, code: str, detail: str) -> ChatModelStreamEvent:
+        return cls("notice", {"code": code, "detail": detail})
+
+    @classmethod
+    def tool_started(
+        cls,
+        tool_name: str,
+        *,
+        tool_call_id: str,
+        title: str,
+    ) -> ChatModelStreamEvent:
+        return cls(
+            "tool_started",
+            {
+                "toolCallId": tool_call_id,
+                "toolName": tool_name,
+                "title": title,
+            },
+        )
+
+    @classmethod
+    def tool_delta(
+        cls,
+        tool_name: str,
+        *,
+        tool_call_id: str,
+        detail: str,
+        metadata: dict[str, Any] | None = None,
+    ) -> ChatModelStreamEvent:
+        data: dict[str, Any] = {
+            "toolCallId": tool_call_id,
+            "toolName": tool_name,
+            "detail": detail,
+        }
+        if metadata:
+            data["metadata"] = metadata
+        return cls("tool_delta", data)
+
+    @classmethod
+    def tool_done(
+        cls,
+        tool_name: str,
+        *,
+        tool_call_id: str,
+        status: str,
+        detail: str,
+        result_count: int | None = None,
+    ) -> ChatModelStreamEvent:
+        data: dict[str, Any] = {
+            "toolCallId": tool_call_id,
+            "toolName": tool_name,
+            "status": status,
+            "detail": detail,
+        }
+        if result_count is not None:
+            data["resultCount"] = result_count
+        return cls("tool_done", data)
+
 
 class ChatModelError(RuntimeError):
     """Base error for model proxy failures."""
@@ -56,7 +126,11 @@ class ChatModelProvider(Protocol):
     def configured(self) -> bool:
         """Return whether the provider has enough settings to call upstream."""
 
-    async def stream_reply(self, messages: list[ChatModelMessage]) -> AsyncIterator[str]:
+    async def stream_reply(
+        self,
+        messages: list[ChatModelMessage],
+        options: ChatModelRunOptions | None = None,
+    ) -> AsyncIterator[str]:
         """Yield assistant response chunks."""
         ...
 
@@ -96,8 +170,12 @@ class DashScopeChatModelProvider:
         )
         return bool(self._api_key and base_url and self._model)
 
-    async def stream_reply(self, messages: list[ChatModelMessage]) -> AsyncIterator[str]:
-        async for event in self.stream_events(messages):
+    async def stream_reply(
+        self,
+        messages: list[ChatModelMessage],
+        options: ChatModelRunOptions | None = None,
+    ) -> AsyncIterator[str]:
+        async for event in self.stream_events(messages, options):
             if event.type == "delta":
                 content = event.data.get("content")
                 if isinstance(content, str) and content:
@@ -106,6 +184,7 @@ class DashScopeChatModelProvider:
     async def stream_events(
         self,
         messages: list[ChatModelMessage],
+        options: ChatModelRunOptions | None = None,
     ) -> AsyncIterator[ChatModelStreamEvent]:
         if not self.configured:
             raise ChatModelConfigurationError(
@@ -114,19 +193,33 @@ class DashScopeChatModelProvider:
             )
 
         if self._api_mode == "generation":
-            async for event in self._stream_generation_events(messages):
+            async for event in self._stream_generation_events(messages, options):
                 yield event
             return
 
-        async for event in self._stream_compatible_events(messages):
+        async for event in self._stream_compatible_events(messages, options):
             yield event
 
     async def _stream_compatible_events(
         self,
         messages: list[ChatModelMessage],
+        options: ChatModelRunOptions | None,
     ) -> AsyncIterator[ChatModelStreamEvent]:
-        payload = self._build_payload(messages)
-        if "enable_search" in payload:
+        payload = self._build_payload(messages, options)
+        search_enabled = "enable_search" in payload
+        search_tool_call_id = "dashscope-web-search"
+        if search_enabled:
+            yield ChatModelStreamEvent.tool_started(
+                "web_search",
+                tool_call_id=search_tool_call_id,
+                title="DashScope web search",
+            )
+            yield ChatModelStreamEvent.tool_delta(
+                "web_search",
+                tool_call_id=search_tool_call_id,
+                detail="Search request sent to DashScope.",
+                metadata={"strategy": self._web_search_strategy},
+            )
             yield ChatModelStreamEvent.phase("searching")
         yield ChatModelStreamEvent.phase("generating")
 
@@ -152,17 +245,50 @@ class DashScopeChatModelProvider:
                 async for line in response.aiter_lines():
                     for event in self._parse_compatible_sse_line(line):
                         if event.type == "provider_error":
+                            if search_enabled:
+                                yield ChatModelStreamEvent.tool_done(
+                                    "web_search",
+                                    tool_call_id=search_tool_call_id,
+                                    status="error",
+                                    detail=str(event.data["message"]),
+                                )
                             raise ChatModelProviderError(str(event.data["message"]))
                         yield event
+                if search_enabled:
+                    yield ChatModelStreamEvent.tool_done(
+                        "web_search",
+                        tool_call_id=search_tool_call_id,
+                        status="success",
+                        detail="Provider search completed without source details.",
+                    )
         except httpx.HTTPError as exc:
             raise ChatModelProviderError(f"Qwen provider request failed: {exc}") from exc
 
     async def _stream_generation_events(
         self,
         messages: list[ChatModelMessage],
+        options: ChatModelRunOptions | None,
     ) -> AsyncIterator[ChatModelStreamEvent]:
-        payload = self._build_generation_payload(messages)
-        if payload["parameters"].get("enable_search"):
+        payload = self._build_generation_payload(messages, options)
+        search_enabled = bool(payload["parameters"].get("enable_search"))
+        search_tool_call_id = "dashscope-web-search"
+        source_count = 0
+        if search_enabled:
+            yield ChatModelStreamEvent.tool_started(
+                "web_search",
+                tool_call_id=search_tool_call_id,
+                title="DashScope web search",
+            )
+            yield ChatModelStreamEvent.tool_delta(
+                "web_search",
+                tool_call_id=search_tool_call_id,
+                detail="Search request sent to DashScope.",
+                metadata={
+                    "strategy": self._web_search_strategy,
+                    "sourceEnabled": self._search_source_enabled,
+                    "citationEnabled": self._search_citation_enabled,
+                },
+            )
             yield ChatModelStreamEvent.phase("searching")
         yield ChatModelStreamEvent.phase("generating")
 
@@ -190,17 +316,41 @@ class DashScopeChatModelProvider:
                 async for line in response.aiter_lines():
                     for event in self._parse_generation_sse_line(line):
                         if event.type == "provider_error":
+                            if search_enabled:
+                                yield ChatModelStreamEvent.tool_done(
+                                    "web_search",
+                                    tool_call_id=search_tool_call_id,
+                                    status="error",
+                                    detail=str(event.data["message"]),
+                                )
                             raise ChatModelProviderError(str(event.data["message"]))
                         if event.type == "source":
                             key = self._source_key(event.data)
                             if key in seen_sources:
                                 continue
                             seen_sources.add(key)
+                            source_count += 1
                         yield event
+                if search_enabled:
+                    yield ChatModelStreamEvent.tool_done(
+                        "web_search",
+                        tool_call_id=search_tool_call_id,
+                        status="success" if source_count else "no_results",
+                        detail=(
+                            f"Provider returned {source_count} source(s)."
+                            if source_count
+                            else "Provider search completed without source details."
+                        ),
+                        result_count=source_count,
+                    )
         except httpx.HTTPError as exc:
             raise ChatModelProviderError(f"Qwen provider request failed: {exc}") from exc
 
-    def _build_payload(self, messages: list[ChatModelMessage]) -> dict[str, Any]:
+    def _build_payload(
+        self,
+        messages: list[ChatModelMessage],
+        options: ChatModelRunOptions | None = None,
+    ) -> dict[str, Any]:
         payload: dict[str, Any] = {
             "model": self._model,
             "messages": self._build_messages(messages),
@@ -208,21 +358,25 @@ class DashScopeChatModelProvider:
             "stream": True,
             "enable_thinking": self._enable_thinking,
         }
-        if self._web_search_enabled and self._should_enable_web_search(messages):
+        if self._should_use_web_search(messages, options):
             payload["enable_search"] = True
             payload["search_options"] = {
                 "search_strategy": self._web_search_strategy,
             }
         return payload
 
-    def _build_generation_payload(self, messages: list[ChatModelMessage]) -> dict[str, Any]:
+    def _build_generation_payload(
+        self,
+        messages: list[ChatModelMessage],
+        options: ChatModelRunOptions | None = None,
+    ) -> dict[str, Any]:
         parameters: dict[str, Any] = {
             "result_format": "message",
             "incremental_output": True,
             "max_tokens": self._max_tokens,
             "enable_thinking": self._enable_thinking,
         }
-        if self._web_search_enabled and self._should_enable_web_search(messages):
+        if self._should_use_web_search(messages, options):
             parameters["enable_search"] = True
             parameters["search_options"] = {
                 "search_strategy": self._web_search_strategy,
@@ -241,6 +395,17 @@ class DashScopeChatModelProvider:
         rendered = [{"role": "system", "content": self._system_prompt}]
         rendered.extend({"role": item.role, "content": item.content} for item in messages)
         return rendered
+
+    def _should_use_web_search(
+        self,
+        messages: list[ChatModelMessage],
+        options: ChatModelRunOptions | None,
+    ) -> bool:
+        if not self._web_search_enabled:
+            return False
+        if options and options.web_search is not None:
+            return options.web_search
+        return self._should_enable_web_search(messages)
 
     @staticmethod
     def _should_enable_web_search(messages: list[ChatModelMessage]) -> bool:
@@ -336,8 +501,11 @@ class DashScopeChatModelProvider:
         choices = payload.get("choices") or []
         if not choices:
             return []
-        delta = choices[0].get("delta") or {}
         events: list[ChatModelStreamEvent] = []
+        events.extend(DashScopeChatModelProvider._citation_events(payload))
+        events.extend(DashScopeChatModelProvider._citation_events(choices[0]))
+        delta = choices[0].get("delta") or {}
+        events.extend(DashScopeChatModelProvider._citation_events(delta))
         reasoning = delta.get("reasoning_content")
         if isinstance(reasoning, str) and reasoning:
             events.append(ChatModelStreamEvent.reasoning(reasoning))
@@ -368,11 +536,14 @@ class DashScopeChatModelProvider:
             normalized = DashScopeChatModelProvider._normalize_search_source(source)
             if normalized:
                 events.append(ChatModelStreamEvent.source(normalized))
+        events.extend(DashScopeChatModelProvider._citation_events(search_info))
+        events.extend(DashScopeChatModelProvider._citation_events(output))
 
         choices = output.get("choices") or []
         if not choices:
             return events
         message = choices[0].get("message") or {}
+        events.extend(DashScopeChatModelProvider._citation_events(message))
         reasoning = message.get("reasoning_content")
         if isinstance(reasoning, str) and reasoning:
             events.append(ChatModelStreamEvent.reasoning(reasoning))
@@ -408,6 +579,50 @@ class DashScopeChatModelProvider:
             if value not in (None, "") and event_key not in normalized:
                 normalized[event_key] = value
         return normalized
+
+    @staticmethod
+    def _citation_events(payload: Any) -> list[ChatModelStreamEvent]:
+        if not isinstance(payload, dict):
+            return []
+        raw_citations = payload.get("citations") or payload.get("citation")
+        if raw_citations is None:
+            return []
+        if isinstance(raw_citations, dict):
+            raw_citations = [raw_citations]
+        if not isinstance(raw_citations, list):
+            return []
+        events: list[ChatModelStreamEvent] = []
+        for raw_citation in raw_citations:
+            normalized = DashScopeChatModelProvider._normalize_citation(raw_citation)
+            if normalized:
+                events.append(ChatModelStreamEvent.citation(normalized))
+        return events
+
+    @staticmethod
+    def _normalize_citation(citation: Any) -> dict[str, Any] | None:
+        if not isinstance(citation, dict):
+            return None
+        normalized: dict[str, Any] = {}
+        for source_key, event_key in (
+            ("id", "citationId"),
+            ("citation_id", "citationId"),
+            ("marker", "marker"),
+            ("ref", "marker"),
+            ("text", "text"),
+            ("title", "title"),
+            ("url", "url"),
+            ("link", "url"),
+            ("snippet", "snippet"),
+            ("source_id", "sourceId"),
+            ("sourceId", "sourceId"),
+            ("source_index", "sourceIndex"),
+            ("sourceIndex", "sourceIndex"),
+            ("index", "sourceIndex"),
+        ):
+            value = citation.get(source_key)
+            if value not in (None, "") and event_key not in normalized:
+                normalized[event_key] = value
+        return normalized or None
 
     @staticmethod
     def _source_key(source: dict[str, Any]) -> str:

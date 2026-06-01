@@ -74,12 +74,29 @@ class ConversationMessageCreate(BaseModel):
     content: str = Field(min_length=1)
 
 
+class StudentChatAttachment(BaseModel):
+    id: str | None = None
+    name: str | None = None
+    mime_type: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices("mime_type", "mimeType"),
+    )
+    size: int | None = None
+
+
 class StudentChatRequest(BaseModel):
     message: str = Field(min_length=1)
     conversation_id: str | None = Field(
         default=None,
         validation_alias=AliasChoices("conversation_id", "conversationId"),
     )
+    web_search: bool | None = Field(
+        default=None,
+        validation_alias=AliasChoices("web_search", "webSearch"),
+    )
+    profile: str = "student"
+    mode: str = "balanced"
+    attachments: list[StudentChatAttachment] = Field(default_factory=list)
 
 
 class ConversationResponse(BaseModel):

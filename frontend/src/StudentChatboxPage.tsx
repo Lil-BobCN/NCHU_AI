@@ -7,13 +7,18 @@ import {
   AssistantSidebar,
 } from '@/components/assistant-ui/assistant-sidebar'
 import type { AssistantConversationMeta } from '@/components/assistant-ui/thread-list'
+import { getRunPayload, readString, reduceChatRun } from '@/lib/chat-run'
+import type { ChatRunState, RunEventData } from '@/lib/chat-run'
 import {
   ArrowLeft,
   Moon,
   Plus,
   Sun,
 } from '@/components/assistant-ui/chat-icons'
-import { StudentAssistantThread } from '@/components/assistant-ui/thread'
+import {
+  StudentAssistantThread,
+  type StudentChatMode,
+} from '@/components/assistant-ui/thread'
 
 type StudentChatboxPageProps = {
   apiBase: string
@@ -46,6 +51,7 @@ type ChatMessage = {
   role: 'student' | 'assistant'
   content: string
   createdAt?: string
+  run?: ChatRunState
   status?: MessageStatus
 }
 
@@ -55,7 +61,7 @@ type ChatTheme = 'light' | 'dark'
 
 type StreamEvent = {
   event: string
-  data: Record<string, string>
+  data: RunEventData
 }
 
 class ApiRequestError extends Error {
@@ -94,11 +100,19 @@ export default function StudentChatboxPage({
   const [error, setError] = useState('')
   const [lastPrompt, setLastPrompt] = useState('')
   const [chatTheme, setChatTheme] = useState<ChatTheme>(getInitialChatTheme)
+  const [webSearchEnabled, setWebSearchEnabled] = useState(false)
+  const [chatMode, setChatMode] = useState<StudentChatMode>('balanced')
 
   const token = session?.token ?? ''
   const activeConversation = conversations.find((item) => item.id === activeConversationId)
   const isBusy = status === 'loading' || status === 'streaming'
   const canRetry = Boolean(lastPrompt) && !isBusy
+  const messageRuns = Object.fromEntries(
+    messages.map((message) => [message.id, message.run]),
+  ) as Record<string, ChatRunState | undefined>
+  const messageContents = Object.fromEntries(
+    messages.map((message) => [message.id, message.content]),
+  ) as Record<string, string>
   const conversationMeta: AssistantConversationMeta[] = conversations.map((conversation) => ({
     id: conversation.id,
     title: conversation.title || '未命名会话',
@@ -130,6 +144,22 @@ export default function StudentChatboxPage({
     )
   }, [])
 
+  const applyRunEvent = useCallback(
+    (messageId: string, eventName: string, data: RunEventData) => {
+      setMessages((current) =>
+        current.map((message) =>
+          message.id === messageId
+            ? {
+                ...message,
+                run: reduceChatRun(message.run, eventName, data),
+              }
+            : message,
+        ),
+      )
+    },
+    [],
+  )
+
   const refreshConversations = useCallback(
     async (conversationId: string | null) => {
       if (!token) {
@@ -140,7 +170,9 @@ export default function StudentChatboxPage({
       if (conversationId) {
         const refreshed = items.find((item) => item.id === conversationId)
         if (refreshed) {
-          setMessages(refreshed.messages.map(toChatMessage))
+          setMessages((current) =>
+            preserveAssistantRunState(current, refreshed.messages.map(toChatMessage)),
+          )
         }
       }
     },
@@ -212,6 +244,10 @@ export default function StudentChatboxPage({
           body: JSON.stringify({
             conversationId,
             message: prompt,
+            webSearch: webSearchEnabled,
+            profile: 'student',
+            mode: chatMode,
+            attachments: [],
           }),
           signal: controller.signal,
         })
@@ -235,6 +271,7 @@ export default function StudentChatboxPage({
         const decoder = new TextDecoder()
         let buffer = ''
         let streamedConversationId = conversationId
+        let hasStandardRunEvents = false
 
         while (true) {
           const { done, value } = await reader.read()
@@ -247,15 +284,40 @@ export default function StudentChatboxPage({
           buffer = parsed.rest
 
           for (const event of parsed.events) {
-            if (event.event === 'conversation') {
-              streamedConversationId = event.data.conversationId ?? streamedConversationId
+            const payload = getRunPayload(event.data)
+            const eventType = readString(event.data.type) ?? event.event
+            const isStandardRunEvent = event.data.schema_version === 'chat.run.v1'
+            if (isStandardRunEvent) {
+              hasStandardRunEvents = true
+            }
+            const shouldConsumeEvent =
+              isStandardRunEvent || !hasStandardRunEvents || event.event === 'conversation'
+            if (shouldConsumeEvent) {
+              applyRunEvent(assistantId, event.event, event.data)
+            }
+            if (
+              event.event === 'conversation' ||
+              eventType === 'run_started' ||
+              eventType === 'done'
+            ) {
+              streamedConversationId =
+                readString(payload.conversationId) ??
+                readString(event.data.conversationId) ??
+                streamedConversationId
               setActiveConversationId(streamedConversationId ?? null)
             }
-            if (event.event === 'delta') {
-              appendAssistantChunk(assistantId, event.data.content ?? '')
+            if (shouldConsumeEvent && (event.event === 'delta' || eventType === 'answer_delta')) {
+              appendAssistantChunk(
+                assistantId,
+                readString(payload.content) ?? readString(event.data.content) ?? '',
+              )
             }
-            if (event.event === 'error') {
-              throw new Error(event.data.detail ?? '模型生成失败')
+            if (shouldConsumeEvent && eventType === 'error') {
+              throw new Error(
+                readString(payload.detail) ??
+                  readString(event.data.detail) ??
+                  '模型生成失败',
+              )
             }
           }
         }
@@ -265,6 +327,10 @@ export default function StudentChatboxPage({
         await refreshConversations(streamedConversationId ?? null)
       } catch (sendError) {
         if (sendError instanceof DOMException && sendError.name === 'AbortError') {
+          applyRunEvent(assistantId, 'aborted', {
+            type: 'aborted',
+            payload: { detail: 'Generation stopped by user.' },
+          })
           markAssistantStatus(assistantId, { type: 'incomplete', reason: 'cancelled' })
           setStatus('stopped')
           return
@@ -282,6 +348,10 @@ export default function StudentChatboxPage({
               ? {
                   ...item,
                   content: message,
+                  run: reduceChatRun(item.run, 'error', {
+                    type: 'error',
+                    payload: { detail: message },
+                  }),
                 }
               : item,
           ),
@@ -304,11 +374,14 @@ export default function StudentChatboxPage({
       activeConversationId,
       apiBase,
       appendAssistantChunk,
+      applyRunEvent,
       isBusy,
       markAssistantStatus,
       onSessionExpired,
       refreshConversations,
       token,
+      webSearchEnabled,
+      chatMode,
     ],
   )
 
@@ -476,12 +549,18 @@ export default function StudentChatboxPage({
           <StudentAssistantThread
             assistantName={assistantDisplayName}
             canRetry={canRetry}
+            chatMode={chatMode}
             error={error}
+            messageContents={messageContents}
+            messageRuns={messageRuns}
             mobileSidebarTrigger={mobileSidebar}
+            onChatModeChange={setChatMode}
             onRetry={() => void retryLastPrompt()}
+            onWebSearchChange={setWebSearchEnabled}
             promptStarters={promptStarters}
             status={status}
             toolbar={threadToolbar}
+            webSearchEnabled={webSearchEnabled}
             title={activeConversation?.title ?? '新会话'}
           />
         </section>
@@ -525,6 +604,28 @@ function toChatMessage(message: ApiMessage): ChatMessage {
           }
         : undefined,
   }
+}
+
+function preserveAssistantRunState(current: ChatMessage[], next: ChatMessage[]): ChatMessage[] {
+  const sidecars = current
+    .filter((message) => message.role === 'assistant' && (message.run || message.status))
+    .map((message) => ({ run: message.run, status: message.status }))
+  if (sidecars.length === 0) {
+    return next
+  }
+  return next.map((message) => {
+    if (message.role !== 'assistant') {
+      return message
+    }
+    const sidecar = sidecars.shift()
+    return sidecar
+      ? {
+          ...message,
+          run: sidecar.run,
+          status: sidecar.status ?? message.status,
+        }
+      : message
+  })
 }
 
 function toAssistantMessage(message: ChatMessage): ThreadMessageLike {
@@ -575,10 +676,15 @@ function parseSseEvent(block: string): StreamEvent[] {
   }
 
   try {
-    return [{ event, data: JSON.parse(dataLines.join('\n')) as Record<string, string> }]
+    const data = JSON.parse(dataLines.join('\n')) as unknown
+    return isRunEventData(data) ? [{ event, data }] : []
   } catch {
     return []
   }
+}
+
+function isRunEventData(value: unknown): value is RunEventData {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
 }
 
 function getInitialChatTheme(): ChatTheme {
