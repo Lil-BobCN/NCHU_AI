@@ -143,3 +143,47 @@ Project verification attempts from worker-4:
 
 - Revert `.omx/logs/chatbox-kimi-like-b-next-20260602.md` to remove this review log if the team chooses to replace it with an integrated final acceptance log.
 - If a later integrated diff crosses a stop line, revert the offending worker commit and open a new SDAR before reattempting request-field, sandbox-policy, provider, persistence, real-resource/RAG/vector, or Agent/task-queue work.
+
+## Integrated Leader Closure Addendum
+
+Date: 2026-06-02 16:40 Asia/Shanghai
+Leader status: integrated closure completed after worker-4 snapshot.
+
+### Integrated Scope
+
+- Backend credible hardening is present in `backend/app/api/v1/student.py` and `backend/app/services/chat_model.py`:
+  public-source normalization, duplicate source counting, source/citation payload preservation, and denser `workflow_*` stream events.
+- Frontend credible UI is present in `frontend/src/lib/chat-run.ts`, `frontend/src/components/assistant-ui/thread.tsx`, and `frontend/src/App.css`:
+  source/citation reducer state, deduped sources, Ant Design X local `Sources`/`Think`/`ThoughtChain`/`Actions` renderers, and no replacement of assistant-ui `Thread`/`Composer`/runtime.
+- Prototype-first record is present in `.omx/prototypes/student-chatbox-kimi-like-chat-page-20260601.html` as the B-next credible-hardening addendum.
+- Test evidence is present in `.omx/logs/chatbox-kimi-like-b-next-worker-3-test-evidence-20260602.md`.
+
+### Integrated Verification
+
+- `.\.venv\Scripts\python.exe -m pytest backend\tests\test_business_phase1.py` -> PASS, 49 tests.
+- `.\.venv\Scripts\python.exe -m ruff check backend\app backend\tests` -> PASS.
+- `node --test frontend\tests\chat-run-reducer.test.mjs` -> PASS, 2 tests.
+- `cd frontend; npm run lint` -> PASS.
+- `cd frontend; npm run build` -> PASS; Vite reported the known large-chunk warning only.
+- `git diff --check` -> PASS.
+
+### Browser Smoke
+
+- Static preview attempts:
+  - `http://127.0.0.1:4177/` returned HTTP 200 via PowerShell before Playwright opened.
+  - `http://127.0.0.1:4178/` and `http://127.0.0.1:4179/` returned HTTP 200 via PowerShell immediately after Vite preview startup.
+- Playwright CLI still captured Chromium `ERR_CONNECTION_REFUSED` pages:
+  - `.playwright-cli/page-2026-06-02T08-27-01-800Z.png`
+  - `.playwright-cli/page-2026-06-02T08-33-46-079Z.png`
+  - `.playwright-cli/page-2026-06-02T08-34-59-344Z.png`
+- Conclusion: integrated browser smoke is not counted as passed. The validated evidence for this closure is backend/frontend tests, lint/build, reducer tests, static boundary review, and existing earlier UI smoke artifacts.
+
+### Final Boundary Statement
+
+No new SDAR stop line was crossed in the integrated branch:
+
+- no `StudentChatRequest` field addition/removal;
+- no sandbox trigger/default behavior change;
+- no persistence/provider/API-key handling change;
+- no real school resources, real student data, RAG/vector/embedding, Agent/task queue, production SSO, deployment, or broad security-boundary change;
+- frontend source/citation/tool UI remains driven by backend `chat.run.v1` events and local reducer state.
