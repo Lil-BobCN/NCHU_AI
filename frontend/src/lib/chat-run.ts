@@ -6,7 +6,11 @@ export type ChatRunSource = {
   url: string
   snippet?: string
   siteName?: string
+  hostname?: string
   publishedAt?: string
+  sourceQuality?: string
+  trustLabel?: string
+  sourcePolicy?: string
 }
 
 export type ChatRunToolStatus = "running" | "success" | "error" | "no_results" | "disabled"
@@ -344,7 +348,11 @@ function sourceFromPayload(payload: RunEventData): ChatRunSource | undefined {
     url,
     snippet: readString(payload.snippet),
     siteName: readString(payload.siteName),
+    hostname: readString(payload.hostname),
     publishedAt: readString(payload.publishedAt),
+    sourceQuality: readString(payload.sourceQuality),
+    trustLabel: readString(payload.trustLabel),
+    sourcePolicy: readString(payload.sourcePolicy),
   }
 }
 
