@@ -1,0 +1,106 @@
+- main [ref=e5]:
+  - main [ref=e6]:
+    - region "学生 AI 咨询助手" [ref=e7]:
+      - complementary "会话侧边栏" [ref=e8]:
+        - generic [ref=e9]:
+          - button "学生工作台" [ref=e10] [cursor=pointer]:
+            - img [ref=e11]
+            - text: 学生工作台
+          - generic [ref=e14]:
+            - generic [ref=e15]: 学生端
+            - heading "AI 咨询助手" [level=1] [ref=e16]
+        - generic [ref=e17]:
+          - generic "当前模型" [ref=e18]:
+            - generic [ref=e19]: 模型
+            - strong [ref=e20]: Qwen
+          - generic "主题切换" [ref=e21] [cursor=pointer]:
+            - switch "切换到深色模式" [ref=e22]
+            - generic:
+              - img
+              - img
+        - generic "会话记录" [ref=e23]:
+          - button "新会话" [ref=e24]:
+            - img
+            - text: 新会话
+          - generic [ref=e25]:
+            - button "我最近学习压力很大，应该怎么调整？ 12 条消息" [ref=e69] [cursor=pointer]:
+              - generic [ref=e70]: 我最近学习压力很大，应该怎么调整？
+              - generic [ref=e71]: 12 条消息
+            - button "请联网搜索今天最新的南昌航空大学通知。 2 条消息" [ref=e73] [cursor=pointer]:
+              - generic [ref=e74]: 请联网搜索今天最新的南昌航空大学通知。
+              - generic [ref=e75]: 2 条消息
+            - button "请用较长篇幅分析我同时面对期末复习、社团任务和睡眠不足时，应该如 2 条消息" [ref=e77] [cursor=pointer]:
+              - generic [ref=e78]: 请用较长篇幅分析我同时面对期末复习、社团任务和睡眠不足时，应该如
+              - generic [ref=e79]: 2 条消息
+            - button "请持续展开说明期末周压力管理，把计划拆成每天上午下午晚上，并尽量 4 条消息" [ref=e81] [cursor=pointer]:
+              - generic [ref=e82]: 请持续展开说明期末周压力管理，把计划拆成每天上午下午晚上，并尽量
+              - generic [ref=e83]: 4 条消息
+            - button "请用短段落说明期末压力管理，并保持回答稍微展开。 3 条消息" [ref=e85] [cursor=pointer]:
+              - generic [ref=e86]: 请用短段落说明期末压力管理，并保持回答稍微展开。
+              - generic [ref=e87]: 3 条消息
+            - button "你好，简单回复一句。 2 条消息" [ref=e89] [cursor=pointer]:
+              - generic [ref=e90]: 你好，简单回复一句。
+              - generic [ref=e91]: 2 条消息
+            - button "请联网搜索今天最新的南昌航空大学通知。 2 条消息" [ref=e93] [cursor=pointer]:
+              - generic [ref=e94]: 请联网搜索今天最新的南昌航空大学通知。
+              - generic [ref=e95]: 2 条消息
+            - button "我和室友发生矛盾，不知道怎么开口沟通。 4 条消息" [ref=e97] [cursor=pointer]:
+              - generic [ref=e98]: 我和室友发生矛盾，不知道怎么开口沟通。
+              - generic [ref=e99]: 4 条消息
+            - button "我错过了一次作业截止时间，应该怎么补救？ 2 条消息" [ref=e101] [cursor=pointer]:
+              - generic [ref=e102]: 我错过了一次作业截止时间，应该怎么补救？
+              - generic [ref=e103]: 2 条消息
+            - button "我最近学习压力很大，应该怎么调整？ 2 条消息" [ref=e105] [cursor=pointer]:
+              - generic [ref=e106]: 我最近学习压力很大，应该怎么调整？
+              - generic [ref=e107]: 2 条消息
+      - generic [ref=e26]:
+        - generic [ref=e27]:
+          - generic [ref=e29]:
+            - generic [ref=e30]: AI 咨询助手
+            - heading "新会话" [level=2] [ref=e288]
+          - button "新会话" [ref=e34] [cursor=pointer]:
+            - img [ref=e35]
+            - text: 新会话
+        - generic [ref=e36]:
+          - generic [ref=e289]:
+            - heading "有什么可以帮你？" [level=3] [ref=e290]
+            - generic [ref=e291]:
+              - button "我最近学习压力很大，应该怎么调整？" [ref=e292] [cursor=pointer]
+              - button "我和室友发生矛盾，不知道怎么开口沟通。" [ref=e293] [cursor=pointer]
+              - button "我错过了一次作业截止时间，应该怎么补救？" [ref=e294] [cursor=pointer]
+          - button "回到底部" [disabled]:
+            - img
+            - text: 回到底部
+          - generic [ref=e45]:
+            - generic "待发送附件" [ref=e295]:
+              - generic "kimi-smoke-assignment.py" [ref=e296]:
+                - img [ref=e297]
+                - generic [ref=e300]: kimi-smoke-assignment.py
+                - generic [ref=e301]: 53 B
+                - button "移除 kimi-smoke-assignment.py" [ref=e302] [cursor=pointer]:
+                  - img [ref=e303]
+            - textbox "输入咨询内容" [ref=e47]:
+              - /placeholder: 发消息给 AI 咨询助手
+            - generic "聊天运行控制" [ref=e48]:
+              - generic [ref=e49]:
+                - button "添加" [active] [ref=e50]:
+                  - img [ref=e51]
+                  - generic [ref=e52]: 添加
+                - button "Choose File" [ref=e53]
+                - generic [ref=e54]:
+                  - checkbox "Web search Off"
+                  - img [ref=e55]
+                  - generic [ref=e58]: Web search
+                  - strong [ref=e59]: "Off"
+                - generic [ref=e60]:
+                  - img [ref=e61]
+                  - combobox "聊天模式" [ref=e62]:
+                    - option "标准" [selected]
+                    - option "深度"
+                    - option "快速"
+                - button "1 个附件" [ref=e306]:
+                  - img [ref=e64]
+                  - generic [ref=e66]: 1 个附件
+              - generic [ref=e67]:
+                - button "发送" [disabled]:
+                  - img

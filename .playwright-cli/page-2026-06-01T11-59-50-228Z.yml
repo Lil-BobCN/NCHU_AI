@@ -1,0 +1,76 @@
+- main [ref=e5]:
+  - main [ref=e158]:
+    - region "学生 AI 咨询助手" [ref=e159]:
+      - complementary "会话侧边栏" [ref=e160]:
+        - generic [ref=e161]:
+          - button "学生工作台" [ref=e162] [cursor=pointer]:
+            - img [ref=e163]
+            - text: 学生工作台
+          - generic [ref=e166]:
+            - generic [ref=e167]: 学生端
+            - heading "AI 咨询助手" [level=1] [ref=e168]
+        - generic [ref=e169]:
+          - generic "当前模型" [ref=e170]:
+            - generic [ref=e171]: 模型
+            - strong [ref=e172]: Qwen
+          - generic "主题切换" [ref=e173] [cursor=pointer]:
+            - switch "切换到深色模式" [ref=e174]
+            - generic:
+              - img
+              - img
+        - generic "会话记录" [ref=e175]:
+          - button "新会话" [ref=e176]:
+            - img
+            - text: 新会话
+          - generic [ref=e178]: 还没有会话记录。发送第一条消息后，会自动出现在这里。
+      - generic [ref=e179]:
+        - generic [ref=e180]:
+          - generic [ref=e182]:
+            - generic [ref=e183]: AI 咨询助手
+            - heading "新会话" [level=2] [ref=e184]
+          - button "新会话" [ref=e187] [cursor=pointer]:
+            - img [ref=e188]
+            - text: 新会话
+        - generic [ref=e189]:
+          - generic [ref=e190]:
+            - heading "有什么可以帮你？" [level=3] [ref=e191]
+            - generic [ref=e192]:
+              - button "我最近学习压力很大，应该怎么调整？" [ref=e193] [cursor=pointer]
+              - button "我和室友发生矛盾，不知道怎么开口沟通。" [ref=e194] [cursor=pointer]
+              - button "我错过了一次作业截止时间，应该怎么补救？" [ref=e195] [cursor=pointer]
+          - button "回到底部" [disabled]:
+            - img
+            - text: 回到底部
+          - generic [ref=e198]:
+            - generic "待发送附件" [ref=e221]:
+              - generic "kimi-smoke-assignment.py" [ref=e222]:
+                - img [ref=e223]
+                - generic [ref=e226]: kimi-smoke-assignment.py
+                - generic [ref=e227]: 53 B
+                - button "移除 kimi-smoke-assignment.py" [ref=e228] [cursor=pointer]:
+                  - img [ref=e229]
+            - textbox "输入咨询内容" [ref=e200]:
+              - /placeholder: 发消息给 AI 咨询助手
+            - generic "聊天运行控制" [ref=e201]:
+              - generic [ref=e202]:
+                - button "添加" [ref=e203]:
+                  - img [ref=e204]
+                  - generic [ref=e205]: 添加
+                - button "Choose File" [ref=e206]
+                - generic [ref=e207]:
+                  - checkbox "Web search Off"
+                  - img [ref=e208]
+                  - generic [ref=e211]: Web search
+                  - strong [ref=e212]: "Off"
+                - generic [ref=e213]:
+                  - img [ref=e214]
+                  - combobox "聊天模式" [ref=e215]:
+                    - option "标准" [selected]
+                    - option "深度"
+                    - option "快速"
+                - button "1 个附件" [active] [ref=e232]:
+                  - img [ref=e217]
+                  - generic [ref=e219]: 1 个附件
+              - generic [ref=e220]:
+                - button "发送" [disabled]:
+                  - img

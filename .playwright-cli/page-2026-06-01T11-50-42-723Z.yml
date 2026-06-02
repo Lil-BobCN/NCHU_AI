@@ -1,0 +1,160 @@
+- main [ref=e5]:
+  - main [ref=e6]:
+    - region "学生 AI 咨询助手" [ref=e7]:
+      - complementary "会话侧边栏" [ref=e8]:
+        - generic [ref=e9]:
+          - button "学生工作台" [ref=e10] [cursor=pointer]:
+            - img [ref=e11]
+            - text: 学生工作台
+          - generic [ref=e14]:
+            - generic [ref=e15]: 学生端
+            - heading "AI 咨询助手" [level=1] [ref=e16]
+        - generic [ref=e17]:
+          - generic "当前模型" [ref=e18]:
+            - generic [ref=e19]: 模型
+            - strong [ref=e20]: Qwen
+          - generic "主题切换" [ref=e21] [cursor=pointer]:
+            - switch "切换到深色模式" [ref=e22]
+            - generic:
+              - img
+              - img
+        - generic "会话记录" [ref=e23]:
+          - button "新会话" [ref=e24]:
+            - img
+            - text: 新会话
+          - generic [ref=e25]:
+            - button "我最近学习压力很大，应该怎么调整？ 12 条消息" [ref=e69] [cursor=pointer]:
+              - generic [ref=e70]: 我最近学习压力很大，应该怎么调整？
+              - generic [ref=e71]: 12 条消息
+            - button "请联网搜索今天最新的南昌航空大学通知。 2 条消息" [ref=e73] [cursor=pointer]:
+              - generic [ref=e74]: 请联网搜索今天最新的南昌航空大学通知。
+              - generic [ref=e75]: 2 条消息
+            - button "请用较长篇幅分析我同时面对期末复习、社团任务和睡眠不足时，应该如 2 条消息" [ref=e77] [cursor=pointer]:
+              - generic [ref=e78]: 请用较长篇幅分析我同时面对期末复习、社团任务和睡眠不足时，应该如
+              - generic [ref=e79]: 2 条消息
+            - button "请持续展开说明期末周压力管理，把计划拆成每天上午下午晚上，并尽量 4 条消息" [ref=e81] [cursor=pointer]:
+              - generic [ref=e82]: 请持续展开说明期末周压力管理，把计划拆成每天上午下午晚上，并尽量
+              - generic [ref=e83]: 4 条消息
+            - button "请用短段落说明期末压力管理，并保持回答稍微展开。 3 条消息" [ref=e85] [cursor=pointer]:
+              - generic [ref=e86]: 请用短段落说明期末压力管理，并保持回答稍微展开。
+              - generic [ref=e87]: 3 条消息
+            - button "你好，简单回复一句。 2 条消息" [ref=e89] [cursor=pointer]:
+              - generic [ref=e90]: 你好，简单回复一句。
+              - generic [ref=e91]: 2 条消息
+            - button "请联网搜索今天最新的南昌航空大学通知。 2 条消息" [ref=e93] [cursor=pointer]:
+              - generic [ref=e94]: 请联网搜索今天最新的南昌航空大学通知。
+              - generic [ref=e95]: 2 条消息
+            - button "我和室友发生矛盾，不知道怎么开口沟通。 4 条消息" [ref=e97] [cursor=pointer]:
+              - generic [ref=e98]: 我和室友发生矛盾，不知道怎么开口沟通。
+              - generic [ref=e99]: 4 条消息
+            - button "我错过了一次作业截止时间，应该怎么补救？ 2 条消息" [ref=e101] [cursor=pointer]:
+              - generic [ref=e102]: 我错过了一次作业截止时间，应该怎么补救？
+              - generic [ref=e103]: 2 条消息
+            - button "我最近学习压力很大，应该怎么调整？ 2 条消息" [ref=e105] [cursor=pointer]:
+              - generic [ref=e106]: 我最近学习压力很大，应该怎么调整？
+              - generic [ref=e107]: 2 条消息
+            - button "请运行这个作业代码，解释报错并给我修改建议。 2 条消息" [ref=e109] [cursor=pointer]:
+              - generic [ref=e110]: 请运行这个作业代码，解释报错并给我修改建议。
+              - generic [ref=e111]: 2 条消息
+            - button "请运行这个作业代码，解释报错并给我修改建议。 2 条消息" [ref=e313] [cursor=pointer]:
+              - generic [ref=e314]: 请运行这个作业代码，解释报错并给我修改建议。
+              - generic [ref=e315]: 2 条消息
+      - generic [ref=e26]:
+        - generic [ref=e27]:
+          - generic [ref=e29]:
+            - generic [ref=e30]: AI 咨询助手
+            - heading "请运行这个作业代码，解释报错并给我修改建议。" [level=2] [ref=e316]
+          - button "新会话" [ref=e34] [cursor=pointer]:
+            - img [ref=e35]
+            - text: 新会话
+        - generic [ref=e36]:
+          - generic [ref=e43]:
+            - generic "你" [ref=e317]:
+              - paragraph [ref=e320]: 请运行这个作业代码，解释报错并给我修改建议。
+            - generic "AI 咨询助手" [ref=e321]:
+              - generic [ref=e322]:
+                - generic [ref=e323]:
+                  - generic [ref=e324]:
+                    - generic [ref=e325]: AI 咨询助手 · 回答完成
+                    - generic [ref=e326]: 已完成 · 已完成
+                  - generic "回答过程时间线" [ref=e327]:
+                    - generic [ref=e329]:
+                      - img "check-circle" [ref=e331]:
+                        - img [ref=e332]
+                      - generic [ref=e336]:
+                        - generic [ref=e339]: 已完成
+                        - generic [ref=e340]: 已完成
+                  - list [ref=e341]:
+                    - listitem [ref=e342]: 附件读取暂未接入，本轮没有读取文件。
+                    - listitem [ref=e343]: 本轮没有返回外部来源。
+                    - listitem [ref=e344]: 本轮没有执行外部工具。
+                  - generic [ref=e346]:
+                    - img [ref=e349] [cursor=pointer]
+                    - img [ref=e354] [cursor=pointer]
+                - generic [ref=e360]:
+                  - paragraph [ref=e361]: 你好！我是南昌航空大学 AI 辅导员 Demo 助手。
+                  - paragraph [ref=e362]:
+                    - text: 由于你
+                    - strong [ref=e363]: 尚未在消息中提供具体的作业代码和报错信息
+                    - text: ，我暂时无法直接运行或分析你的程序。
+                  - paragraph [ref=e364]:
+                    - text: 为了给你提供清晰、可执行的修改建议，请你
+                    - strong [ref=e365]: 补充以下信息
+                    - text: ：
+                  - list [ref=e366]:
+                    - listitem [ref=e367]:
+                      - strong [ref=e368]: 编程语言
+                      - text: （如 Python, C++, Java 等）。
+                    - listitem [ref=e369]:
+                      - strong [ref=e370]: 完整的代码内容
+                      - text: 。
+                    - listitem [ref=e371]:
+                      - strong [ref=e372]: 终端或编译器输出的具体报错信息
+                      - text: （Error Message）。
+                  - separator [ref=e373]
+                  - heading "⚠️ 重要提示" [level=3] [ref=e374]
+                  - paragraph [ref=e375]:
+                    - text: 作为本 Demo 助手，我必须说明：
+                    - strong [ref=e376]: 我无法直接在你的本地环境运行代码，也无法访问学校的内部数据库或课程系统
+                    - text: 。我的分析基于通用的编程知识和逻辑推理。
+                  - paragraph [ref=e377]: 一旦你提供上述信息，我将立即为你：
+                  - list [ref=e378]:
+                    - listitem [ref=e379]:
+                      - strong [ref=e380]: 解释报错原因
+                      - text: ：用通俗的语言说明哪里出了问题。
+                    - listitem [ref=e381]:
+                      - strong [ref=e382]: 给出修改建议
+                      - text: ：提供修正后的代码片段及修改理由。
+                    - listitem [ref=e383]:
+                      - strong [ref=e384]: 优化思路
+                      - text: ：如果适用，提供代码改进的建议。
+                  - paragraph [ref=e385]: 请随时发送你的代码，我们马上开始！
+          - button "回到底部" [disabled]:
+            - img
+            - text: 回到底部
+          - generic [ref=e45]:
+            - textbox "输入咨询内容" [active] [ref=e47]:
+              - /placeholder: 发消息给 AI 咨询助手
+            - generic "聊天运行控制" [ref=e48]:
+              - generic [ref=e49]:
+                - button "添加" [ref=e50]:
+                  - img [ref=e51]
+                  - generic [ref=e52]: 添加
+                - button "Choose File" [ref=e53]
+                - generic [ref=e54]:
+                  - checkbox "Web search Off"
+                  - img [ref=e55]
+                  - generic [ref=e58]: Web search
+                  - strong [ref=e59]: "Off"
+                - generic [ref=e60]:
+                  - img [ref=e61]
+                  - combobox "聊天模式" [ref=e62]:
+                    - option "标准" [selected]
+                    - option "深度"
+                    - option "快速"
+                - button "上传文件" [ref=e386]:
+                  - img [ref=e64]
+                  - generic [ref=e66]: 上传文件
+              - generic [ref=e67]:
+                - button "发送" [disabled]:
+                  - img

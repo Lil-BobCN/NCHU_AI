@@ -1,0 +1,1922 @@
+{
+  "network": [
+    {
+      "ts": "2026-06-02T05:15:28.625Z",
+      "kind": "request",
+      "method": "GET",
+      "resourceType": "document",
+      "url": "https://www.kimi.com/"
+    },
+    {
+      "ts": "2026-06-02T05:15:28.926Z",
+      "kind": "response",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "url": "https://www.kimi.com/"
+    },
+    {
+      "ts": "2026-06-02T05:15:29.888Z",
+      "kind": "request",
+      "method": "POST",
+      "resourceType": "xhr",
+      "url": "https://www.kimi.com/api/device/register"
+    },
+    {
+      "ts": "2026-06-02T05:15:29.948Z",
+      "kind": "response",
+      "status": 200,
+      "contentType": "application/json",
+      "url": "https://www.kimi.com/api/device/register"
+    },
+    {
+      "ts": "2026-06-02T05:15:29.949Z",
+      "kind": "request",
+      "method": "POST",
+      "resourceType": "fetch",
+      "url": "https://www.kimi.com/apiv2/kimi.gateway.config.v1.ConfigService/GetConfig"
+    },
+    {
+      "ts": "2026-06-02T05:15:29.950Z",
+      "kind": "request",
+      "method": "POST",
+      "resourceType": "fetch",
+      "url": "https://www.kimi.com/apiv2/kimi.gateway.config.v1.ConfigService/GetAvailableModels"
+    },
+    {
+      "ts": "2026-06-02T05:15:29.950Z",
+      "kind": "request",
+      "method": "POST",
+      "resourceType": "fetch",
+      "url": "https://www.kimi.com/apiv2/kimi.gateway.promotionalasset.v1.PromotionalAssetService/ListPromotionalAssets"
+    },
+    {
+      "ts": "2026-06-02T05:15:29.950Z",
+      "kind": "request",
+      "method": "POST",
+      "resourceType": "fetch",
+      "url": "https://www.kimi.com/apiv2/kimi.gateway.suggest.v1.ShowcaseService/ListDefaultShowcases"
+    },
+    {
+      "ts": "2026-06-02T05:15:29.950Z",
+      "kind": "request",
+      "method": "POST",
+      "resourceType": "fetch",
+      "url": "https://www.kimi.com/apiv2/kimi.gateway.order.v1.GoodsService/ListGoods"
+    },
+    {
+      "ts": "2026-06-02T05:15:29.951Z",
+      "kind": "request",
+      "method": "POST",
+      "resourceType": "xhr",
+      "url": "https://www.kimi.com/api/config"
+    },
+    {
+      "ts": "2026-06-02T05:15:29.951Z",
+      "kind": "request",
+      "method": "GET",
+      "resourceType": "xhr",
+      "url": "https://www.kimi.com/api/user?t=1780377329947"
+    },
+    {
+      "ts": "2026-06-02T05:15:30.005Z",
+      "kind": "response",
+      "status": 200,
+      "contentType": "application/json",
+      "url": "https://www.kimi.com/apiv2/kimi.gateway.promotionalasset.v1.PromotionalAssetService/ListPromotionalAssets"
+    },
+    {
+      "ts": "2026-06-02T05:15:30.010Z",
+      "kind": "response",
+      "status": 200,
+      "contentType": "application/json",
+      "url": "https://www.kimi.com/apiv2/kimi.gateway.config.v1.ConfigService/GetAvailableModels"
+    },
+    {
+      "ts": "2026-06-02T05:15:30.016Z",
+      "kind": "response",
+      "status": 200,
+      "contentType": "application/json",
+      "url": "https://www.kimi.com/apiv2/kimi.gateway.config.v1.ConfigService/GetConfig"
+    },
+    {
+      "ts": "2026-06-02T05:15:30.016Z",
+      "kind": "response",
+      "status": 200,
+      "contentType": "application/json",
+      "url": "https://www.kimi.com/api/config"
+    },
+    {
+      "ts": "2026-06-02T05:15:30.022Z",
+      "kind": "response",
+      "status": 200,
+      "contentType": "application/json",
+      "url": "https://www.kimi.com/apiv2/kimi.gateway.order.v1.GoodsService/ListGoods"
+    },
+    {
+      "ts": "2026-06-02T05:15:30.033Z",
+      "kind": "response",
+      "status": 200,
+      "contentType": "application/json",
+      "url": "https://www.kimi.com/api/user?t=1780377329947"
+    },
+    {
+      "ts": "2026-06-02T05:15:30.033Z",
+      "kind": "request",
+      "method": "POST",
+      "resourceType": "xhr",
+      "url": "https://www.kimi.com/api/device/register"
+    },
+    {
+      "ts": "2026-06-02T05:15:30.114Z",
+      "kind": "response",
+      "status": 200,
+      "contentType": "application/json",
+      "url": "https://www.kimi.com/apiv2/kimi.gateway.suggest.v1.ShowcaseService/ListDefaultShowcases"
+    },
+    {
+      "ts": "2026-06-02T05:15:31.106Z",
+      "kind": "response",
+      "status": 200,
+      "contentType": "application/json",
+      "url": "https://www.kimi.com/api/device/register"
+    },
+    {
+      "ts": "2026-06-02T05:15:31.106Z",
+      "kind": "request",
+      "method": "POST",
+      "resourceType": "fetch",
+      "url": "https://www.kimi.com/apiv2/kimi.chat.v1.ChatService/ListChats"
+    },
+    {
+      "ts": "2026-06-02T05:15:31.106Z",
+      "kind": "request",
+      "method": "POST",
+      "resourceType": "fetch",
+      "url": "https://www.kimi.com/apiv2/kimi.gateway.skill.v1.SkillService/ListOfficialSkills"
+    },
+    {
+      "ts": "2026-06-02T05:15:31.107Z",
+      "kind": "request",
+      "method": "POST",
+      "resourceType": "fetch",
+      "url": "https://www.kimi.com/apiv2/kimi.gateway.skill.v1.SkillService/ListInstalledSkills"
+    },
+    {
+      "ts": "2026-06-02T05:15:31.107Z",
+      "kind": "request",
+      "method": "POST",
+      "resourceType": "fetch",
+      "url": "https://www.kimi.com/apiv2/kimi.gateway.suggest.v1.SuggestService/ListPopups"
+    },
+    {
+      "ts": "2026-06-02T05:15:31.107Z",
+      "kind": "request",
+      "method": "POST",
+      "resourceType": "xhr",
+      "url": "https://www.kimi.com/api/prompt-snippet/list"
+    },
+    {
+      "ts": "2026-06-02T05:15:31.164Z",
+      "kind": "response",
+      "status": 200,
+      "contentType": "application/json",
+      "url": "https://www.kimi.com/apiv2/kimi.gateway.skill.v1.SkillService/ListInstalledSkills"
+    },
+    {
+      "ts": "2026-06-02T05:15:31.178Z",
+      "kind": "response",
+      "status": 200,
+      "contentType": "application/json",
+      "url": "https://www.kimi.com/apiv2/kimi.gateway.skill.v1.SkillService/ListOfficialSkills"
+    },
+    {
+      "ts": "2026-06-02T05:15:31.198Z",
+      "kind": "response",
+      "status": 200,
+      "contentType": "application/json",
+      "url": "https://www.kimi.com/apiv2/kimi.gateway.suggest.v1.SuggestService/ListPopups"
+    },
+    {
+      "ts": "2026-06-02T05:15:31.199Z",
+      "kind": "response",
+      "status": 200,
+      "contentType": "application/json",
+      "url": "https://www.kimi.com/api/prompt-snippet/list"
+    },
+    {
+      "ts": "2026-06-02T05:15:31.219Z",
+      "kind": "response",
+      "status": 200,
+      "contentType": "application/json",
+      "url": "https://www.kimi.com/apiv2/kimi.chat.v1.ChatService/ListChats"
+    },
+    {
+      "ts": "2026-06-02T05:15:39.409Z",
+      "kind": "request",
+      "method": "GET",
+      "resourceType": "fetch",
+      "url": "https://www.kimi.com/api/user?t=1780379999999"
+    },
+    {
+      "ts": "2026-06-02T05:15:39.489Z",
+      "kind": "response",
+      "status": 200,
+      "contentType": "application/json",
+      "url": "https://www.kimi.com/api/user?t=1780379999999"
+    },
+    {
+      "ts": "2026-06-02T05:15:42.532Z",
+      "kind": "request",
+      "method": "POST",
+      "resourceType": "xhr",
+      "url": "https://www.kimi.com/api/device/register"
+    },
+    {
+      "ts": "2026-06-02T05:15:42.596Z",
+      "kind": "response",
+      "status": 200,
+      "contentType": "application/json",
+      "url": "https://www.kimi.com/api/device/register"
+    },
+    {
+      "ts": "2026-06-02T05:15:42.596Z",
+      "kind": "request",
+      "method": "POST",
+      "resourceType": "fetch",
+      "url": "https://www.kimi.com/apiv2/kimi.gateway.chat.v1.ChatService/Chat"
+    },
+    {
+      "ts": "2026-06-02T05:15:42.656Z",
+      "kind": "response",
+      "status": 200,
+      "contentType": "application/connect+json",
+      "url": "https://www.kimi.com/apiv2/kimi.gateway.chat.v1.ChatService/Chat"
+    },
+    {
+      "ts": "2026-06-02T05:15:42.965Z",
+      "kind": "request",
+      "method": "POST",
+      "resourceType": "xhr",
+      "url": "https://www.kimi.com/api/device/register"
+    },
+    {
+      "ts": "2026-06-02T05:15:44.022Z",
+      "kind": "response",
+      "status": 200,
+      "contentType": "application/json",
+      "url": "https://www.kimi.com/api/device/register"
+    },
+    {
+      "ts": "2026-06-02T05:15:44.024Z",
+      "kind": "request",
+      "method": "POST",
+      "resourceType": "fetch",
+      "url": "https://www.kimi.com/apiv2/kimi.chat.v1.ChatService/ListChats"
+    },
+    {
+      "ts": "2026-06-02T05:15:44.024Z",
+      "kind": "request",
+      "method": "POST",
+      "resourceType": "fetch",
+      "url": "https://www.kimi.com/apiv2/kimi.chat.v1.ChatService/ListChats"
+    },
+    {
+      "ts": "2026-06-02T05:15:44.025Z",
+      "kind": "request",
+      "method": "POST",
+      "resourceType": "fetch",
+      "url": "https://www.kimi.com/apiv2/kimi.gateway.membership.v2.MembershipService/GetSubscription"
+    },
+    {
+      "ts": "2026-06-02T05:15:44.026Z",
+      "kind": "request",
+      "method": "POST",
+      "resourceType": "fetch",
+      "url": "https://www.kimi.com/apiv2/kimi.gateway.skill.v1.SkillService/ListInstalledSkills"
+    },
+    {
+      "ts": "2026-06-02T05:15:44.026Z",
+      "kind": "request",
+      "method": "POST",
+      "resourceType": "fetch",
+      "url": "https://www.kimi.com/apiv2/kimi.gateway.skill.v1.SkillService/ListOfficialSkills"
+    },
+    {
+      "ts": "2026-06-02T05:15:44.083Z",
+      "kind": "response",
+      "status": 200,
+      "contentType": "application/json",
+      "url": "https://www.kimi.com/apiv2/kimi.gateway.skill.v1.SkillService/ListOfficialSkills"
+    },
+    {
+      "ts": "2026-06-02T05:15:44.111Z",
+      "kind": "response",
+      "status": 200,
+      "contentType": "application/json",
+      "url": "https://www.kimi.com/apiv2/kimi.gateway.skill.v1.SkillService/ListInstalledSkills"
+    },
+    {
+      "ts": "2026-06-02T05:15:44.113Z",
+      "kind": "response",
+      "status": 200,
+      "contentType": "application/json",
+      "url": "https://www.kimi.com/apiv2/kimi.gateway.membership.v2.MembershipService/GetSubscription"
+    },
+    {
+      "ts": "2026-06-02T05:15:44.131Z",
+      "kind": "request",
+      "method": "GET",
+      "resourceType": "fetch",
+      "url": "https://statics.moonshot.cn/kimi-web-seo/assets/kimi_avatar_web-PnsTWI-X.riv"
+    },
+    {
+      "ts": "2026-06-02T05:15:44.139Z",
+      "kind": "response",
+      "status": 200,
+      "contentType": "application/json",
+      "url": "https://www.kimi.com/apiv2/kimi.chat.v1.ChatService/ListChats"
+    },
+    {
+      "ts": "2026-06-02T05:15:44.150Z",
+      "kind": "response",
+      "status": 200,
+      "contentType": "application/octet-stream",
+      "url": "https://statics.moonshot.cn/kimi-web-seo/assets/kimi_avatar_web-PnsTWI-X.riv"
+    },
+    {
+      "ts": "2026-06-02T05:15:44.207Z",
+      "kind": "response",
+      "status": 200,
+      "contentType": "application/json",
+      "url": "https://www.kimi.com/apiv2/kimi.chat.v1.ChatService/ListChats"
+    },
+    {
+      "ts": "2026-06-02T05:15:46.184Z",
+      "kind": "request",
+      "method": "POST",
+      "resourceType": "xhr",
+      "url": "https://www.kimi.com/api/device/register"
+    },
+    {
+      "ts": "2026-06-02T05:15:46.253Z",
+      "kind": "response",
+      "status": 200,
+      "contentType": "application/json",
+      "url": "https://www.kimi.com/api/device/register"
+    },
+    {
+      "ts": "2026-06-02T05:15:46.253Z",
+      "kind": "request",
+      "method": "POST",
+      "resourceType": "fetch",
+      "url": "https://www.kimi.com/apiv2/kimi.chat.v1.ChatService/ListChats"
+    },
+    {
+      "ts": "2026-06-02T05:15:46.346Z",
+      "kind": "response",
+      "status": 200,
+      "contentType": "application/json",
+      "url": "https://www.kimi.com/apiv2/kimi.chat.v1.ChatService/ListChats"
+    },
+    {
+      "ts": "2026-06-02T05:17:18.614Z",
+      "kind": "request",
+      "method": "POST",
+      "resourceType": "xhr",
+      "url": "https://www.kimi.com/api/device/register"
+    },
+    {
+      "ts": "2026-06-02T05:17:18.690Z",
+      "kind": "response",
+      "status": 200,
+      "contentType": "application/json",
+      "url": "https://www.kimi.com/api/device/register"
+    },
+    {
+      "ts": "2026-06-02T05:17:18.693Z",
+      "kind": "request",
+      "method": "POST",
+      "resourceType": "fetch",
+      "url": "https://www.kimi.com/apiv2/kimi.chat.v1.ChatService/ListChats"
+    },
+    {
+      "ts": "2026-06-02T05:17:18.694Z",
+      "kind": "request",
+      "method": "POST",
+      "resourceType": "fetch",
+      "url": "https://www.kimi.com/apiv2/kimi.gateway.membership.v2.MembershipService/GetSubscription"
+    },
+    {
+      "ts": "2026-06-02T05:17:18.765Z",
+      "kind": "response",
+      "status": 200,
+      "contentType": "application/json",
+      "url": "https://www.kimi.com/apiv2/kimi.gateway.membership.v2.MembershipService/GetSubscription"
+    },
+    {
+      "ts": "2026-06-02T05:17:18.798Z",
+      "kind": "response",
+      "status": 200,
+      "contentType": "application/json",
+      "url": "https://www.kimi.com/apiv2/kimi.chat.v1.ChatService/ListChats"
+    }
+  ],
+  "consoleMessages": [
+    {
+      "ts": "2026-06-02T05:15:29.337Z",
+      "type": "log",
+      "text": "%cKimi.ai \n  color: #1772F6;\n  font-weight: bold;\n  font-size: 3em;\n  padding: 10px 0;\n  text-shadow: 0.7px 1px 0 rgb(255 255 255 / 100%),\n    1.4px 2px 0 rgb(255 255 255 / 96%),\n    2.1px 3px 0 rgb(255 255 255 / 92%),\n    2.8px 4px 0 rgb(255 255 255 / 88%),\n    1px 1px 2px rgb(100 100 100 / 70%);\n"
+    },
+    {
+      "ts": "2026-06-02T05:15:29.337Z",
+      "type": "log",
+      "text": "%c林深时见鹿，海深时见鲸，情深时见你🥰\n\n爬虫万里，不如 API 走起🥺\n\n一键接入 Kimi 大模型👇\n\nhttps://platform.kimi.com \n  font-size: 1.2em;\n"
+    },
+    {
+      "ts": "2026-06-02T05:15:29.759Z",
+      "type": "log",
+      "text": "%c %s color: yellow; background-color: black; [instance: default] appid: 20001731, userInfo:{\"user_unique_id\":\"7646662406889830159\",\"web_id\":\"7646662406889830159\"}"
+    },
+    {
+      "ts": "2026-06-02T05:15:29.759Z",
+      "type": "log",
+      "text": "%c %s color: yellow; background-color: black; [instance: default] appid: 20001731, sdk is ready, version is 5.1.12_tob, you can report now !!!"
+    }
+  ],
+  "samples": [
+    {
+      "tSec": 2,
+      "len": 314,
+      "answerDelta": 32,
+      "active": false,
+      "tail": "新建会话\nCtrl\nK\nPPT\n文档\n深度研究\n网站\n表格\nAgent 集群\nKimi Code\nKimi Claw\n历史会话\n未命名会话\n实验报告已生成\nKimi聊天活跃\n吴小玲信息报告\n需求与责任\n标准化会计解题法\n查看全部\n获取应用程序\nAllegretto\n未命名会话\n请作为产品设计评审专家，分析一个大学 AI 辅导员 Chatbox 要如何复原 Kimi 风格：请从空态、输入区、复杂问题回复过程、工具/来源展示、取消与续写、错误恢复、前后端事件协议七个角度给出详细方案，并说明哪些能力必须后端真实支持，不能只靠前端假展示。\n复制\n分享\n我来为你\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 4,
+      "len": 373,
+      "answerDelta": 91,
+      "active": false,
+      "tail": "新建会话\nCtrl\nK\nPPT\n文档\n深度研究\n网站\n表格\nAgent 集群\nKimi Code\nKimi Claw\n历史会话\nKimi风格复原方案\n实验报告已生成\nKimi聊天活跃\n吴小玲信息报告\n需求与责任\n查看全部\n获取应用程序\nAllegretto\nKimi风格复原方案\n请作为产品设计评审专家，分析一个大学 AI 辅导员 Chatbox 要如何复原 Kimi 风格：请从空态、输入区、复杂问题回复过程、工具/来源展示、取消与续写、错误恢复、前后端事件协议七个角度给出详细方案，并说明哪些能力必须后端真实支持，不能只靠前端假展示。\n复制\n分享\n我来为你系统拆解\"航宝智辅\"Chatbox 复原 Kimi 风格的完整方案。基于 Kimi 的核心交互范式，以下是七个维度的\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 6,
+      "len": 380,
+      "answerDelta": 98,
+      "active": false,
+      "tail": "新建会话\nCtrl\nK\nPPT\n文档\n深度研究\n网站\n表格\nAgent 集群\nKimi Code\nKimi Claw\n历史会话\nKimi风格复原方案\n实验报告已生成\nKimi聊天活跃\n吴小玲信息报告\n需求与责任\n查看全部\n获取应用程序\nAllegretto\nKimi风格复原方案\n请作为产品设计评审专家，分析一个大学 AI 辅导员 Chatbox 要如何复原 Kimi 风格：请从空态、输入区、复杂问题回复过程、工具/来源展示、取消与续写、错误恢复、前后端事件协议七个角度给出详细方案，并说明哪些能力必须后端真实支持，不能只靠前端假展示。\n复制\n分享\n我来为你系统拆解\"航宝智辅\"Chatbox 复原 Kimi 风格的完整方案。基于 Kimi 的核心交互范式，以下是七个维度的深度设计评审：\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 8,
+      "len": 525,
+      "answerDelta": 243,
+      "active": false,
+      "tail": "站\n表格\nAgent 集群\nKimi Code\nKimi Claw\n历史会话\nKimi风格复原方案\n实验报告已生成\nKimi聊天活跃\n吴小玲信息报告\n需求与责任\n查看全部\n获取应用程序\nAllegretto\nKimi风格复原方案\n请作为产品设计评审专家，分析一个大学 AI 辅导员 Chatbox 要如何复原 Kimi 风格：请从空态、输入区、复杂问题回复过程、工具/来源展示、取消与续写、错误恢复、前后端事件协议七个角度给出详细方案，并说明哪些能力必须后端真实支持，不能只靠前端假展示。\n复制\n分享\n我来为你系统拆解\"航宝智辅\"Chatbox 复原 Kimi 风格的完整方案。基于 Kimi 的核心交互范式，以下是七个维度的深度设计评审：\n一、空态（Empty State）\nKimi 风格特征\n非传统\"空白页\"，而是预设能力展示 + 快速入口\n顶部简洁品牌区 + 中部动态推荐问题 + 底部输入框常驻\n推荐问题随用户身份/场景动态变化\n详细方案\n| 模块 | 设计要点 | 后端必须支持 |\n|------|---------\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 10,
+      "len": 599,
+      "answerDelta": 317,
+      "active": false,
+      "tail": "\n需求与责任\n查看全部\n获取应用程序\nAllegretto\nKimi风格复原方案\n请作为产品设计评审专家，分析一个大学 AI 辅导员 Chatbox 要如何复原 Kimi 风格：请从空态、输入区、复杂问题回复过程、工具/来源展示、取消与续写、错误恢复、前后端事件协议七个角度给出详细方案，并说明哪些能力必须后端真实支持，不能只靠前端假展示。\n复制\n分享\n我来为你系统拆解\"航宝智辅\"Chatbox 复原 Kimi 风格的完整方案。基于 Kimi 的核心交互范式，以下是七个维度的深度设计评审：\n一、空态（Empty State）\nKimi 风格特征\n非传统\"空白页\"，而是预设能力展示 + 快速入口\n顶部简洁品牌区 + 中部动态推荐问题 + 底部输入框常驻\n推荐问题随用户身份/场景动态变化\n详细方案\n表格\n复制\n模块\t设计要点\t后端必须支持\n品牌区\t航宝智辅 Logo + \"你好，我是航宝，你的AI辅导员\"\t无需后端，纯前端\n能力胶囊\t横向滚动的功能标签：「查成绩」「请假的流程」「奖学金政策」「心理咨询预约」\t必须后端：标签\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 12,
+      "len": 707,
+      "answerDelta": 425,
+      "active": false,
+      "tail": "具/来源展示、取消与续写、错误恢复、前后端事件协议七个角度给出详细方案，并说明哪些能力必须后端真实支持，不能只靠前端假展示。\n复制\n分享\n我来为你系统拆解\"航宝智辅\"Chatbox 复原 Kimi 风格的完整方案。基于 Kimi 的核心交互范式，以下是七个维度的深度设计评审：\n一、空态（Empty State）\nKimi 风格特征\n非传统\"空白页\"，而是预设能力展示 + 快速入口\n顶部简洁品牌区 + 中部动态推荐问题 + 底部输入框常驻\n推荐问题随用户身份/场景动态变化\n详细方案\n表格\n复制\n模块\t设计要点\t后端必须支持\n品牌区\t航宝智辅 Logo + \"你好，我是航宝，你的AI辅导员\"\t无需后端，纯前端\n能力胶囊\t横向滚动的功能标签：「查成绩」「请假的流程」「奖学金政策」「心理咨询预约」\t必须后端：标签内容需根据学生年级、专业、当前时间节点（如开学季/考试周）动态推送\n推荐问题\t3-4 个带图标的卡片，点击直接填入输入框发送\t必须后端：基于用户画像的个性化推荐算法\n快捷操作栏\t上传文件、语音输入、历史记录入口\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别\n下载"
+    },
+    {
+      "tSec": 14,
+      "len": 725,
+      "answerDelta": 443,
+      "active": false,
+      "tail": "前后端事件协议七个角度给出详细方案，并说明哪些能力必须后端真实支持，不能只靠前端假展示。\n复制\n分享\n我来为你系统拆解\"航宝智辅\"Chatbox 复原 Kimi 风格的完整方案。基于 Kimi 的核心交互范式，以下是七个维度的深度设计评审：\n一、空态（Empty State）\nKimi 风格特征\n非传统\"空白页\"，而是预设能力展示 + 快速入口\n顶部简洁品牌区 + 中部动态推荐问题 + 底部输入框常驻\n推荐问题随用户身份/场景动态变化\n详细方案\n表格\n复制\n模块\t设计要点\t后端必须支持\n品牌区\t航宝智辅 Logo + \"你好，我是航宝，你的AI辅导员\"\t无需后端，纯前端\n能力胶囊\t横向滚动的功能标签：「查成绩」「请假的流程」「奖学金政策」「心理咨询预约」\t必须后端：标签内容需根据学生年级、专业、当前时间节点（如开学季/考试周）动态推送\n推荐问题\t3-4 个带图标的卡片，点击直接填入输入框发送\t必须后端：基于用户画像的个性化推荐算法\n快捷操作栏\t上传文件、语音输入、历史记录入口\t文件上传需后端存储与解析能力\n关键决策：\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 16,
+      "len": 776,
+      "answerDelta": 494,
+      "active": false,
+      "tail": "我来为你系统拆解\"航宝智辅\"Chatbox 复原 Kimi 风格的完整方案。基于 Kimi 的核心交互范式，以下是七个维度的深度设计评审：\n一、空态（Empty State）\nKimi 风格特征\n非传统\"空白页\"，而是预设能力展示 + 快速入口\n顶部简洁品牌区 + 中部动态推荐问题 + 底部输入框常驻\n推荐问题随用户身份/场景动态变化\n详细方案\n表格\n复制\n模块\t设计要点\t后端必须支持\n品牌区\t航宝智辅 Logo + \"你好，我是航宝，你的AI辅导员\"\t无需后端，纯前端\n能力胶囊\t横向滚动的功能标签：「查成绩」「请假的流程」「奖学金政策」「心理咨询预约」\t必须后端：标签内容需根据学生年级、专业、当前时间节点（如开学季/考试周）动态推送\n推荐问题\t3-4 个带图标的卡片，点击直接填入输入框发送\t必须后端：基于用户画像的个性化推荐算法\n快捷操作栏\t上传文件、语音输入、历史记录入口\t文件上传需后端存储与解析能力\n关键决策：空态的推荐问题如果前端写死，体验会迅速劣化。后端必须提供 `/api/suggestions?user\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 18,
+      "len": 892,
+      "answerDelta": 610,
+      "active": false,
+      "tail": "+ 快速入口\n顶部简洁品牌区 + 中部动态推荐问题 + 底部输入框常驻\n推荐问题随用户身份/场景动态变化\n详细方案\n表格\n复制\n模块\t设计要点\t后端必须支持\n品牌区\t航宝智辅 Logo + \"你好，我是航宝，你的AI辅导员\"\t无需后端，纯前端\n能力胶囊\t横向滚动的功能标签：「查成绩」「请假的流程」「奖学金政策」「心理咨询预约」\t必须后端：标签内容需根据学生年级、专业、当前时间节点（如开学季/考试周）动态推送\n推荐问题\t3-4 个带图标的卡片，点击直接填入输入框发送\t必须后端：基于用户画像的个性化推荐算法\n快捷操作栏\t上传文件、语音输入、历史记录入口\t文件上传需后端存储与解析能力\n关键决策：空态的推荐问题如果前端写死，体验会迅速劣化。后端必须提供 /api/suggestions?user_id=&context= 接口，返回个性化推荐。\n二、输入区（Input Area）\nKimi 风格特征\n输入框高度自适应（多行文本）\n支持 Markdown 快捷粘贴、文件拖拽、@引用上下文\n发送按钮状态智能变化（空态禁用/有内容\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 20,
+      "len": 1216,
+      "answerDelta": 934,
+      "active": false,
+      "tail": "提供 /api/suggestions?user_id=&context= 接口，返回个性化推荐。\n二、输入区（Input Area）\nKimi 风格特征\n输入框高度自适应（多行文本）\n支持 Markdown 快捷粘贴、文件拖拽、@引用上下文\n发送按钮状态智能变化（空态禁用/有内容高亮/加载中旋转）\n详细方案\nplain\n复制\n┌─────────────────────────────────────────┐\n│  [📎]  [🎙️]  输入框（placeholder动态）   │\n│            \"问问航宝关于选课的事...\"      │\n│                              [发送按钮]  │\n└─────────────────────────────────────────┘\n表格\n复制\n功能\t实现方案\t后端必须支持\n自适应高度\t前端 textarea auto-resize，max-height 限制\t无需后端\n文件拖拽上传\t前端监听 drag/drop → 调用\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 22,
+      "len": 1286,
+      "answerDelta": 1004,
+      "active": false,
+      "tail": "mi 风格特征\n输入框高度自适应（多行文本）\n支持 Markdown 快捷粘贴、文件拖拽、@引用上下文\n发送按钮状态智能变化（空态禁用/有内容高亮/加载中旋转）\n详细方案\nplain\n复制\n┌─────────────────────────────────────────┐\n│  [📎]  [🎙️]  输入框（placeholder动态）   │\n│            \"问问航宝关于选课的事...\"      │\n│                              [发送按钮]  │\n└─────────────────────────────────────────┘\n表格\n复制\n功能\t实现方案\t后端必须支持\n自适应高度\t前端 textarea auto-resize，max-height 限制\t无需后端\n文件拖拽上传\t前端监听 drag/drop → 调用上传 API\t必须后端：文件存储（OSS）、格式校验、大小限制、病毒扫描\n语音输入\t前端 WebRTC 录音 → 上传音频 → 返回文本填入\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 24,
+      "len": 1402,
+      "answerDelta": 1120,
+      "active": false,
+      "tail": "─────────────────────┐\n│  [📎]  [🎙️]  输入框（placeholder动态）   │\n│            \"问问航宝关于选课的事...\"      │\n│                              [发送按钮]  │\n└─────────────────────────────────────────┘\n表格\n复制\n功能\t实现方案\t后端必须支持\n自适应高度\t前端 textarea auto-resize，max-height 限制\t无需后端\n文件拖拽上传\t前端监听 drag/drop → 调用上传 API\t必须后端：文件存储（OSS）、格式校验、大小限制、病毒扫描\n语音输入\t前端 WebRTC 录音 → 上传音频 → 返回文本填入\t必须后端：ASR 语音识别服务（或调用第三方）\n@引用\t前端解析 @ 符号 → 弹出上下文选择面板\t必须后端：用户历史对话检索接口\n快捷指令\t/成绩 /课表 等斜杠命令自动补全\t必须后端：指令映射到具体业务 API\n关键决策：语音\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 26,
+      "len": 1578,
+      "answerDelta": 1296,
+      "active": true,
+      "tail": "─────┘\n表格\n复制\n功能\t实现方案\t后端必须支持\n自适应高度\t前端 textarea auto-resize，max-height 限制\t无需后端\n文件拖拽上传\t前端监听 drag/drop → 调用上传 API\t必须后端：文件存储（OSS）、格式校验、大小限制、病毒扫描\n语音输入\t前端 WebRTC 录音 → 上传音频 → 返回文本填入\t必须后端：ASR 语音识别服务（或调用第三方）\n@引用\t前端解析 @ 符号 → 弹出上下文选择面板\t必须后端：用户历史对话检索接口\n快捷指令\t/成绩 /课表 等斜杠命令自动补全\t必须后端：指令映射到具体业务 API\n关键决策：语音输入和文件解析如果前端假展示，用户上传后无响应或报错，信任瞬间崩塌。这两项必须后端真实链路通。\n三、复杂问题回复过程（Streaming & Thinking）\nKimi 风格特征\n打字机效果：SSE 流式输出，字符逐字出现\n思考过程可视化：对于复杂问题，先展示\"正在思考...\"的折叠区域，再输出正式答案\n中途可感知进度：长文本生成时有进度感，非突然\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 28,
+      "len": 1651,
+      "answerDelta": 1369,
+      "active": true,
+      "tail": "需后端\n文件拖拽上传\t前端监听 drag/drop → 调用上传 API\t必须后端：文件存储（OSS）、格式校验、大小限制、病毒扫描\n语音输入\t前端 WebRTC 录音 → 上传音频 → 返回文本填入\t必须后端：ASR 语音识别服务（或调用第三方）\n@引用\t前端解析 @ 符号 → 弹出上下文选择面板\t必须后端：用户历史对话检索接口\n快捷指令\t/成绩 /课表 等斜杠命令自动补全\t必须后端：指令映射到具体业务 API\n关键决策：语音输入和文件解析如果前端假展示，用户上传后无响应或报错，信任瞬间崩塌。这两项必须后端真实链路通。\n三、复杂问题回复过程（Streaming & Thinking）\nKimi 风格特征\n打字机效果：SSE 流式输出，字符逐字出现\n思考过程可视化：对于复杂问题，先展示\"正在思考...\"的折叠区域，再输出正式答案\n中途可感知进度：长文本生成时有进度感，非突然闪现\n详细方案\n阶段 1：请求发送\nplain\n复制\n用户点击发送 → 前端立即插入\"用户气泡\" + \"AI 占位气泡（闪烁光标）\"\n**阶段 2\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 30,
+      "len": 1858,
+      "answerDelta": 1576,
+      "active": true,
+      "tail": "I\n关键决策：语音输入和文件解析如果前端假展示，用户上传后无响应或报错，信任瞬间崩塌。这两项必须后端真实链路通。\n三、复杂问题回复过程（Streaming & Thinking）\nKimi 风格特征\n打字机效果：SSE 流式输出，字符逐字出现\n思考过程可视化：对于复杂问题，先展示\"正在思考...\"的折叠区域，再输出正式答案\n中途可感知进度：长文本生成时有进度感，非突然闪现\n详细方案\n阶段 1：请求发送\nplain\n复制\n用户点击发送 → 前端立即插入\"用户气泡\" + \"AI 占位气泡（闪烁光标）\"\n阶段 2：思考过程（仅复杂问题触发）\nplain\n复制\n┌────────────────────────────┐\n│ 🤔 正在思考... [展开▼]      │\n│ （折叠内容：检索知识库、     │\n│  分析学生画像、匹配政策...） │\n└────────────────────────────┘\n阶段 3：流式输出\nSSE 连接建立，前端 EventSource 接收 delta 片段\n前端维护缓冲区，按\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 32,
+      "len": 2061,
+      "answerDelta": 1779,
+      "active": true,
+      "tail": "plain\n复制\n用户点击发送 → 前端立即插入\"用户气泡\" + \"AI 占位气泡（闪烁光标）\"\n阶段 2：思考过程（仅复杂问题触发）\nplain\n复制\n┌────────────────────────────┐\n│ 🤔 正在思考... [展开▼]      │\n│ （折叠内容：检索知识库、     │\n│  分析学生画像、匹配政策...） │\n└────────────────────────────┘\n阶段 3：流式输出\nSSE 连接建立，前端 EventSource 接收 delta 片段\n前端维护缓冲区，按句子/段落 flush 到 DOM（避免逐字卡顿）\n支持 Markdown 实时渲染（代码块高亮、表格等）\n表格\n复制\n能力\t前端职责\t后端必须支持\n打字机效果\tSSE 消费 + 缓冲区管理 + 平滑渲染\t必须后端：SSE 流式接口，支持 content_delta 字段\n思考过程展示\t解析特定事件类型（如 thinking_start / thinking_end）\t必须后端：CoT（Chain-of\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 34,
+      "len": 2211,
+      "answerDelta": 1929,
+      "active": true,
+      "tail": "   │\n│  分析学生画像、匹配政策...） │\n└────────────────────────────┘\n阶段 3：流式输出\nSSE 连接建立，前端 EventSource 接收 delta 片段\n前端维护缓冲区，按句子/段落 flush 到 DOM（避免逐字卡顿）\n支持 Markdown 实时渲染（代码块高亮、表格等）\n表格\n复制\n能力\t前端职责\t后端必须支持\n打字机效果\tSSE 消费 + 缓冲区管理 + 平滑渲染\t必须后端：SSE 流式接口，支持 content_delta 字段\n思考过程展示\t解析特定事件类型（如 thinking_start / thinking_end）\t必须后端：CoT（Chain-of-Thought）输出或至少 reasoning 字段\nMarkdown 实时渲染\t增量 Markdown 解析（推荐 micromark 流式模式）\t无需后端，纯前端\n数学公式\tKaTeX 实时渲染\t无需后端\n关键决策：思考过程（Thinking）如果前端假展示固定文案，而实际后端没有 Co\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别\n下载"
+    },
+    {
+      "tSec": 36,
+      "len": 2269,
+      "answerDelta": 1987,
+      "active": true,
+      "tail": "段 3：流式输出\nSSE 连接建立，前端 EventSource 接收 delta 片段\n前端维护缓冲区，按句子/段落 flush 到 DOM（避免逐字卡顿）\n支持 Markdown 实时渲染（代码块高亮、表格等）\n表格\n复制\n能力\t前端职责\t后端必须支持\n打字机效果\tSSE 消费 + 缓冲区管理 + 平滑渲染\t必须后端：SSE 流式接口，支持 content_delta 字段\n思考过程展示\t解析特定事件类型（如 thinking_start / thinking_end）\t必须后端：CoT（Chain-of-Thought）输出或至少 reasoning 字段\nMarkdown 实时渲染\t增量 Markdown 解析（推荐 micromark 流式模式）\t无需后端，纯前端\n数学公式\tKaTeX 实时渲染\t无需后端\n关键决策：思考过程（Thinking）如果前端假展示固定文案，而实际后端没有 CoT 能力，用户会发现\"思考内容\"和最终答案脱节。必须后端真实输出思考链，或至少区分\"简单直接答\"和\"复杂需思考\"两种模式。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 38,
+      "len": 2426,
+      "answerDelta": 2144,
+      "active": true,
+      "tail": "必须后端：SSE 流式接口，支持 content_delta 字段\n思考过程展示\t解析特定事件类型（如 thinking_start / thinking_end）\t必须后端：CoT（Chain-of-Thought）输出或至少 reasoning 字段\nMarkdown 实时渲染\t增量 Markdown 解析（推荐 micromark 流式模式）\t无需后端，纯前端\n数学公式\tKaTeX 实时渲染\t无需后端\n关键决策：思考过程（Thinking）如果前端假展示固定文案，而实际后端没有 CoT 能力，用户会发现\"思考内容\"和最终答案脱节。必须后端真实输出思考链，或至少区分\"简单直接答\"和\"复杂需思考\"两种模式。\n四、工具/来源展示（Tools & Citations）\nKimi 风格特征\n引用来源以 角标 [1][2] 形式嵌入正文\n底部展开 Sources 面板，展示引用文档标题、片段、链接\n工具调用有明确的状态反馈（\"正在搜索...\"\"正在读取文件...\"）\n详细方案\n正文中的引用\nplain\n复制\n根据学校《学生\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 40,
+      "len": 2770,
+      "answerDelta": 2488,
+      "active": true,
+      "tail": "格特征\n引用来源以 角标 [1][2] 形式嵌入正文\n底部展开 Sources 面板，展示引用文档标题、片段、链接\n工具调用有明确的状态反馈（\"正在搜索...\"\"正在读取文件...\"）\n详细方案\n正文中的引用\nplain\n复制\n根据学校《学生手册》规定，请假需提前 3 天申请 [1]，\n并通过教务系统提交 [2]。\n底部 Sources 面板\nplain\n复制\n┌─────────────────────────────────────┐\n│ 📚 参考来源                        │\n│ ├─ [1] 《南昌航空大学学生手册》2024 │\n│ │    \"...请假流程详细说明...\"        │\n│ ├─ [2] 教务系统操作指南            │\n│ │    \"...登录后点击'事务申请'...\"    │\n└─────────────────────────────────────┘\n表格\n复制\n能力\t前端职责\t后端必须支持\n角标渲染\t解析后端返回的 `citations\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 42,
+      "len": 2815,
+      "answerDelta": 2533,
+      "active": true,
+      "tail": "引用文档标题、片段、链接\n工具调用有明确的状态反馈（\"正在搜索...\"\"正在读取文件...\"）\n详细方案\n正文中的引用\nplain\n复制\n根据学校《学生手册》规定，请假需提前 3 天申请 [1]，\n并通过教务系统提交 [2]。\n底部 Sources 面板\nplain\n复制\n┌─────────────────────────────────────┐\n│ 📚 参考来源                        │\n│ ├─ [1] 《南昌航空大学学生手册》2024 │\n│ │    \"...请假流程详细说明...\"        │\n│ ├─ [2] 教务系统操作指南            │\n│ │    \"...登录后点击'事务申请'...\"    │\n└─────────────────────────────────────┘\n表格\n复制\n能力\t前端职责\t后端必须支持\n角标渲染\t解析后端返回的 citations 数组，映射到文本位置\t必须后端：RAG 检索结果必须包含 chunk_id、`source\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 44,
+      "len": 2961,
+      "answerDelta": 2679,
+      "active": true,
+      "tail": "─────────────────────────────┐\n│ 📚 参考来源                        │\n│ ├─ [1] 《南昌航空大学学生手册》2024 │\n│ │    \"...请假流程详细说明...\"        │\n│ ├─ [2] 教务系统操作指南            │\n│ │    \"...登录后点击'事务申请'...\"    │\n└─────────────────────────────────────┘\n表格\n复制\n能力\t前端职责\t后端必须支持\n角标渲染\t解析后端返回的 citations 数组，映射到文本位置\t必须后端：RAG 检索结果必须包含 chunk_id、source_title、url、relevance_score\nSources 面板\t点击角标高亮对应来源，展开/收起面板\t必须后端：来源数据真实可追溯\n工具调用状态\t展示\"正在查询成绩...\"\"正在检索政策...\"\t必须后端：工具调用中间状态事件（tool_calling / tool_result）\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 46,
+      "len": 3187,
+      "answerDelta": 2905,
+      "active": true,
+      "tail": "──┘\n表格\n复制\n能力\t前端职责\t后端必须支持\n角标渲染\t解析后端返回的 citations 数组，映射到文本位置\t必须后端：RAG 检索结果必须包含 chunk_id、source_title、url、relevance_score\nSources 面板\t点击角标高亮对应来源，展开/收起面板\t必须后端：来源数据真实可追溯\n工具调用状态\t展示\"正在查询成绩...\"\"正在检索政策...\"\t必须后端：工具调用中间状态事件（tool_calling / tool_result）\n来源可点击跳转\t外链跳转或内链预览\t必须后端：URL 必须真实有效，不能是假链接\n关键决策：这是最容易前端造假的地方。很多产品前端写死几个\"参考来源\"假装有 RAG。必须要求后端：\n真实接入学校知识库（学生手册、教务处公告、心理咨询中心等）\n返回的 citation 必须包含可验证的 source_id\n支持用户点击后查看原文片段\n如果后端没有真实 RAG，宁可不展示来源，也不要假展示。\n五、取消与续写（Stop & Continue）\nKimi\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 48,
+      "len": 3220,
+      "answerDelta": 2938,
+      "active": true,
+      "tail": "端返回的 citations 数组，映射到文本位置\t必须后端：RAG 检索结果必须包含 chunk_id、source_title、url、relevance_score\nSources 面板\t点击角标高亮对应来源，展开/收起面板\t必须后端：来源数据真实可追溯\n工具调用状态\t展示\"正在查询成绩...\"\"正在检索政策...\"\t必须后端：工具调用中间状态事件（tool_calling / tool_result）\n来源可点击跳转\t外链跳转或内链预览\t必须后端：URL 必须真实有效，不能是假链接\n关键决策：这是最容易前端造假的地方。很多产品前端写死几个\"参考来源\"假装有 RAG。必须要求后端：\n真实接入学校知识库（学生手册、教务处公告、心理咨询中心等）\n返回的 citation 必须包含可验证的 source_id\n支持用户点击后查看原文片段\n如果后端没有真实 RAG，宁可不展示来源，也不要假展示。\n五、取消与续写（Stop & Continue）\nKimi 风格特征\n取消按钮：生成过程中输入框变\"停止生成\"按钮\n**续写\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 50,
+      "len": 3352,
+      "answerDelta": 3070,
+      "active": true,
+      "tail": "具调用状态\t展示\"正在查询成绩...\"\"正在检索政策...\"\t必须后端：工具调用中间状态事件（tool_calling / tool_result）\n来源可点击跳转\t外链跳转或内链预览\t必须后端：URL 必须真实有效，不能是假链接\n关键决策：这是最容易前端造假的地方。很多产品前端写死几个\"参考来源\"假装有 RAG。必须要求后端：\n真实接入学校知识库（学生手册、教务处公告、心理咨询中心等）\n返回的 citation 必须包含可验证的 source_id\n支持用户点击后查看原文片段\n如果后端没有真实 RAG，宁可不展示来源，也不要假展示。\n五、取消与续写（Stop & Continue）\nKimi 风格特征\n取消按钮：生成过程中输入框变\"停止生成\"按钮\n续写功能：长文本截断后，底部出现\"继续生成\"按钮\n重新生成：每条 AI 消息支持\"重新回答\"\n详细方案\n取消流程\nplain\n复制\n用户发送问题 → AI 开始流式输出 → 输入框变为 [⏹ 停止生成]\n用户点击停止 → 前端关闭 SSE → 后端收到 cancel 信号\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 52,
+      "len": 3417,
+      "answerDelta": 3135,
+      "active": true,
+      "tail": "l_result）\n来源可点击跳转\t外链跳转或内链预览\t必须后端：URL 必须真实有效，不能是假链接\n关键决策：这是最容易前端造假的地方。很多产品前端写死几个\"参考来源\"假装有 RAG。必须要求后端：\n真实接入学校知识库（学生手册、教务处公告、心理咨询中心等）\n返回的 citation 必须包含可验证的 source_id\n支持用户点击后查看原文片段\n如果后端没有真实 RAG，宁可不展示来源，也不要假展示。\n五、取消与续写（Stop & Continue）\nKimi 风格特征\n取消按钮：生成过程中输入框变\"停止生成\"按钮\n续写功能：长文本截断后，底部出现\"继续生成\"按钮\n重新生成：每条 AI 消息支持\"重新回答\"\n详细方案\n取消流程\nplain\n复制\n用户发送问题 → AI 开始流式输出 → 输入框变为 [⏹ 停止生成]\n用户点击停止 → 前端关闭 SSE → 后端收到 cancel 信号终止生成\n已输出内容保留，但标记为\"已截断\"\n续写流程\nplain\n复制\nAI 输出达到 max_tokens → 停止输出 → \n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 54,
+      "len": 3604,
+      "answerDelta": 3322,
+      "active": true,
+      "tail": "AG，宁可不展示来源，也不要假展示。\n五、取消与续写（Stop & Continue）\nKimi 风格特征\n取消按钮：生成过程中输入框变\"停止生成\"按钮\n续写功能：长文本截断后，底部出现\"继续生成\"按钮\n重新生成：每条 AI 消息支持\"重新回答\"\n详细方案\n取消流程\nplain\n复制\n用户发送问题 → AI 开始流式输出 → 输入框变为 [⏹ 停止生成]\n用户点击停止 → 前端关闭 SSE → 后端收到 cancel 信号终止生成\n已输出内容保留，但标记为\"已截断\"\n续写流程\nplain\n复制\nAI 输出达到 max_tokens → 停止输出 → 底部显示 [⬇️ 继续生成]\n用户点击 → 前端携带 `conversation_id` + `last_message_id` 请求续写\n后端基于上下文继续生成，前端拼接内容\n表格\n复制\n能力\t前端职责\t后端必须支持\n取消生成\t前端 EventSource.close() + 发送 cancel 请求\t必须后端：支持请求中断或 cancel 信号，释放 GPU/计算资源\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 56,
+      "len": 3645,
+      "answerDelta": 3363,
+      "active": true,
+      "tail": "e）\nKimi 风格特征\n取消按钮：生成过程中输入框变\"停止生成\"按钮\n续写功能：长文本截断后，底部出现\"继续生成\"按钮\n重新生成：每条 AI 消息支持\"重新回答\"\n详细方案\n取消流程\nplain\n复制\n用户发送问题 → AI 开始流式输出 → 输入框变为 [⏹ 停止生成]\n用户点击停止 → 前端关闭 SSE → 后端收到 cancel 信号终止生成\n已输出内容保留，但标记为\"已截断\"\n续写流程\nplain\n复制\nAI 输出达到 max_tokens → 停止输出 → 底部显示 [⬇️ 继续生成]\n用户点击 → 前端携带 `conversation_id` + `last_message_id` 请求续写\n后端基于上下文继续生成，前端拼接内容\n表格\n复制\n能力\t前端职责\t后端必须支持\n取消生成\t前端 EventSource.close() + 发送 cancel 请求\t必须后端：支持请求中断或 cancel 信号，释放 GPU/计算资源\n续写\t前端管理续写状态，拼接内容\t必须后端：支持 continue 或 `reg\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 58,
+      "len": 3651,
+      "answerDelta": 3369,
+      "active": true,
+      "tail": "i 风格特征\n取消按钮：生成过程中输入框变\"停止生成\"按钮\n续写功能：长文本截断后，底部出现\"继续生成\"按钮\n重新生成：每条 AI 消息支持\"重新回答\"\n详细方案\n取消流程\nplain\n复制\n用户发送问题 → AI 开始流式输出 → 输入框变为 [⏹ 停止生成]\n用户点击停止 → 前端关闭 SSE → 后端收到 cancel 信号终止生成\n已输出内容保留，但标记为\"已截断\"\n续写流程\nplain\n复制\nAI 输出达到 max_tokens → 停止输出 → 底部显示 [⬇️ 继续生成]\n用户点击 → 前端携带 `conversation_id` + `last_message_id` 请求续写\n后端基于上下文继续生成，前端拼接内容\n表格\n复制\n能力\t前端职责\t后端必须支持\n取消生成\t前端 EventSource.close() + 发送 cancel 请求\t必须后端：支持请求中断或 cancel 信号，释放 GPU/计算资源\n续写\t前端管理续写状态，拼接内容\t必须后端：支持 continue 或 regenerate\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 60,
+      "len": 3651,
+      "answerDelta": 3369,
+      "active": true,
+      "tail": "i 风格特征\n取消按钮：生成过程中输入框变\"停止生成\"按钮\n续写功能：长文本截断后，底部出现\"继续生成\"按钮\n重新生成：每条 AI 消息支持\"重新回答\"\n详细方案\n取消流程\nplain\n复制\n用户发送问题 → AI 开始流式输出 → 输入框变为 [⏹ 停止生成]\n用户点击停止 → 前端关闭 SSE → 后端收到 cancel 信号终止生成\n已输出内容保留，但标记为\"已截断\"\n续写流程\nplain\n复制\nAI 输出达到 max_tokens → 停止输出 → 底部显示 [⬇️ 继续生成]\n用户点击 → 前端携带 `conversation_id` + `last_message_id` 请求续写\n后端基于上下文继续生成，前端拼接内容\n表格\n复制\n能力\t前端职责\t后端必须支持\n取消生成\t前端 EventSource.close() + 发送 cancel 请求\t必须后端：支持请求中断或 cancel 信号，释放 GPU/计算资源\n续写\t前端管理续写状态，拼接内容\t必须后端：支持 continue 或 regenerate\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 62,
+      "len": 3651,
+      "answerDelta": 3369,
+      "active": true,
+      "tail": "i 风格特征\n取消按钮：生成过程中输入框变\"停止生成\"按钮\n续写功能：长文本截断后，底部出现\"继续生成\"按钮\n重新生成：每条 AI 消息支持\"重新回答\"\n详细方案\n取消流程\nplain\n复制\n用户发送问题 → AI 开始流式输出 → 输入框变为 [⏹ 停止生成]\n用户点击停止 → 前端关闭 SSE → 后端收到 cancel 信号终止生成\n已输出内容保留，但标记为\"已截断\"\n续写流程\nplain\n复制\nAI 输出达到 max_tokens → 停止输出 → 底部显示 [⬇️ 继续生成]\n用户点击 → 前端携带 `conversation_id` + `last_message_id` 请求续写\n后端基于上下文继续生成，前端拼接内容\n表格\n复制\n能力\t前端职责\t后端必须支持\n取消生成\t前端 EventSource.close() + 发送 cancel 请求\t必须后端：支持请求中断或 cancel 信号，释放 GPU/计算资源\n续写\t前端管理续写状态，拼接内容\t必须后端：支持 continue 或 regenerate\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 64,
+      "len": 3665,
+      "answerDelta": 3383,
+      "active": true,
+      "tail": "过程中输入框变\"停止生成\"按钮\n续写功能：长文本截断后，底部出现\"继续生成\"按钮\n重新生成：每条 AI 消息支持\"重新回答\"\n详细方案\n取消流程\nplain\n复制\n用户发送问题 → AI 开始流式输出 → 输入框变为 [⏹ 停止生成]\n用户点击停止 → 前端关闭 SSE → 后端收到 cancel 信号终止生成\n已输出内容保留，但标记为\"已截断\"\n续写流程\nplain\n复制\nAI 输出达到 max_tokens → 停止输出 → 底部显示 [⬇️ 继续生成]\n用户点击 → 前端携带 `conversation_id` + `last_message_id` 请求续写\n后端基于上下文继续生成，前端拼接内容\n表格\n复制\n能力\t前端职责\t后端必须支持\n取消生成\t前端 EventSource.close() + 发送 cancel 请求\t必须后端：支持请求中断或 cancel 信号，释放 GPU/计算资源\n续写\t前端管理续写状态，拼接内容\t必须后端：支持 continue 或 regenerate 接口，基于完整上下文\n**\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 66,
+      "len": 3779,
+      "answerDelta": 3497,
+      "active": true,
+      "tail": "生成]\n用户点击停止 → 前端关闭 SSE → 后端收到 cancel 信号终止生成\n已输出内容保留，但标记为\"已截断\"\n续写流程\nplain\n复制\nAI 输出达到 max_tokens → 停止输出 → 底部显示 [⬇️ 继续生成]\n用户点击 → 前端携带 `conversation_id` + `last_message_id` 请求续写\n后端基于上下文继续生成，前端拼接内容\n表格\n复制\n能力\t前端职责\t后端必须支持\n取消生成\t前端 EventSource.close() + 发送 cancel 请求\t必须后端：支持请求中断或 cancel 信号，释放 GPU/计算资源\n续写\t前端管理续写状态，拼接内容\t必须后端：支持 continue 或 regenerate 接口，基于完整上下文\n重新生成\t前端替换当前 AI 消息内容\t必须后端：同一问题重新调用模型，非缓存返回\n关键决策：取消如果前端只做 UI 关闭 SSE，后端继续消耗资源生成完整文本，会造成资源浪费和后续对话上下文混乱。必须后端支持真正的生成中断。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别\n下载"
+    },
+    {
+      "tSec": 68,
+      "len": 4000,
+      "answerDelta": 3718,
+      "active": true,
+      "tail": "EventSource.close() + 发送 cancel 请求\t必须后端：支持请求中断或 cancel 信号，释放 GPU/计算资源\n续写\t前端管理续写状态，拼接内容\t必须后端：支持 continue 或 regenerate 接口，基于完整上下文\n重新生成\t前端替换当前 AI 消息内容\t必须后端：同一问题重新调用模型，非缓存返回\n关键决策：取消如果前端只做 UI 关闭 SSE，后端继续消耗资源生成完整文本，会造成资源浪费和后续对话上下文混乱。必须后端支持真正的生成中断。\n六、错误恢复（Error Recovery）\nKimi 风格特征\n错误信息不阻断对话流，以温和文案 inline 展示\n支持一键重试，保留用户问题不丢失\n网络恢复后自动重连\n详细方案\n错误类型与处理\n表格\n复制\n错误类型\t前端展示\t后端必须支持\n网络中断\t\"网络似乎不太稳定，[重试]\"\t前端自动重试 3 次，后端需支持幂等请求\n模型超时\t\"航宝思考时间有点长，[简化问题再试]\"\t必须后端：超时降级策略（切换轻量模型/简化 RAG）\n敏感词拦截\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 70,
+      "len": 4067,
+      "answerDelta": 3785,
+      "active": true,
+      "tail": "资源\n续写\t前端管理续写状态，拼接内容\t必须后端：支持 continue 或 regenerate 接口，基于完整上下文\n重新生成\t前端替换当前 AI 消息内容\t必须后端：同一问题重新调用模型，非缓存返回\n关键决策：取消如果前端只做 UI 关闭 SSE，后端继续消耗资源生成完整文本，会造成资源浪费和后续对话上下文混乱。必须后端支持真正的生成中断。\n六、错误恢复（Error Recovery）\nKimi 风格特征\n错误信息不阻断对话流，以温和文案 inline 展示\n支持一键重试，保留用户问题不丢失\n网络恢复后自动重连\n详细方案\n错误类型与处理\n表格\n复制\n错误类型\t前端展示\t后端必须支持\n网络中断\t\"网络似乎不太稳定，[重试]\"\t前端自动重试 3 次，后端需支持幂等请求\n模型超时\t\"航宝思考时间有点长，[简化问题再试]\"\t必须后端：超时降级策略（切换轻量模型/简化 RAG）\n敏感词拦截\t\"这个问题涉及敏感内容，换个方式问问我吧\"\t必须后端：真实的内容安全审核接口\n服务过载\t\"航宝有点忙，排队中...（预计 30\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别\n下载"
+    },
+    {
+      "tSec": 72,
+      "len": 4163,
+      "answerDelta": 3881,
+      "active": true,
+      "tail": "，非缓存返回\n关键决策：取消如果前端只做 UI 关闭 SSE，后端继续消耗资源生成完整文本，会造成资源浪费和后续对话上下文混乱。必须后端支持真正的生成中断。\n六、错误恢复（Error Recovery）\nKimi 风格特征\n错误信息不阻断对话流，以温和文案 inline 展示\n支持一键重试，保留用户问题不丢失\n网络恢复后自动重连\n详细方案\n错误类型与处理\n表格\n复制\n错误类型\t前端展示\t后端必须支持\n网络中断\t\"网络似乎不太稳定，[重试]\"\t前端自动重试 3 次，后端需支持幂等请求\n模型超时\t\"航宝思考时间有点长，[简化问题再试]\"\t必须后端：超时降级策略（切换轻量模型/简化 RAG）\n敏感词拦截\t\"这个问题涉及敏感内容，换个方式问问我吧\"\t必须后端：真实的内容安全审核接口\n服务过载\t\"航宝有点忙，排队中...（预计 30 秒）\"\t必须后端：队列状态查询接口\nRAG 检索失败\t\"暂时没找到相关政策，我基于通用知识回答：\"\t必须后端：检索失败降级到纯模型生成\n关键决策：错误恢复策略必须前后端协同。前端不能只展示\"出错了\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 74,
+      "len": 4185,
+      "answerDelta": 3903,
+      "active": true,
+      "tail": "I 关闭 SSE，后端继续消耗资源生成完整文本，会造成资源浪费和后续对话上下文混乱。必须后端支持真正的生成中断。\n六、错误恢复（Error Recovery）\nKimi 风格特征\n错误信息不阻断对话流，以温和文案 inline 展示\n支持一键重试，保留用户问题不丢失\n网络恢复后自动重连\n详细方案\n错误类型与处理\n表格\n复制\n错误类型\t前端展示\t后端必须支持\n网络中断\t\"网络似乎不太稳定，[重试]\"\t前端自动重试 3 次，后端需支持幂等请求\n模型超时\t\"航宝思考时间有点长，[简化问题再试]\"\t必须后端：超时降级策略（切换轻量模型/简化 RAG）\n敏感词拦截\t\"这个问题涉及敏感内容，换个方式问问我吧\"\t必须后端：真实的内容安全审核接口\n服务过载\t\"航宝有点忙，排队中...（预计 30 秒）\"\t必须后端：队列状态查询接口\nRAG 检索失败\t\"暂时没找到相关政策，我基于通用知识回答：\"\t必须后端：检索失败降级到纯模型生成\n关键决策：错误恢复策略必须前后端协同。前端不能只展示\"出错了\"，而后端没有对应的降级和重试机制。特别是：\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 76,
+      "len": 4185,
+      "answerDelta": 3903,
+      "active": true,
+      "tail": "I 关闭 SSE，后端继续消耗资源生成完整文本，会造成资源浪费和后续对话上下文混乱。必须后端支持真正的生成中断。\n六、错误恢复（Error Recovery）\nKimi 风格特征\n错误信息不阻断对话流，以温和文案 inline 展示\n支持一键重试，保留用户问题不丢失\n网络恢复后自动重连\n详细方案\n错误类型与处理\n表格\n复制\n错误类型\t前端展示\t后端必须支持\n网络中断\t\"网络似乎不太稳定，[重试]\"\t前端自动重试 3 次，后端需支持幂等请求\n模型超时\t\"航宝思考时间有点长，[简化问题再试]\"\t必须后端：超时降级策略（切换轻量模型/简化 RAG）\n敏感词拦截\t\"这个问题涉及敏感内容，换个方式问问我吧\"\t必须后端：真实的内容安全审核接口\n服务过载\t\"航宝有点忙，排队中...（预计 30 秒）\"\t必须后端：队列状态查询接口\nRAG 检索失败\t\"暂时没找到相关政策，我基于通用知识回答：\"\t必须后端：检索失败降级到纯模型生成\n关键决策：错误恢复策略必须前后端协同。前端不能只展示\"出错了\"，而后端没有对应的降级和重试机制。特别是：\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 78,
+      "len": 4185,
+      "answerDelta": 3903,
+      "active": true,
+      "tail": "I 关闭 SSE，后端继续消耗资源生成完整文本，会造成资源浪费和后续对话上下文混乱。必须后端支持真正的生成中断。\n六、错误恢复（Error Recovery）\nKimi 风格特征\n错误信息不阻断对话流，以温和文案 inline 展示\n支持一键重试，保留用户问题不丢失\n网络恢复后自动重连\n详细方案\n错误类型与处理\n表格\n复制\n错误类型\t前端展示\t后端必须支持\n网络中断\t\"网络似乎不太稳定，[重试]\"\t前端自动重试 3 次，后端需支持幂等请求\n模型超时\t\"航宝思考时间有点长，[简化问题再试]\"\t必须后端：超时降级策略（切换轻量模型/简化 RAG）\n敏感词拦截\t\"这个问题涉及敏感内容，换个方式问问我吧\"\t必须后端：真实的内容安全审核接口\n服务过载\t\"航宝有点忙，排队中...（预计 30 秒）\"\t必须后端：队列状态查询接口\nRAG 检索失败\t\"暂时没找到相关政策，我基于通用知识回答：\"\t必须后端：检索失败降级到纯模型生成\n关键决策：错误恢复策略必须前后端协同。前端不能只展示\"出错了\"，而后端没有对应的降级和重试机制。特别是：\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 80,
+      "len": 4194,
+      "answerDelta": 3912,
+      "active": true,
+      "tail": "后端继续消耗资源生成完整文本，会造成资源浪费和后续对话上下文混乱。必须后端支持真正的生成中断。\n六、错误恢复（Error Recovery）\nKimi 风格特征\n错误信息不阻断对话流，以温和文案 inline 展示\n支持一键重试，保留用户问题不丢失\n网络恢复后自动重连\n详细方案\n错误类型与处理\n表格\n复制\n错误类型\t前端展示\t后端必须支持\n网络中断\t\"网络似乎不太稳定，[重试]\"\t前端自动重试 3 次，后端需支持幂等请求\n模型超时\t\"航宝思考时间有点长，[简化问题再试]\"\t必须后端：超时降级策略（切换轻量模型/简化 RAG）\n敏感词拦截\t\"这个问题涉及敏感内容，换个方式问问我吧\"\t必须后端：真实的内容安全审核接口\n服务过载\t\"航宝有点忙，排队中...（预计 30 秒）\"\t必须后端：队列状态查询接口\nRAG 检索失败\t\"暂时没找到相关政策，我基于通用知识回答：\"\t必须后端：检索失败降级到纯模型生成\n关键决策：错误恢复策略必须前后端协同。前端不能只展示\"出错了\"，而后端没有对应的降级和重试机制。特别是：\n敏感词审核：必须\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 82,
+      "len": 4761,
+      "answerDelta": 4479,
+      "active": true,
+      "tail": "核心事件流\n建议采用 SSE (Server-Sent Events) 协议，事件类型设计：\nJSON\n复制\n// 1. 对话开始\nevent: message_start\ndata: {\"message_id\": \"msg_123\", \"role\": \"assistant\"}\n\n// 2. 工具调用开始（可选）\nevent: tool_calling\ndata: {\"tool\": \"search_knowledge_base\", \"params\": {\"query\": \"请假流程\"}}\n\n// 3. 工具调用结果（可选）\nevent: tool_result\ndata: {\"tool\": \"search_knowledge_base\", \"result\": [...]}\n\n// 4. 思考过程开始（可选）\nevent: thinking_start\ndata: {\"thinking_id\": \"think_1\"}\n\n// 5. 思考内容（流式）\nevent: thinking_delta\ndata: {\"delta\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 84,
+      "len": 4854,
+      "answerDelta": 4572,
+      "active": true,
+      "tail": "{\"message_id\": \"msg_123\", \"role\": \"assistant\"}\n\n// 2. 工具调用开始（可选）\nevent: tool_calling\ndata: {\"tool\": \"search_knowledge_base\", \"params\": {\"query\": \"请假流程\"}}\n\n// 3. 工具调用结果（可选）\nevent: tool_result\ndata: {\"tool\": \"search_knowledge_base\", \"result\": [...]}\n\n// 4. 思考过程开始（可选）\nevent: thinking_start\ndata: {\"thinking_id\": \"think_1\"}\n\n// 5. 思考内容（流式）\nevent: thinking_delta\ndata: {\"delta\": \"正在检索《学生手册》...\"}\n\n// 6. 思考结束\nevent: thinking_end\n\n// 7. 正式回答（流式）\nevent: content_delta\ndata\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 86,
+      "len": 5053,
+      "answerDelta": 4771,
+      "active": true,
+      "tail": "tool\": \"search_knowledge_base\", \"result\": [...]}\n\n// 4. 思考过程开始（可选）\nevent: thinking_start\ndata: {\"thinking_id\": \"think_1\"}\n\n// 5. 思考内容（流式）\nevent: thinking_delta\ndata: {\"delta\": \"正在检索《学生手册》...\"}\n\n// 6. 思考结束\nevent: thinking_end\n\n// 7. 正式回答（流式）\nevent: content_delta\ndata: {\"delta\": \"根据学校规定...\", \"citations\": [{\"index\": 1, \"source_id\": \"doc_1\"}]}\n\n// 8. 对话结束\nevent: message_end\ndata: {\"usage\": {\"input_tokens\": 100, \"output_tokens\": 500}}\n\n// 9. 错误\nevent: error\ndata: {\"\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 88,
+      "len": 5193,
+      "answerDelta": 4911,
+      "active": true,
+      "tail": "ent: thinking_delta\ndata: {\"delta\": \"正在检索《学生手册》...\"}\n\n// 6. 思考结束\nevent: thinking_end\n\n// 7. 正式回答（流式）\nevent: content_delta\ndata: {\"delta\": \"根据学校规定...\", \"citations\": [{\"index\": 1, \"source_id\": \"doc_1\"}]}\n\n// 8. 对话结束\nevent: message_end\ndata: {\"usage\": {\"input_tokens\": 100, \"output_tokens\": 500}}\n\n// 9. 错误\nevent: error\ndata: {\"code\": \"RATE_LIMIT\", \"message\": \"请求过于频繁\", \"retry_after\": 30}\n后端必须真实支持的能力清单\n表格\n复制\n能力\t说明\t优先级\nSSE 流式接口\t支持 text/event-stream，可推送中间状态\tP0\n**RAG 检索\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 90,
+      "len": 5391,
+      "answerDelta": 5109,
+      "active": true,
+      "tail": "}]}\n\n// 8. 对话结束\nevent: message_end\ndata: {\"usage\": {\"input_tokens\": 100, \"output_tokens\": 500}}\n\n// 9. 错误\nevent: error\ndata: {\"code\": \"RATE_LIMIT\", \"message\": \"请求过于频繁\", \"retry_after\": 30}\n后端必须真实支持的能力清单\n表格\n复制\n能力\t说明\t优先级\nSSE 流式接口\t支持 text/event-stream，可推送中间状态\tP0\nRAG 检索\t真实接入学校知识库，返回带 source_id 的引用\tP0\n工具调用框架\t支持插件化工具（查成绩、查课表、心理咨询预约等）\tP0\n对话上下文管理\t支持多轮对话，token 超限自动截断/摘要\tP0\n用户画像服务\t年级、专业、历史行为，用于个性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n**\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 92,
+      "len": 5430,
+      "answerDelta": 5148,
+      "active": true,
+      "tail": ": {\"usage\": {\"input_tokens\": 100, \"output_tokens\": 500}}\n\n// 9. 错误\nevent: error\ndata: {\"code\": \"RATE_LIMIT\", \"message\": \"请求过于频繁\", \"retry_after\": 30}\n后端必须真实支持的能力清单\n表格\n复制\n能力\t说明\t优先级\nSSE 流式接口\t支持 text/event-stream，可推送中间状态\tP0\nRAG 检索\t真实接入学校知识库，返回带 source_id 的引用\tP0\n工具调用框架\t支持插件化工具（查成绩、查课表、心理咨询预约等）\tP0\n对话上下文管理\t支持多轮对话，token 超限自动截断/摘要\tP0\n用户画像服务\t年级、专业、历史行为，用于个性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 94,
+      "len": 5546,
+      "answerDelta": 5264,
+      "active": true,
+      "tail": "e\": \"请求过于频繁\", \"retry_after\": 30}\n后端必须真实支持的能力清单\n表格\n复制\n能力\t说明\t优先级\nSSE 流式接口\t支持 text/event-stream，可推送中间状态\tP0\nRAG 检索\t真实接入学校知识库，返回带 source_id 的引用\tP0\n工具调用框架\t支持插件化工具（查成绩、查课表、心理咨询预约等）\tP0\n对话上下文管理\t支持多轮对话，token 超限自动截断/摘要\tP0\n用户画像服务\t年级、专业、历史行为，用于个性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 97,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 99,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 101,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 103,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 105,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 107,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 109,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 111,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 113,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 115,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 117,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 119,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 121,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 123,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 125,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 127,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 129,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 131,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 133,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 135,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 137,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 139,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 141,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 143,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 145,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 147,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 149,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 151,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 153,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 155,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 157,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 159,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 161,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 163,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 165,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 167,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 169,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 171,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 173,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 175,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 177,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 179,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 181,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 183,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 185,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 187,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 189,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 191,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 193,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 195,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 197,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 199,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 201,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 203,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 205,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 207,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 209,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 211,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 213,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 215,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 217,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 219,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 221,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 223,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 225,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 227,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 229,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 231,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 233,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 235,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 237,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 239,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 241,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 243,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 245,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 247,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 249,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 251,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 253,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 255,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 257,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 259,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 261,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 263,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 265,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 267,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 269,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 271,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 273,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 275,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 278,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 280,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 282,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 284,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 286,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 288,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 290,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 292,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 294,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 296,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 298,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 300,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 302,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 304,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 306,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 308,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 310,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 312,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 314,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 316,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 318,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 320,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 322,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 324,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 326,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 328,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 330,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 332,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 334,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 336,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 338,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 340,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 342,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 344,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 346,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 348,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 350,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 352,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 354,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 356,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 358,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 360,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 362,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 364,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 366,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 368,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 370,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 372,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 374,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 376,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 378,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 380,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 382,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 384,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 386,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 388,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 390,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 392,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 394,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 396,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 398,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 400,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 402,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 404,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 406,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 408,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 410,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 412,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 414,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 416,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 418,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 420,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    },
+    {
+      "tSec": 422,
+      "len": 5781,
+      "answerDelta": 5499,
+      "active": true,
+      "tail": "性化推荐\tP1\n内容安全审核\t敏感词/敏感内容实时审核\tP0\n文件解析\tPDF/Word/图片 OCR 提取文本\tP1\n语音 ASR\t音频转文本\tP2\n生成中断\t支持 cancel 信号，释放资源\tP1\n续写/重新生成\t基于上下文继续或重新生成\tP1\n错误降级\t检索失败/模型超时/服务过载的降级策略\tP1\n总结：前端可以\"假展示\" vs 必须后端真实的边界\n表格\n复制\n可以前端模拟\t必须后端真实\n打字机动画速度\tSSE 流式数据\nMarkdown 渲染样式\t引用来源的真实性与可点击验证\n空态的静态 UI 框架\t推荐问题的个性化内容\n按钮的交互状态\t文件上传后的真实解析结果\n错误提示的文案\t错误后的降级/重试/恢复逻辑\n思考过程的 UI 容器\t思考过程的真实内容（或触发逻辑）\n核心原则：凡是用户会验证结果真伪的环节，必须后端真实支持；凡是纯感官体验的环节，可以前端优化。\n对于\"航宝智辅\"项目，建议优先确保 RAG 真实性、SSE 流式稳定性、工具调用可靠性 三个后端能力，其余体验层可以前端大胆还原 Kimi 的精致感。\n\n\n\n\n尽管问，带图也行\nK2.6 快速\n内容由AI生成，请仔细甄别"
+    }
+  ],
+  "authProbe": {
+    "status": 200,
+    "text": "[redacted-user-json]"
+  }
+}

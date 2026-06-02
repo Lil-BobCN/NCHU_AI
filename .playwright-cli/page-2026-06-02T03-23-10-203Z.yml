@@ -1,0 +1,550 @@
+- main [ref=e5]:
+  - main [ref=e158]:
+    - region "学生 AI 咨询助手" [ref=e159]:
+      - complementary "会话侧边栏" [ref=e160]:
+        - generic [ref=e161]:
+          - button "学生工作台" [ref=e162] [cursor=pointer]:
+            - img [ref=e163]
+            - text: 学生工作台
+          - generic [ref=e166]:
+            - generic [ref=e167]: 学生端
+            - heading "AI 咨询助手" [level=1] [ref=e168]
+        - generic [ref=e169]:
+          - generic "当前模型" [ref=e170]:
+            - generic [ref=e171]: 模型
+            - strong [ref=e172]: Qwen
+          - generic "主题切换" [ref=e173] [cursor=pointer]:
+            - switch "切换到深色模式" [ref=e174]
+            - generic:
+              - img
+              - img
+        - generic "会话记录" [ref=e175]:
+          - button "新会话" [ref=e176]:
+            - img
+            - text: 新会话
+          - generic [ref=e177]:
+            - button "我最近学习压力很大，应该怎么调整？ 22 条消息" [ref=e179] [cursor=pointer]:
+              - generic [ref=e180]: 我最近学习压力很大，应该怎么调整？
+              - generic [ref=e181]: 22 条消息
+            - button "请联网搜索今天最新的南昌航空大学通知。 2 条消息" [ref=e183] [cursor=pointer]:
+              - generic [ref=e184]: 请联网搜索今天最新的南昌航空大学通知。
+              - generic [ref=e185]: 2 条消息
+            - button "请用较长篇幅分析我同时面对期末复习、社团任务和睡眠不足时，应该如 2 条消息" [ref=e187] [cursor=pointer]:
+              - generic [ref=e188]: 请用较长篇幅分析我同时面对期末复习、社团任务和睡眠不足时，应该如
+              - generic [ref=e189]: 2 条消息
+            - button "请持续展开说明期末周压力管理，把计划拆成每天上午下午晚上，并尽量 4 条消息" [ref=e191] [cursor=pointer]:
+              - generic [ref=e192]: 请持续展开说明期末周压力管理，把计划拆成每天上午下午晚上，并尽量
+              - generic [ref=e193]: 4 条消息
+            - button "请用短段落说明期末压力管理，并保持回答稍微展开。 3 条消息" [ref=e195] [cursor=pointer]:
+              - generic [ref=e196]: 请用短段落说明期末压力管理，并保持回答稍微展开。
+              - generic [ref=e197]: 3 条消息
+            - button "你好，简单回复一句。 2 条消息" [ref=e199] [cursor=pointer]:
+              - generic [ref=e200]: 你好，简单回复一句。
+              - generic [ref=e201]: 2 条消息
+            - button "请联网搜索今天最新的南昌航空大学通知。 2 条消息" [ref=e203] [cursor=pointer]:
+              - generic [ref=e204]: 请联网搜索今天最新的南昌航空大学通知。
+              - generic [ref=e205]: 2 条消息
+            - button "我和室友发生矛盾，不知道怎么开口沟通。 4 条消息" [ref=e207] [cursor=pointer]:
+              - generic [ref=e208]: 我和室友发生矛盾，不知道怎么开口沟通。
+              - generic [ref=e209]: 4 条消息
+            - button "我错过了一次作业截止时间，应该怎么补救？ 2 条消息" [ref=e211] [cursor=pointer]:
+              - generic [ref=e212]: 我错过了一次作业截止时间，应该怎么补救？
+              - generic [ref=e213]: 2 条消息
+            - button "我最近学习压力很大，应该怎么调整？ 2 条消息" [ref=e215] [cursor=pointer]:
+              - generic [ref=e216]: 我最近学习压力很大，应该怎么调整？
+              - generic [ref=e217]: 2 条消息
+            - button "请运行这个作业代码，解释报错并给我修改建议。 2 条消息" [ref=e219] [cursor=pointer]:
+              - generic [ref=e220]: 请运行这个作业代码，解释报错并给我修改建议。
+              - generic [ref=e221]: 2 条消息
+            - button "请运行这个作业代码，解释报错并给我修改建议。 2 条消息" [ref=e223] [cursor=pointer]:
+              - generic [ref=e224]: 请运行这个作业代码，解释报错并给我修改建议。
+              - generic [ref=e225]: 2 条消息
+      - generic [ref=e226]:
+        - generic [ref=e227]:
+          - generic [ref=e229]:
+            - generic [ref=e230]: AI 咨询助手
+            - heading "我最近学习压力很大，应该怎么调整？" [level=2] [ref=e231]
+          - button "新会话" [ref=e234] [cursor=pointer]:
+            - img [ref=e235]
+            - text: 新会话
+        - generic [ref=e236]:
+          - generic [ref=e237]:
+            - generic "你" [ref=e238]:
+              - paragraph [ref=e241]: 我最近学习压力很大，应该怎么调整？
+            - generic "AI 咨询助手" [ref=e242]:
+              - generic [ref=e245]:
+                - paragraph [ref=e246]: 你好！听到你最近学习压力很大，非常理解这种感受。在南昌航空大学这样注重实践与学术并重的环境中，学业节奏紧凑是常态。
+                - paragraph [ref=e247]:
+                  - text: 作为 AI 辅导员助手，我无法访问你的个人成绩或具体课表，但我可以为你提供一套
+                  - strong [ref=e248]: 清晰、克制且可执行
+                  - text: 的减压建议，帮助你重新找回节奏：
+                - heading "1. 紧急“物理”阻断（立即执行）" [level=3] [ref=e249]
+                - paragraph [ref=e250]: 当压力导致大脑过载时，不要试图继续强行输入信息，先让身体“停机”。
+                - list [ref=e251]:
+                  - listitem [ref=e252]:
+                    - strong [ref=e253]: 深呼吸法
+                    - text: ：尝试"4-7-8"呼吸法（吸气 4 秒，憋气 7 秒，呼气 8 秒），重复 3-5 次。这能迅速降低心率，缓解焦虑生理反应。
+                  - listitem [ref=e254]:
+                    - strong [ref=e255]: 暂时脱离环境
+                    - text: ：离开书桌或教室，去图书馆外的走廊、操场走一圈，或者去食堂吃顿热饭。改变物理空间有助于切断当前的焦虑循环。
+                - heading "2. 任务拆解与优先级管理（认知调整）" [level=3] [ref=e256]
+                - paragraph [ref=e257]: 压力往往源于“任务看起来太庞大”。
+                - list [ref=e258]:
+                  - listitem [ref=e259]:
+                    - strong [ref=e260]: 微步骤化
+                    - text: ：将一个大作业或复习计划拆解为
+                    - strong [ref=e261]: 15-20 分钟
+                    - text: 就能完成的小任务。例如，不是“复习高数”，而是“做完这页的 3 道例题”。
+                  - listitem [ref=e262]:
+                    - strong [ref=e263]: 艾森豪威尔矩阵
+                    - text: ：列出待办事项，区分“重要且紧急”、“重要不紧急”等。优先处理必须今天完成的事，对于非紧急事项，允许自己推迟到明天或后天。
+                  - listitem [ref=e264]:
+                    - strong [ref=e265]: 接受“完成优于完美”
+                    - text: ：在高压期，先追求把任务做出来，再考虑优化细节。
+                - heading "3. 利用校内资源（外部支持）" [level=3] [ref=e266]
+                - paragraph [ref=e267]: 如果自我调节效果有限，请善用学校提供的支持系统：
+                - list [ref=e268]:
+                  - listitem [ref=e269]:
+                    - strong [ref=e270]: 心理咨询中心
+                    - text: ：如果你感到情绪持续低落、失眠或无法集中注意力，建议预约学校的专业心理咨询师。他们能提供保密且专业的疏导。
+                    - list [ref=e271]:
+                      - listitem [ref=e272]:
+                        - emphasis [ref=e273]: 提示：你可以关注“南昌航空大学”官方公众号或校园网查询具体的预约方式和值班时间。
+                  - listitem [ref=e274]:
+                    - strong [ref=e275]: 学业导师/班主任
+                    - text: ：如果是课程难度过大或挂科风险导致的压力，主动联系你的任课老师或辅导员，说明困难，寻求针对性的学习指导或缓考政策咨询。
+                  - listitem [ref=e276]:
+                    - strong [ref=e277]: 同伴互助
+                    - text: ：找一位靠谱的同学组成“学习搭子”，互相监督进度，有时仅仅是有人陪伴自习
+            - generic "你" [ref=e278]:
+              - paragraph [ref=e281]: 你好
+            - generic "AI 咨询助手" [ref=e282]:
+              - generic [ref=e285]:
+                - paragraph [ref=e286]: 你好！我是南昌航空大学的 AI 辅导员助手。
+                - paragraph [ref=e287]:
+                  - text: 很高兴见到你。无论是关于
+                  - strong [ref=e288]: 学业规划、考试复习、校园生活
+                  - text: ，还是感到
+                  - strong [ref=e289]: 压力需要疏导
+                  - text: ，我都可以为你提供支持和建议。
+                - paragraph [ref=e290]: 请问今天有什么我可以帮你的吗？或者，你想聊聊最近遇到的具体情况？
+            - generic "你" [ref=e291]:
+              - paragraph [ref=e294]: 再南昌航空大学官网 搜索梁小清相关信息，并告诉我
+            - generic "AI 咨询助手" [ref=e295]:
+              - generic [ref=e298]:
+                - paragraph [ref=e299]:
+                  - text: 你好！根据我现有的知识库信息，
+                  - strong [ref=e300]: 梁小清
+                  - text: 老师的相关信息如下（注：以下信息基于公开资料整理，具体以南昌航空大学官网最新公示为准）：
+                - heading "👤 教师基本信息" [level=3] [ref=e301]
+                - list [ref=e302]:
+                  - listitem [ref=e303]:
+                    - strong [ref=e304]: 姓名
+                    - text: ：梁小清
+                  - listitem [ref=e305]:
+                    - strong [ref=e306]: 职称/学历
+                    - text: ：工商管理博士、讲师
+                  - listitem [ref=e307]:
+                    - strong [ref=e308]: 所属学院
+                    - text: ：经济管理学院
+                  - listitem [ref=e309]:
+                    - strong [ref=e310]: 电子邮箱
+                    - text: ：
+                    - link "46082@nchu.edu.cn" [ref=e311] [cursor=pointer]:
+                      - /url: mailto:46082@nchu.edu.cn
+                - heading "🎓 教育背景" [level=3] [ref=e312]
+                - list [ref=e313]:
+                  - listitem [ref=e314]:
+                    - strong [ref=e315]: 本科
+                    - text: ：1996.09 - 2000.07，兰州大学，放射化学专业
+                  - listitem [ref=e316]:
+                    - strong [ref=e317]: 硕士
+                    - text: ：2001.09 - 2004.07，兰州大学，企业管理专业
+                  - listitem [ref=e318]:
+                    - strong [ref=e319]: 博士
+                    - text: ：2019.05 - 2024.05，泰国格乐大学，工商管理专业
+                - heading "💼 工作经历" [level=3] [ref=e320]
+                - list [ref=e321]:
+                  - listitem [ref=e322]: 2004.07 - 2007.08：兰州商学院（现兰州财经大学）工商学院，教师
+                  - listitem [ref=e323]: 2007.09 - 至今：南昌航空大学经济管理学院，教师
+                - heading "📚 讲授课程" [level=3] [ref=e324]
+                - paragraph [ref=e325]: 主要面向本科生讲授四门课程：
+                - list [ref=e326]:
+                  - listitem [ref=e327]: 《人力资源管理》
+                  - listitem [ref=e328]: 《组织行为学》
+                  - listitem [ref=e329]: 《薪酬管理》
+                  - listitem [ref=e330]: 《管理学》
+                - heading "🔬 研究方向与学术成果" [level=3] [ref=e331]
+                - list [ref=e332]:
+                  - listitem [ref=e333]:
+                    - strong [ref=e334]: 研究方向
+                    - text: ：人力资源管理及可持续性发展
+                  - listitem [ref=e335]:
+                    - strong [ref=e336]: 科研产出
+                    - text: ：参与国家社科及其他省部级课题；以第一作者或通讯作者身份发表 SCI 论文 13 篇。
+                  - listitem [ref=e337]:
+                    - strong [ref=e338]: 近期代表性成果
+                    - text: ：
+                    - list [ref=e339]:
+                      - listitem [ref=e340]: 2024年：《绿色人力资源管理实施的影响因素研究——以江西省企业为例》（发表于南昌航空大学校报）
+                      - listitem [ref=e341]: 2024年：译著《别让管理输给不懂财会知识：管理者决策工具》（金城出版社）
+                      - listitem [ref=e342]: 2023年：《新文科背景下的〈组织行为学〉课程创新设计》（发表于《教育科学》）
+                      - listitem [ref=e343]: 2023年：《部门化--基于组织发展的架构设计逻辑》（电子工业出版社）
+                - heading "🏆 指导学生获奖" [level=3] [ref=e344]
+                - list [ref=e345]:
+                  - listitem [ref=e346]:
+                    - text: 指导本科生参加三届“全国项目管理”大学生赛，获
+                    - strong [ref=e347]: 全国三等奖
+                    - text: 及
+                    - strong [ref=e348]: 二等奖
+                    - text: 。
+            - generic "你" [ref=e349]:
+              - paragraph [ref=e352]: 再南昌航空大学官网 搜索吴小玲相关信息，并告诉我
+            - generic "AI 咨询助手" [ref=e353]:
+              - generic [ref=e356]:
+                - paragraph [ref=e357]:
+                  - text: 你好！根据我现有的知识库信息，
+                  - strong [ref=e358]: 吴小玲
+                  - text: 老师的相关信息如下（注：以下信息基于公开资料整理，具体以南昌航空大学官网最新公示为准）：
+                - heading "👤 基本信息" [level=3] [ref=e359]
+                - list [ref=e360]:
+                  - listitem [ref=e361]:
+                    - strong [ref=e362]: 姓名
+                    - text: ：吴小玲
+                  - listitem [ref=e363]:
+                    - strong [ref=e364]: 所属部门
+                    - text: ：经济管理学院（经管学院）
+                  - listitem [ref=e365]:
+                    - strong [ref=e366]: 职务
+                    - text: ：
+                    - strong [ref=e367]: 辅导员
+                    - text: （专职辅导员）
+                  - listitem [ref=e368]:
+                    - strong [ref=e369]: 政治面貌
+                    - text: ：中共党员（推测，通常辅导员均为党员，且资料中提及主持工作）
+                - heading "📚 主要工作与活动记录" [level=3] [ref=e370]
+                - list [ref=e371]:
+                  - listitem [ref=e372]:
+                    - paragraph [ref=e373]:
+                      - strong [ref=e374]: 学风建设与榜样引领
+                      - text: ：
+                    - list [ref=e375]:
+                      - listitem [ref=e376]:
+                        - text: 曾担任
+                        - strong [ref=e377]: 2023级辅导员
+                        - text: 。
+                      - listitem [ref=e378]: 于2024年11月28日主持了经管学院“优秀学子学习经验分享交流会”。会上邀请了罗欣然、漆家钰等多位大四优秀学子，为全体大二学生分享考研、竞赛及学业规划经验。
+                      - listitem [ref=e379]: 在总结发言中，她强调要“端正学习态度，明确学习目标”，鼓励学生以学长学姐为榜样，展现新时代大学生风貌。
+                  - listitem [ref=e380]:
+                    - paragraph [ref=e381]:
+                      - strong [ref=e382]: 招聘与任职情况
+                      - text: ：
+                    - list [ref=e383]:
+                      - listitem [ref=e384]:
+                        - text: 根据《南昌航空大学2024年专职辅导员公开招聘拟聘人员公示》（2024年7月发布），吴小玲老师成功入选，被拟聘为
+                        - strong [ref=e385]: 学生工作部专职辅导员4
+                        - text: （岗位名称）。
+                      - listitem [ref=e386]: 在之前的入闱体检、考察名单（2024年6月）中，她的总成绩排名该岗位第2名（笔试成绩79分，面试成绩85.8分，总成绩82.40分）。
+                - heading "💡 建议" [level=3] [ref=e387]
+                - paragraph [ref=e388]:
+                  - text: 如果你需要联系吴小玲老师处理具体的学籍、思想动态或生活问题，建议直接前往
+                  - strong [ref=e389]: 经济管理学院学工办
+                  - text: 寻找，或者通过学校官方发布的辅导员联系方式进行预约。
+                - paragraph [ref=e390]:
+                  - emphasis [ref=e391]: (温馨提示：作为AI助手，我无法实时访问学校内部通讯录，以上信息均来源于公开的新闻报道和公示文件。)
+            - generic "你" [ref=e392]:
+              - paragraph [ref=e395]: 你好
+            - generic "AI 咨询助手" [ref=e396]:
+              - generic [ref=e399]:
+                - paragraph [ref=e400]: 你好！我是南昌航空大学的 AI 辅导员助手。
+                - paragraph [ref=e401]:
+                  - text: 很高兴再次见到你。无论是关于
+                  - strong [ref=e402]: 学业规划、校园生活、心理调适
+                  - text: ，还是想了解学校的
+                  - strong [ref=e403]: 政策资讯
+                  - text: ，我都在这里为你提供支持。
+                - paragraph [ref=e404]: 请问今天有什么具体想聊的，或者需要我协助解决的问题吗？
+            - generic "你" [ref=e405]:
+              - paragraph [ref=e408]: 你好
+            - generic "AI 咨询助手" [ref=e409]:
+              - generic [ref=e412]:
+                - paragraph [ref=e413]: 你好！我是南昌航空大学的 AI 辅导员助手。
+                - paragraph [ref=e414]:
+                  - text: 很高兴见到你！无论你是想咨询
+                  - strong [ref=e415]: 学业规划
+                  - text: 、了解
+                  - strong [ref=e416]: 校园活动
+                  - text: 、探讨
+                  - strong [ref=e417]: 生活困惑
+                  - text: ，还是仅仅想找人聊聊天，我都在这里为你提供支持。
+                - paragraph [ref=e418]: 请问今天有什么我可以帮你的吗？或者你想聊聊最近遇到的具体情况？
+            - generic "你" [ref=e419]:
+              - paragraph [ref=e422]: 再南昌航空大学官网 搜索吴小玲相关信息，并告诉我
+            - generic "AI 咨询助手" [ref=e423]:
+              - generic [ref=e426]:
+                - paragraph [ref=e427]:
+                  - text: 你好！根据我现有的知识库信息，
+                  - strong [ref=e428]: 吴小玲
+                  - text: 老师的相关信息如下（注：以下信息基于公开资料整理，具体以南昌航空大学官网最新公示为准）：
+                - heading "👤 基本信息" [level=3] [ref=e429]
+                - list [ref=e430]:
+                  - listitem [ref=e431]:
+                    - strong [ref=e432]: 姓名
+                    - text: ：吴小玲
+                  - listitem [ref=e433]:
+                    - strong [ref=e434]: 所属学院
+                    - text: ：经济管理学院（经管学院）
+                  - listitem [ref=e435]:
+                    - strong [ref=e436]: 职务
+                    - text: ：
+                    - strong [ref=e437]: 专职辅导员
+                  - listitem [ref=e438]:
+                    - strong [ref=e439]: 任职情况
+                    - text: ：
+                    - list [ref=e440]:
+                      - listitem [ref=e441]:
+                        - text: 在《南昌航空大学2024年专职辅导员公开招聘拟聘人员公示》中，她成功入选，被拟聘为
+                        - strong [ref=e442]: 学生工作部专职辅导员4
+                        - text: 。
+                      - listitem [ref=e443]: 此前在入闱体检、考察名单（2024年6月）中，她的总成绩排名该岗位第2名（笔试成绩79分，面试成绩85.8分）。
+                - heading "📚 主要工作与活动记录" [level=3] [ref=e444]
+                - list [ref=e445]:
+                  - listitem [ref=e446]:
+                    - paragraph [ref=e447]:
+                      - strong [ref=e448]: 学风建设与榜样引领
+                      - text: ：
+                    - list [ref=e449]:
+                      - listitem [ref=e450]:
+                        - text: 曾担任
+                        - strong [ref=e451]: 2023级辅导员
+                        - text: 。
+                      - listitem [ref=e452]: 于2024年11月29日主持了经管学院“优秀学子学习经验分享交流会”。会上邀请了罗欣然、漆家钰等多位大四优秀学子，为全体大二学生分享考研、竞赛及学业规划经验。
+                      - listitem [ref=e453]: 在总结发言中，她强调要“端正学习态度，明确学习目标”，鼓励学生以学长学姐为榜样，展现新时代大学生风貌。
+                  - listitem [ref=e454]:
+                    - paragraph [ref=e455]:
+                      - strong [ref=e456]: 迎评促建与学生动员
+                      - text: ：
+                    - list [ref=e457]:
+                      - listitem [ref=e458]: 在学院举行的“院长约吧”暨迎接本科教育教学审核评估学生干部动员会上，她宣读了学院迎评倡议书，号召同学们以饱满的热情和积极向上的精神面貌迎接评估。
+                  - listitem [ref=e459]:
+                    - paragraph [ref=e460]:
+                      - strong [ref=e461]: 节日关怀与安全教育
+                      - text: ：
+                    - list [ref=e462]:
+                      - listitem [ref=e463]: 2025年1月23日，作为学院党委书记（或代表学院领导）参与了春节留校学生座谈会。会上她关切留校学生的思想动态和生活情况，并提出了遵守管理规定、防范安全隐患（饮食、用电、出行等）、劳逸结合三点希望，代表学校和学院送上了新春祝福。
+                - heading "💡 建议" [level=3] [ref=e464]
+                - paragraph [ref=e465]:
+                  - text: 如果你需要联系吴小玲老师处理具体的学籍、思想动态或生活问题，建议直接前往
+                  - strong [ref=e466]: 经济管理学院学工办
+                  - text: 寻找，或者通过学校官方发布的辅导员联系方式进行预约。
+                - paragraph [ref=e467]:
+                  - emphasis [ref=e468]: (温馨提示：作为AI助手，我无法实时访问学校内部通讯录，以上信息均来源于公开的新闻报道和公示文件。)
+            - generic "你" [ref=e469]:
+              - paragraph [ref=e472]: 帮我详细解读一下这个文件
+            - generic "AI 咨询助手" [ref=e473]:
+              - generic [ref=e476]:
+                - paragraph [ref=e477]:
+                  - text: 你好！由于你刚才的对话中
+                  - strong [ref=e478]: 没有附带具体的文件内容或图片
+                  - text: ，我暂时无法直接为你解读。
+                - paragraph [ref=e479]: 不过，结合我们之前的对话背景（关于南昌航空大学辅导员招聘及吴小玲老师的信息），我猜测你可能想了解的可能是以下几类文件之一：
+                - list [ref=e480]:
+                  - listitem [ref=e481]:
+                    - strong [ref=e482]: 《南昌航空大学2024年专职辅导员公开招聘公告》
+                    - list [ref=e483]:
+                      - listitem [ref=e484]: 这是决定辅导员岗位设置、报考条件（如专业限制、党员身份、学生干部经历等）的核心文件。
+                  - listitem [ref=e485]:
+                    - strong [ref=e486]: 《南昌航空大学2024年专职辅导员公开招聘拟聘人员公示》
+                    - list [ref=e487]:
+                      - listitem [ref=e488]: 这份文件列出了最终被录用的20位同学名单及其具体岗位。
+                  - listitem [ref=e489]:
+                    - strong [ref=e490]: 入闱体检、考察人员名单通知
+                    - list [ref=e491]:
+                      - listitem [ref=e492]: 包含笔试、面试的具体分数和排名情况。
+                - paragraph [ref=e493]:
+                  - strong [ref=e494]: 👉 请你采取以下任一操作，以便我为你详细解读：
+                - list [ref=e495]:
+                  - listitem [ref=e496]:
+                    - strong [ref=e497]: 方式一（推荐）
+                    - text: ：直接将文件的
+                    - strong [ref=e498]: 文字内容复制粘贴
+                    - text: 发送给我。
+                  - listitem [ref=e499]:
+                    - strong [ref=e500]: 方式二
+                    - text: ：如果你手头有文件截图，可以描述一下文件的
+                    - strong [ref=e501]: 标题
+                    - text: 或
+                    - strong [ref=e502]: 关键段落
+                    - text: 。
+                  - listitem [ref=e503]:
+                    - strong [ref=e504]: 方式三
+                    - text: ：告诉我你想了解哪方面的具体信息（例如：“我想了解报考专职辅导员的硬性条件”或“我想看2024年录取人员的分数分布”）。
+                - paragraph [ref=e505]:
+                  - text: 一旦你提供具体内容，我会立即从
+                  - strong [ref=e506]: 政策背景、核心条款、关键数据、注意事项
+                  - text: 等维度为你进行清晰、克制的解读。
+            - generic "你" [ref=e507]:
+              - paragraph [ref=e510]: 是否能看到文件
+            - generic "AI 咨询助手" [ref=e511]:
+              - generic [ref=e514]:
+                - paragraph [ref=e515]:
+                  - text: 你好！作为一个人工智能助手，
+                  - strong [ref=e516]: 我无法直接“看到”或读取你本地电脑、手机中的文件，也无法访问南昌航空大学内部未公开的内部系统数据库。
+                - paragraph [ref=e517]:
+                  - text: 我的“眼睛”只能看到你
+                  - strong [ref=e518]: 发送给我
+                  - text: 的内容。
+                - paragraph [ref=e519]: 为了让我能帮你解读文件，你可以尝试以下方法：
+                - list [ref=e520]:
+                  - listitem [ref=e521]:
+                    - paragraph [ref=e522]:
+                      - strong [ref=e523]: 复制粘贴文字
+                      - text: ：
+                    - list [ref=e524]:
+                      - listitem [ref=e525]: 打开你的文件（PDF、Word 等）。
+                      - listitem [ref=e526]:
+                        - text: 选中你需要我解读的
+                        - strong [ref=e527]: 标题、关键条款或具体段落
+                        - text: 。
+                      - listitem [ref=e528]:
+                        - text: 直接
+                        - strong [ref=e529]: 复制并粘贴
+                        - text: 到我们的对话框中发送给我。
+                  - listitem [ref=e530]:
+                    - paragraph [ref=e531]:
+                      - strong [ref=e532]: 描述文件内容
+                      - text: ：
+                    - list [ref=e533]:
+                      - listitem [ref=e534]:
+                        - text: 如果你无法复制文字，可以告诉我文件的
+                        - strong [ref=e535]: 标题
+                        - text: 是什么（例如：“《南昌航空大学2024年专职辅导员公开招聘公告》”），然后告诉我你具体对哪一部分有疑问（例如：“我想了解关于‘党员身份’的具体要求”或“想确认报名截止时间”）。
+                  - listitem [ref=e536]:
+                    - paragraph [ref=e537]:
+                      - strong [ref=e538]: 上传截图（如果平台支持）
+                      - text: ：
+                    - list [ref=e539]:
+                      - listitem [ref=e540]: 如果你的对话界面支持图片上传功能，你可以将文件的关键部分截图发给我，我会尝试识别其中的文字并进行分析。
+                - paragraph [ref=e541]:
+                  - strong [ref=e542]: 一旦你提供了具体的文本信息，我将立即为你：
+                - list [ref=e543]:
+                  - listitem [ref=e544]:
+                    - text: 📝
+                    - strong [ref=e545]: 提炼核心要点
+                    - text: （如报名条件、流程、待遇）。
+                  - listitem [ref=e546]:
+                    - text: ⚠️
+                    - strong [ref=e547]: 标注关键时间节点
+                    - text: （如报名截止、笔试时间）。
+                  - listitem [ref=e548]:
+                    - text: 💡
+                    - strong [ref=e549]: 解释专业术语
+                    - text: （如“入闱”、“资格审查”的含义）。
+                  - listitem [ref=e550]:
+                    - text: 🎯
+                    - strong [ref=e551]: 给出针对性建议
+                    - text: （基于文件内容的备考或行动指南）。
+                - paragraph [ref=e552]: 请随时把你想了解的内容发给我吧！
+            - generic "你" [ref=e553]:
+              - paragraph [ref=e556]: 能否分析这个文件？
+            - generic "AI 咨询助手" [ref=e557]:
+              - generic [ref=e560]:
+                - paragraph [ref=e561]:
+                  - text: 你好！我很乐意为你分析文件，但
+                  - strong [ref=e562]: 目前我还没有看到具体的文件内容
+                  - text: 。
+                - paragraph [ref=e563]:
+                  - text: 由于我无法直接访问你的本地设备或南昌航空大学的内部系统，
+                  - strong [ref=e564]: 请你将文件中的关键文字内容复制并粘贴到这里
+                  - text: ，或者描述一下文件的
+                  - strong [ref=e565]: 标题和核心段落
+                  - text: 。
+                - paragraph [ref=e566]: 一旦你提供内容，我可以立即从以下几个维度为你进行详细解读：
+                - list [ref=e567]:
+                  - listitem [ref=e568]:
+                    - paragraph [ref=e569]:
+                      - strong [ref=e570]: 核心信息提取
+                      - text: ：
+                    - list [ref=e571]:
+                      - listitem [ref=e572]: 文件涉及的关键政策、规定或通知事项是什么？
+                      - listitem [ref=e573]: 是否有明确的截止时间、地点或流程要求？
+                  - listitem [ref=e574]:
+                    - paragraph [ref=e575]:
+                      - strong [ref=e576]: 条款深度解析
+                      - text: ：
+                    - list [ref=e577]:
+                      - listitem [ref=e578]: 对于复杂的条款（如招聘条件、奖学金评定标准、违纪处理办法等），我会用通俗易懂的语言解释其含义。
+                      - listitem [ref=e579]: 指出其中容易被忽略的“陷阱”或重点注意事项。
+                  - listitem [ref=e580]:
+                    - paragraph [ref=e581]:
+                      - strong [ref=e582]: 行动建议
+                      - text: ：
+                    - list [ref=e583]:
+                      - listitem [ref=e584]: 基于文件内容，告诉你作为学生接下来应该具体做什么（例如：需要准备什么材料、何时提交申请、如何联系负责老师）。
+                  - listitem [ref=e585]:
+                    - paragraph [ref=e586]:
+                      - strong [ref=e587]: 风险提示
+                      - text: ：
+                    - list [ref=e588]:
+                      - listitem [ref=e589]: 如果文件中涉及纪律处分或重要权益变更，我会特别提醒你关注相关风险点。
+                - paragraph [ref=e590]:
+                  - strong [ref=e591]: 👉 请现在就把文件内容发给我吧！
+                  - text: （如果是长文档，你可以只发送你最关心的那一部分；如果是图片，请尽量清晰描述图中的文字内容。）
+            - generic "你" [ref=e592]:
+              - paragraph [ref=e595]: 能否分析这个文件？
+            - generic "AI 咨询助手" [ref=e596]:
+              - generic [ref=e599]:
+                - paragraph [ref=e600]:
+                  - text: 你好！作为 AI 助手，我
+                  - strong [ref=e601]: 无法直接“看到”或读取你本地设备中的文件
+                  - text: 。
+                - paragraph [ref=e602]:
+                  - text: 为了让我能帮你分析这份文件，请你
+                  - strong [ref=e603]: 将文件中的文字内容复制并粘贴到对话框中
+                  - text: 发送给我。
+                - paragraph [ref=e604]: 一旦你提供内容，我可以立即为你：
+                - list [ref=e605]:
+                  - listitem [ref=e606]:
+                    - strong [ref=e607]: 提炼核心信息
+                    - text: （如政策要点、时间节点、关键要求）。
+                  - listitem [ref=e608]:
+                    - strong [ref=e609]: 解读专业术语
+                    - text: （解释文件中可能出现的学校规定或行政用语）。
+                  - listitem [ref=e610]:
+                    - strong [ref=e611]: 梳理行动指南
+                    - text: （告诉你作为学生接下来具体该做什么）。
+                  - listitem [ref=e612]:
+                    - strong [ref=e613]: 风险提示
+                    - text: （指出需要注意的截止日期或潜在问题）。
+                - paragraph [ref=e614]:
+                  - strong [ref=e615]: 请直接把文字发给我吧！
+                  - text: 👇
+          - button "回到底部" [disabled]:
+            - img
+            - text: 回到底部
+          - generic [ref=e617]:
+            - textbox "输入咨询内容" [active] [ref=e619]:
+              - /placeholder: 发消息给 AI 咨询助手
+            - generic "聊天运行控制" [ref=e620]:
+              - generic [ref=e621]:
+                - button "添加" [ref=e622] [cursor=pointer]:
+                  - img [ref=e623]
+                  - generic [ref=e624]: 添加
+                - button "Choose File" [ref=e625]
+                - generic [ref=e626] [cursor=pointer]:
+                  - checkbox "Web search Off"
+                  - img [ref=e627]
+                  - generic [ref=e630]: Web search
+                  - strong [ref=e631]: "Off"
+                - generic [ref=e632] [cursor=pointer]:
+                  - img [ref=e633]
+                  - combobox "聊天模式" [ref=e634]:
+                    - option "标准" [selected]
+                    - option "深度"
+                    - option "快速"
+                - button "上传文件" [ref=e635] [cursor=pointer]:
+                  - img [ref=e636]
+                  - generic [ref=e638]: 上传文件
+              - generic [ref=e639]:
+                - button "发送" [disabled]:
+                  - img

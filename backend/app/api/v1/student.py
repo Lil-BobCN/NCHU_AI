@@ -23,7 +23,7 @@ from app.schemas.business import (
     ResourceResponse,
     StudentChatRequest,
 )
-from app.services.business import Conversation, User, store
+from app.services.business import Conversation, MessageAttachment, User, store
 from app.services.chat_model import (
     ChatModelConfigurationError,
     ChatModelError,
@@ -32,8 +32,10 @@ from app.services.chat_model import (
     ChatModelRunOptions,
     ChatModelStreamEvent,
 )
+from app.services.sandbox import StudentCodeSandboxRunner
 
 router = APIRouter(prefix="/student", tags=["student"])
+MAX_OUTPUT_CONTINUATION_ATTEMPTS = 3
 
 
 @router.post("/questions", response_model=QuestionResponse)
@@ -69,14 +71,19 @@ async def stream_student_chat(
         )
 
     conversation = _student_chat_conversation(payload, user)
-    store.append_conversation_message(conversation, "student", payload.message)
+    store.append_conversation_message(
+        conversation,
+        "student",
+        payload.message,
+        attachments=_attachment_metadata(payload.attachments),
+    )
     model_messages = _conversation_model_messages(
         conversation,
         limit=settings.chat_model_context_message_limit,
     )
 
     return StreamingResponse(
-        _stream_chat_events(conversation, user, provider, model_messages, payload),
+        _stream_chat_events(conversation, user, provider, settings, model_messages, payload),
         media_type="text/event-stream",
         headers={
             "Cache-Control": "no-cache",
@@ -178,6 +185,23 @@ def _student_chat_conversation(payload: StudentChatRequest, user: User) -> Conve
     return store.create_empty_conversation(user.id, title)
 
 
+def _attachment_metadata(attachments: list[Any]) -> list[MessageAttachment]:
+    metadata: list[MessageAttachment] = []
+    for index, attachment in enumerate(attachments, start=1):
+        content = attachment.content or ""
+        size = attachment.size if attachment.size is not None else len(content.encode("utf-8"))
+        metadata.append(
+            MessageAttachment(
+                id=attachment.id or f"attachment-{uuid4().hex}",
+                name=attachment.name or f"attachment-{index}",
+                mime_type=attachment.mime_type,
+                size=max(size, 0),
+                encoding=attachment.encoding or "text",
+            )
+        )
+    return metadata
+
+
 def _conversation_model_messages(
     conversation: Conversation,
     *,
@@ -196,6 +220,7 @@ async def _stream_chat_events(
     conversation: Conversation,
     user: User,
     provider: ChatModelProvider,
+    settings: Settings,
     model_messages: list[ChatModelMessage],
     request: StudentChatRequest,
 ) -> AsyncIterator[str]:
@@ -206,8 +231,14 @@ async def _stream_chat_events(
     started_at = time.perf_counter()
     options = ChatModelRunOptions(
         web_search=request.web_search,
+        reasoning_enabled=request.reasoning_enabled,
         profile=request.profile,
         mode=request.mode,
+    )
+    sandbox = StudentCodeSandboxRunner(
+        attachments=request.attachments,
+        message=request.message,
+        settings=settings,
     )
 
     yield _sse("conversation", {"conversationId": conversation.id})
@@ -226,41 +257,161 @@ async def _stream_chat_events(
             "profile": request.profile,
             "mode": request.mode,
             "webSearch": request.web_search,
-            "attachments": "disabled" if request.attachments else "none",
+            "reasoningEnabled": request.reasoning_enabled,
+            "attachments": "sandbox" if request.attachments else "none",
+        },
+    )
+    yield run.sse("workflow_plan", {"steps": _base_workflow_steps()})
+    yield run.sse(
+        "workflow_step_started",
+        {
+            "step_id": "request-analyze",
+            "kind": "plan",
+            "title": "理解任务",
+            "status": "running",
+            "detail": "正在判断是否需要读取文件、运行代码或联网检索。",
         },
     )
     yield run.sse("phase", {"phase": "analyzing", "detail": "Analyzing request."})
-    if request.attachments:
+    yield run.sse(
+        "workflow_step_done",
+        {
+            "step_id": "request-analyze",
+            "kind": "plan",
+            "status": "success",
+            "summary": "任务理解完成，开始执行可用能力。",
+        },
+    )
+    if sandbox.should_run:
+        yield run.sse("phase", {"phase": "working", "detail": "Running controlled sandbox."})
+        async for sandbox_event in sandbox.stream():
+            if sandbox_event.type == "tool_started" and sandbox_event.counts_as_tool:
+                tool_count += 1
+            yield run.sse(sandbox_event.type, sandbox_event.payload)
+        store.record_audit(
+            user.id,
+            "student.chat.sandbox.run",
+            "conversation",
+            conversation.id,
+            result="failure" if sandbox.failed else "success",
+            event_tags=["chat:sandbox", "sandbox:ephemeral"],
+            counter_key="student.chat.sandbox.run.count",
+        )
+        if sandbox.summary:
+            model_messages = [
+                *model_messages,
+                ChatModelMessage(
+                    role="user",
+                    content=_sandbox_model_context(sandbox.summary),
+                ),
+            ]
         yield run.sse(
-            "notice",
+            "reasoning_summary_delta",
+            {"content": "已读取上传内容并运行受控沙箱，正在结合执行结果生成回答。\n"},
+        )
+    yield run.sse(
+        "workflow_step_started",
+        {
+            "step_id": "answer-generate",
+            "kind": "think",
+            "title": "生成回答",
+            "status": "running",
+            "detail": "正在结合真实执行过程组织回复。",
+        },
+    )
+    try:
+        stream_messages = model_messages
+        continuation_count = 0
+        while True:
+            truncated = False
+            async for event in _provider_stream_events(provider, stream_messages, options):
+                event_type, event_payload = _standard_payload(event, source_count + 1)
+                if event.type == "delta":
+                    content = event.data.get("content")
+                    if isinstance(content, str):
+                        chunks.append(content)
+                if event.type == "source":
+                    source_count += 1
+                if event.type == "tool_started":
+                    tool_count += 1
+                if _is_model_output_truncated_notice(event):
+                    truncated = True
+                if event_type:
+                    yield run.sse(event_type, event_payload)
+                    legacy = _legacy_sse(event_type, event_payload, conversation.id)
+                    if legacy:
+                        yield legacy
+            partial_reply = "".join(chunks).strip()
+            if not truncated or not partial_reply:
+                break
+            if continuation_count >= MAX_OUTPUT_CONTINUATION_ATTEMPTS:
+                yield run.sse(
+                    "notice",
+                    {
+                        "code": "max_output_continuations_reached",
+                        "detail": (
+                            "Provider kept reporting output token limits after "
+                            f"{MAX_OUTPUT_CONTINUATION_ATTEMPTS} continuation pass(es)."
+                        ),
+                    },
+                )
+                yield run.sse(
+                    "workflow_step_delta",
+                    {
+                        "step_id": "answer-generate",
+                        "kind": "think",
+                        "status": "running",
+                        "detail": "模型多次达到长度上限，已停止自动续写并保留已生成内容。",
+                    },
+                )
+                break
+            continuation_count += 1
+            yield run.sse(
+                "notice",
+                {
+                    "code": "continuing_after_token_limit",
+                    "detail": (
+                        "Provider hit the output token limit, so the backend requested "
+                        f"continuation pass {continuation_count}/"
+                        f"{MAX_OUTPUT_CONTINUATION_ATTEMPTS}."
+                    ),
+                },
+            )
+            yield run.sse(
+                "workflow_step_delta",
+                {
+                    "step_id": "answer-generate",
+                    "kind": "think",
+                    "status": "running",
+                    "detail": "模型输出达到长度上限，正在请求真实续写。",
+                },
+            )
+            stream_messages = _continuation_model_messages(model_messages, partial_reply)
+    except ChatModelConfigurationError as exc:
+        yield run.sse(
+            "workflow_step_done",
             {
-                "code": "attachments_disabled",
-                "detail": "Attachments are reserved for a later approved phase and were not read.",
+                "step_id": "answer-generate",
+                "kind": "think",
+                "status": "error",
+                "summary": "模型配置缺失，回答生成中断。",
             },
         )
-    try:
-        async for event in _provider_stream_events(provider, model_messages, options):
-            event_type, event_payload = _standard_payload(event, source_count + 1)
-            if event.type == "delta":
-                content = event.data.get("content")
-                if isinstance(content, str):
-                    chunks.append(content)
-            if event.type == "source":
-                source_count += 1
-            if event.type == "tool_started":
-                tool_count += 1
-            if event_type:
-                yield run.sse(event_type, event_payload)
-                legacy = _legacy_sse(event_type, event_payload, conversation.id)
-                if legacy:
-                    yield legacy
-    except ChatModelConfigurationError as exc:
         yield run.sse("usage", _usage_payload(chunks, source_count, tool_count, started_at))
         error_payload = {"detail": str(exc), "code": "configuration_error"}
         yield run.sse("error", error_payload)
         yield _sse("error", error_payload)
         return
     except ChatModelError as exc:
+        yield run.sse(
+            "workflow_step_done",
+            {
+                "step_id": "answer-generate",
+                "kind": "think",
+                "status": "error",
+                "summary": "模型返回失败，回答生成中断。",
+            },
+        )
         store.record_audit(
             user.id,
             "student.chat.stream.failure",
@@ -279,6 +430,15 @@ async def _stream_chat_events(
         partial_reply = "".join(chunks).strip()
         if partial_reply:
             store.append_conversation_message(conversation, "assistant", partial_reply)
+        yield run.sse(
+            "workflow_step_done",
+            {
+                "step_id": "answer-generate",
+                "kind": "think",
+                "status": "aborted",
+                "summary": "用户停止了本轮生成。",
+            },
+        )
         yield run.sse("usage", _usage_payload(chunks, source_count, tool_count, started_at))
         yield run.sse(
             "aborted",
@@ -317,6 +477,15 @@ async def _stream_chat_events(
         event_tags=["chat:model:qwen"],
         counter_key="student.chat.stream.success.count",
     )
+    yield run.sse(
+        "workflow_step_done",
+        {
+            "step_id": "answer-generate",
+            "kind": "think",
+            "status": "success",
+            "summary": "回答生成完成。",
+        },
+    )
     yield run.sse("usage", _usage_payload(chunks, source_count, tool_count, started_at))
     done_payload = {"conversationId": conversation.id}
     yield run.sse("done", done_payload)
@@ -335,6 +504,24 @@ async def _provider_stream_events(
         return
     async for chunk in provider.stream_reply(model_messages, options):
         yield ChatModelStreamEvent.delta(chunk)
+
+
+def _is_model_output_truncated_notice(event: ChatModelStreamEvent) -> bool:
+    return event.type == "notice" and event.data.get("code") == "model_output_truncated"
+
+
+def _continuation_model_messages(
+    model_messages: list[ChatModelMessage],
+    partial_reply: str,
+) -> list[ChatModelMessage]:
+    return [
+        *model_messages,
+        ChatModelMessage(
+            role="assistant",
+            content=partial_reply.strip(),
+            partial=True,
+        ),
+    ]
 
 
 def _sse(event: str, data: dict[str, Any]) -> str:
@@ -388,6 +575,26 @@ def _standard_payload(
     if event.type == "notice":
         return "notice", dict(data)
     return None, {}
+
+
+def _sandbox_model_context(summary: str) -> str:
+    return (
+        "以下是后端受控临时沙箱的真实读取/执行结果。请基于这些结果回答学生，"
+        "说明你读取了哪些文件；如果运行了命令，再说明运行了什么命令、错误在哪里、下一步如何修改。"
+        "不要声称访问了真实学校系统或长期保存了文件。\n\n"
+        f"{summary}"
+    )
+
+
+def _base_workflow_steps() -> list[dict[str, Any]]:
+    return [
+        {
+            "step_id": "request-analyze",
+            "kind": "plan",
+            "title": "理解任务",
+            "status": "queued",
+        },
+    ]
 
 
 def _source_payload(source: dict[str, Any], index: int) -> dict[str, Any]:

@@ -1,0 +1,225 @@
+- main [ref=e5]:
+  - main [ref=e90]:
+    - region "学生 AI 咨询助手" [ref=e91]:
+      - complementary "会话侧边栏" [ref=e92]:
+        - generic [ref=e93]:
+          - button "学生工作台" [ref=e94] [cursor=pointer]:
+            - img [ref=e95]
+            - text: 学生工作台
+          - generic [ref=e98]:
+            - generic [ref=e99]: 学生端
+            - heading "AI 咨询助手" [level=1] [ref=e100]
+        - generic [ref=e101]:
+          - generic "当前模型" [ref=e102]:
+            - generic [ref=e103]: 模型
+            - strong [ref=e104]: Qwen
+          - generic "主题切换" [ref=e105] [cursor=pointer]:
+            - switch "切换到深色模式" [ref=e106]
+            - generic:
+              - img
+              - img
+        - generic "会话记录" [ref=e107]:
+          - button "新会话" [ref=e108]:
+            - img
+            - text: 新会话
+          - button "是否能看到当前文档？请根据资料整理核心模块和验收重点。 2 条消息" [ref=e167] [cursor=pointer]:
+            - generic [ref=e168]: 是否能看到当前文档？请根据资料整理核心模块和验收重点。
+            - generic [ref=e169]: 2 条消息
+      - generic [ref=e111]:
+        - generic [ref=e112]:
+          - generic [ref=e114]:
+            - generic [ref=e115]: AI 咨询助手
+            - heading "是否能看到当前文档？请根据资料整理核心模块和验收重点。" [level=2] [ref=e170]
+          - button "新会话" [ref=e119] [cursor=pointer]:
+            - img [ref=e120]
+            - text: 新会话
+        - generic [ref=e121]:
+          - generic [ref=e128]:
+            - generic "你" [ref=e171]:
+              - generic [ref=e172]:
+                - generic "本轮引用文件" [ref=e173]:
+                  - generic "kimi-smoke-architecture.md" [ref=e174]:
+                    - img [ref=e175]
+                    - generic [ref=e178]: kimi-smoke-architecture.md
+                    - generic [ref=e179]: 1016 B
+                - paragraph [ref=e181]: 是否能看到当前文档？请根据资料整理核心模块和验收重点。
+            - generic "AI 咨询助手" [ref=e182]:
+              - generic [ref=e183]:
+                - generic [ref=e184]:
+                  - generic [ref=e185]:
+                    - generic [ref=e186]: AI 咨询助手 · 回答完成
+                    - generic [ref=e187]: Answer Generate · 已完成
+                  - generic "回答过程时间线" [ref=e188]:
+                    - generic [ref=e189]:
+                      - generic [ref=e190]:
+                        - img "check-circle" [ref=e192]:
+                          - img [ref=e193]
+                        - generic [ref=e197]:
+                          - generic [ref=e200]: Request Analyze
+                          - generic [ref=e201]: 任务理解完成，开始执行可用能力。
+                      - generic [ref=e202]:
+                        - img "check-circle" [ref=e204]:
+                          - img [ref=e205]
+                        - generic [ref=e209]:
+                          - generic [ref=e210] [cursor=pointer]:
+                            - generic [ref=e212]: Sandbox Prepare
+                            - img "right" [ref=e213]:
+                              - img [ref=e214]
+                          - generic [ref=e216]: 临时工作区已就绪。
+                      - generic [ref=e217]:
+                        - img "check-circle" [ref=e219]:
+                          - img [ref=e220]
+                        - generic [ref=e224]:
+                          - generic [ref=e225] [cursor=pointer]:
+                            - generic [ref=e226]:
+                              - generic [ref=e227]: Sandbox Read
+                              - generic [ref=e228]: 1 个结果
+                            - img "right" [ref=e229]:
+                              - img [ref=e230]
+                          - generic [ref=e232]: 已读取 1 个上传文件。
+                      - generic [ref=e233]:
+                        - img "check-circle" [ref=e235]:
+                          - img [ref=e236]
+                        - generic [ref=e240]:
+                          - generic [ref=e243]: Sandbox Install
+                          - generic [ref=e244]: 未发现依赖清单，跳过依赖安装。
+                      - generic [ref=e245]:
+                        - img "check-circle" [ref=e247]:
+                          - img [ref=e248]
+                        - generic [ref=e252]:
+                          - generic [ref=e255]: Sandbox Run
+                          - generic [ref=e256]: 未找到可安全执行的 Python、Node 或测试入口。
+                      - generic [ref=e257]:
+                        - img "check-circle" [ref=e259]:
+                          - img [ref=e260]
+                        - generic [ref=e263]:
+                          - generic [ref=e264]:
+                            - generic [ref=e265] [cursor=pointer]:
+                              - generic [ref=e267]: Sandbox Think
+                              - img "right" [ref=e268]:
+                                - img [ref=e269]
+                            - generic [ref=e271]: 沙箱执行摘要已整理。
+                          - group [ref=e275]:
+                            - generic "执行摘要 摘要" [ref=e276] [cursor=pointer]:
+                              - generic [ref=e277]: 执行摘要
+                              - generic [ref=e278]: 摘要
+                            - generic [ref=e279]: "已读取文件：kimi-smoke-architecture.md # AI 辅导员网站 - 完整技术架构方案 > 项目背景：根据《高等学校辅导员职业能力标准》，开发一个能嵌入教务系统的 AI 辅导员网站，内置 AI 模型，实现智能辅导功能。 ## 一、整体技术架构图 ### 1.1 架构概览 ```mermaid flowchart LR Student[学生端] --> Web[React Chatbox] Web --> API[FastAPI 后端] API --> Sandbox[受控临时沙箱] API --> Model[Qwen 模型服务] API --> Audit[审计日志] ``` ## 二、核心模块 - 学生 Chatbox：用于提交学习、生活和作业相关问题。 - 文件读取：用于阅读学生上传的作业、Markdown 方案或代码文件。 - 受控沙箱：仅允许白名单命令，限制目录和超时。 - 过程时间线：展示理解任务、读取文件、执行命令、整理结果和生成回答。 ## 三、验收重点 AI 回答必须明确说明它已经读取到这份 Markdown，并能基于“整体技术架构图”“核心模块”“验收重点”整理内容。"
+                      - generic [ref=e280]:
+                        - img "check-circle" [ref=e282]:
+                          - img [ref=e283]
+                        - generic [ref=e287]:
+                          - generic [ref=e290]: Answer Generate
+                          - generic [ref=e291]: 回答生成完成。
+                  - generic [ref=e293] [cursor=pointer]:
+                    - img [ref=e295]:
+                      - img "think" [ref=e296]
+                    - generic [ref=e299]:
+                      - generic [ref=e300]: 思考摘要
+                      - generic [ref=e301]: 已完成
+                    - img "right" [ref=e302]:
+                      - img [ref=e303]
+                  - list [ref=e305]:
+                    - listitem [ref=e306]: 本轮没有返回外部来源。
+                  - generic [ref=e308]:
+                    - img [ref=e311] [cursor=pointer]
+                    - img [ref=e316] [cursor=pointer]
+                - generic [ref=e322]:
+                  - paragraph [ref=e323]: 你好！我是南昌航空大学 AI 辅导员 Demo 助手。
+                  - paragraph [ref=e324]:
+                    - text: 关于你询问的“当前文档”及“核心模块整理”，基于本次演示环境读取到的
+                    - code [ref=e325]: kimi-smoke-architecture.md
+                    - text: 文件，我为你整理了以下信息。
+                    - strong [ref=e326]: 请注意：本系统仅能处理本次会话中上传或临时读取的文件，无法访问学校教务系统的真实数据库、你的个人档案或长期保存的历史记录。
+                  - heading "1. 已读取文件说明" [level=3] [ref=e327]
+                  - paragraph [ref=e328]: 在本次交互中，我成功读取了以下技术架构文档：
+                  - list [ref=e329]:
+                    - listitem [ref=e330]:
+                      - strong [ref=e331]: 文件名
+                      - text: ：
+                      - code [ref=e332]: kimi-smoke-architecture.md
+                    - listitem [ref=e333]:
+                      - strong [ref=e334]: 内容类型
+                      - text: ：AI 辅导员网站完整技术架构方案（包含背景、架构图、核心模块及验收重点）。
+                  - blockquote [ref=e335]:
+                    - paragraph [ref=e336]:
+                      - strong [ref=e337]: 注意
+                      - text: ：我没有运行任何系统命令（如
+                      - code [ref=e338]: ls
+                      - text: ","
+                      - code [ref=e339]: cat
+                      - text: ","
+                      - code [ref=e340]: python
+                      - text: 等），因为该文档是以 Markdown 文本形式直接提供的，不存在代码执行错误或命令运行失败的情况。因此，无需进行错误修复或修改操作。
+                  - separator [ref=e341]
+                  - heading "2. 核心模块与验收重点整理" [level=3] [ref=e342]
+                  - paragraph [ref=e343]: 根据文档内容，以下是该项目的核心构成及验收标准：
+                  - heading "🏗️ 核心功能模块" [level=4] [ref=e344]
+                  - list [ref=e345]:
+                    - listitem [ref=e346]:
+                      - strong [ref=e347]: 学生 Chatbox (前端交互)
+                      - list [ref=e348]:
+                        - listitem [ref=e349]:
+                          - strong [ref=e350]: 功能
+                          - text: ：嵌入在网页中的聊天框，供学生提交关于学习、生活及作业的具体问题。
+                        - listitem [ref=e351]:
+                          - strong [ref=e352]: 技术栈
+                          - text: ：React Chatbox。
+                    - listitem [ref=e353]:
+                      - strong [ref=e354]: 文件读取服务
+                      - list [ref=e355]:
+                        - listitem [ref=e356]:
+                          - strong [ref=e357]: 功能
+                          - text: ：支持解析学生上传的作业、Markdown 方案或代码文件，以便 AI 理解上下文。
+                    - listitem [ref=e358]:
+                      - strong [ref=e359]: 受控临时沙箱 (安全执行)
+                      - list [ref=e360]:
+                        - listitem [ref=e361]:
+                          - strong [ref=e362]: 功能
+                          - text: ：用于执行白名单内的命令（如代码运行、环境检测）。
+                        - listitem [ref=e363]:
+                          - strong [ref=e364]: 安全限制
+                          - text: ：严格限制目录权限、设置超时时间，确保无风险执行。
+                    - listitem [ref=e365]:
+                      - strong [ref=e366]: 过程时间线 (可解释性)
+                      - list [ref=e367]:
+                        - listitem [ref=e368]:
+                          - strong [ref=e369]: 功能
+                          - text: ：向用户展示 AI 的思考与执行路径，包括：理解任务 -> 读取文件 -> 执行命令 -> 整理结果 -> 生成回答。
+                  - heading "✅ 验收重点 (关键指标)" [level=4] [ref=e370]
+                  - paragraph [ref=e371]: 在测试或验收阶段，系统必须满足以下要求才能被视为合格：
+                  - list [ref=e372]:
+                    - listitem [ref=e373]:
+                      - strong [ref=e374]: 上下文感知能力
+                      - text: ：AI 生成的回答必须明确声明“已读取到这份 Markdown 文档”。
+                    - listitem [ref=e375]:
+                      - strong [ref=e376]: 内容整合能力
+                      - text: ：回答必须能够基于文档中的“
+          - button "回到底部" [ref=e377]:
+            - img
+            - text: 回到底部
+          - generic [ref=e130]:
+            - textbox "输入咨询内容" [active] [ref=e132]:
+              - /placeholder: 发消息给 AI 咨询助手
+            - generic "聊天运行控制" [ref=e133]:
+              - generic [ref=e134]:
+                - button "添加" [ref=e135] [cursor=pointer]:
+                  - img [ref=e136]
+                  - generic [ref=e137]: 添加
+                - button "Choose File" [ref=e138]
+                - generic [ref=e139] [cursor=pointer]:
+                  - checkbox "Web search Off"
+                  - img [ref=e140]
+                  - generic [ref=e143]: Web search
+                  - strong [ref=e144]: "Off"
+                - generic [ref=e145] [cursor=pointer]:
+                  - img [ref=e146]
+                  - combobox "聊天模式" [ref=e147]:
+                    - option "标准" [selected]
+                    - option "深度"
+                    - option "快速"
+                - button "上传文件" [ref=e378] [cursor=pointer]:
+                  - img [ref=e149]
+                  - generic [ref=e151]: 上传文件
+              - generic [ref=e152]:
+                - button "发送" [disabled]:
+                  - img

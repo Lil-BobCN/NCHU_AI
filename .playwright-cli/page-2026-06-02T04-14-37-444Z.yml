@@ -1,0 +1,114 @@
+- generic [ref=e4]:
+  - complementary [ref=e5]:
+    - link [ref=e7] [cursor=pointer]:
+      - /url: /?chat_enter_method=new_chat
+    - link "新建会话 Ctrl K" [ref=e9] [cursor=pointer]:
+      - /url: /?chat_enter_method=new_chat
+      - generic [ref=e10]:
+        - img [ref=e11]
+        - text: 新建会话
+      - generic [ref=e14]:
+        - generic [ref=e15]: Ctrl
+        - generic [ref=e16]: K
+    - generic [ref=e17]:
+      - generic [ref=e18]:
+        - list [ref=e19]:
+          - listitem [ref=e20]:
+            - link "PPT" [ref=e21] [cursor=pointer]:
+              - /url: /slides
+              - generic [ref=e22]:
+                - img [ref=e23]
+                - generic [ref=e25]: PPT
+          - listitem [ref=e26]:
+            - link "文档" [ref=e27] [cursor=pointer]:
+              - /url: /docs
+              - generic [ref=e28]:
+                - img [ref=e29]
+                - generic [ref=e32]: 文档
+          - listitem [ref=e33]:
+            - link "深度研究" [ref=e34] [cursor=pointer]:
+              - /url: /deep-research
+              - generic [ref=e35]:
+                - img [ref=e36]
+                - generic [ref=e38]: 深度研究
+          - listitem [ref=e39]:
+            - link "网站" [ref=e40] [cursor=pointer]:
+              - /url: /websites
+              - generic [ref=e41]:
+                - img [ref=e42]
+                - generic [ref=e45]: 网站
+          - listitem [ref=e46]:
+            - link "表格" [ref=e47] [cursor=pointer]:
+              - /url: /sheets
+              - generic [ref=e48]:
+                - img [ref=e49]
+                - generic [ref=e51]: 表格
+          - listitem [ref=e52]:
+            - link "Agent 集群" [ref=e53] [cursor=pointer]:
+              - /url: /agent-swarm
+              - generic [ref=e54]:
+                - img [ref=e55]
+                - generic [ref=e57]: Agent 集群
+        - link "Kimi Code" [ref=e58] [cursor=pointer]:
+          - /url: /code?from=kimi_homepage_sidebar
+          - img [ref=e59]
+          - generic [ref=e62]: Kimi Code
+        - generic [ref=e63]:
+          - generic [ref=e64] [cursor=pointer]:
+            - img [ref=e65]
+            - generic [ref=e67]:
+              - text: Kimi Claw
+              - generic [ref=e68]: Beta
+            - button [ref=e72]:
+              - img [ref=e74]
+          - generic:
+            - generic:
+              - generic:
+                - generic:
+                  - list
+      - generic [ref=e77]:
+        - img [ref=e78]
+        - generic [ref=e80]: 历史会话
+    - generic [ref=e81]:
+      - generic [ref=e82] [cursor=pointer]:
+        - img [ref=e83]
+        - generic [ref=e86]: 获取应用程序
+      - generic [ref=e87]:
+        - list:
+          - listitem:
+            - generic:
+              - img
+              - generic: 关于我们
+          - listitem:
+            - generic:
+              - img
+              - generic: Language
+          - listitem:
+            - generic:
+              - img
+              - generic: 帮助
+  - generic [ref=e94]:
+    - img [ref=e98] [cursor=pointer]
+    - generic [ref=e101]:
+      - img "Kimi Doodle" [ref=e104]
+      - generic [ref=e106]:
+        - generic [ref=e108]:
+          - textbox [active] [ref=e109]:
+            - paragraph [ref=e110]
+          - generic: 尽管问...
+        - generic [ref=e111]:
+          - generic [ref=e112]:
+            - img [ref=e115] [cursor=pointer]
+            - generic [ref=e119] [cursor=pointer]:
+              - img [ref=e120]
+              - generic [ref=e122]: Agent
+          - img [ref=e125]
+      - generic [ref=e131]:
+        - generic [ref=e132]: 内容由AI生成，请仔细甄别
+        - generic [ref=e133]: © 2026 北京月之暗面科技有限公司
+        - link "京ICP备2023011302号-14" [ref=e134] [cursor=pointer]:
+          - /url: https://beian.miit.gov.cn/#/Integrated/recordQuery
+        - link "京B2-20240852" [ref=e135] [cursor=pointer]:
+          - /url: https://tsm.miit.gov.cn/dxxzsp/xkz/xkzgl/resource/qiyesearch.jsp?num=%25E4%25BA%25ACB2-20240852&type=xuke
+        - link "京公网安备11010802043150号" [ref=e136] [cursor=pointer]:
+          - /url: http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=11010802043150

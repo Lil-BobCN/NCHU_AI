@@ -80,12 +80,20 @@ class Settings(BaseSettings):
         default="qwen-plus",
         validation_alias=AliasChoices("DASHSCOPE_NATIVE_MODEL", "QWEN_NATIVE_MODEL"),
     )
+    dashscope_responses_model: str = Field(
+        default="qwen3.7-max",
+        validation_alias=AliasChoices("DASHSCOPE_RESPONSES_MODEL", "QWEN_RESPONSES_MODEL"),
+    )
     enable_thinking: bool = Field(
         default=False,
         validation_alias=AliasChoices("ENABLE_THINKING", "DASHSCOPE_ENABLE_THINKING"),
     )
+    chat_model_reasoning_effort: str = Field(
+        default="medium",
+        validation_alias=AliasChoices("CHAT_MODEL_REASONING_EFFORT", "DASHSCOPE_REASONING_EFFORT"),
+    )
     chat_model_timeout_seconds: float = Field(default=30.0, gt=0)
-    chat_model_max_tokens: int = Field(default=512, gt=0)
+    chat_model_max_tokens: int = Field(default=4096, gt=0)
     chat_model_context_message_limit: int = Field(default=8, gt=0)
     chat_model_web_search_enabled: bool = Field(default=True)
     chat_model_web_search_strategy: str = "turbo"
@@ -93,6 +101,11 @@ class Settings(BaseSettings):
     chat_model_search_citation_enabled: bool = Field(default=True)
     chat_model_search_prepend_results: bool = Field(default=True)
     chat_model_search_citation_format: str = "[ref_<number>]"
+    chat_sandbox_enabled: bool = Field(default=True)
+    chat_sandbox_timeout_seconds: float = Field(default=8.0, gt=0)
+    chat_sandbox_max_attachment_bytes: int = Field(default=65536, gt=0)
+    chat_sandbox_max_files: int = Field(default=6, gt=0)
+    chat_sandbox_dependency_install_enabled: bool = Field(default=False)
     chat_model_system_prompt: str = (
         "你是南昌航空大学 AI 辅导员 Demo 的学生端助手。"
         "请用中文给出清晰、克制、可执行的支持建议；"
@@ -129,8 +142,22 @@ class Settings(BaseSettings):
     def normalize_dashscope_api_mode(cls, value: str) -> str:
         """Normalize the selected DashScope API adapter mode."""
         normalized = value.strip().lower()
-        if normalized not in {"compatible", "generation"}:
-            raise ValueError("dashscope_api_mode must be one of 'compatible' or 'generation'")
+        if normalized not in {"compatible", "generation", "responses"}:
+            raise ValueError(
+                "dashscope_api_mode must be one of 'compatible', 'generation', or 'responses'"
+            )
+        return normalized
+
+    @field_validator("chat_model_reasoning_effort")
+    @classmethod
+    def normalize_reasoning_effort(cls, value: str) -> str:
+        """Normalize Responses API reasoning effort values."""
+        normalized = value.strip().lower()
+        if normalized not in {"none", "minimal", "low", "medium", "high"}:
+            raise ValueError(
+                "chat_model_reasoning_effort must be one of "
+                "'none', 'minimal', 'low', 'medium', or 'high'"
+            )
         return normalized
 
     @field_validator("chat_model_web_search_strategy")

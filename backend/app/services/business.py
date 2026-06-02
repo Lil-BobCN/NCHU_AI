@@ -54,12 +54,22 @@ class Resource:
 
 
 @dataclass(slots=True)
+class MessageAttachment:
+    id: str
+    name: str
+    mime_type: str | None
+    size: int
+    encoding: str = "text"
+
+
+@dataclass(slots=True)
 class Message:
     id: str
     role: str
     content: str
     created_at: datetime
     resources: list[Resource] = field(default_factory=list)
+    attachments: list[MessageAttachment] = field(default_factory=list)
 
 
 @dataclass(slots=True)
@@ -281,6 +291,7 @@ class BusinessStore:
         role: str,
         content: str,
         resources: list[Resource] | None = None,
+        attachments: list[MessageAttachment] | None = None,
     ) -> Message:
         message = Message(
             id=f"msg-{uuid4().hex}",
@@ -288,6 +299,7 @@ class BusinessStore:
             content=content,
             created_at=utc_now(),
             resources=resources or [],
+            attachments=attachments or [],
         )
         conversation.messages.append(message)
         conversation.updated_at = utc_now()

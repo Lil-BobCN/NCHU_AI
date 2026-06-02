@@ -283,6 +283,23 @@ class _FakeEventProvider:
                 yield event.data["content"]
 
 
+class _SequencedEventProvider(_FakeEventProvider):
+    def __init__(self, event_batches: list[list[ChatModelStreamEvent]]) -> None:
+        super().__init__([])
+        self.event_batches = event_batches
+
+    async def stream_events(
+        self,
+        messages: list[ChatModelMessage],
+        options: ChatModelRunOptions | None = None,
+    ):
+        self.calls.append(messages)
+        self.options.append(options)
+        index = min(len(self.calls) - 1, len(self.event_batches) - 1)
+        for event in self.event_batches[index]:
+            yield event
+
+
 class _FailingEventProvider(_FakeEventProvider):
     async def stream_events(
         self,
@@ -508,6 +525,7 @@ async def test_student_chat_stream_passes_request_run_options(
         json={
             "message": "Please search the latest school notice.",
             "webSearch": False,
+            "reasoning": False,
             "profile": "student",
             "mode": "focus",
             "attachments": [{"id": "a1", "name": "note.pdf"}],
@@ -517,6 +535,7 @@ async def test_student_chat_stream_passes_request_run_options(
     assert response.status_code == 200
     assert provider.options[0] == ChatModelRunOptions(
         web_search=False,
+        reasoning_enabled=False,
         profile="student",
         mode="focus",
     )
@@ -525,7 +544,370 @@ async def test_student_chat_stream_passes_request_run_options(
         for event, data in _standard_sse_events(response.text)
         if event == "notice"
     ]
-    assert "attachments_disabled" in notices
+    events = _standard_sse_events(response.text)
+    assert any(event == "workflow_plan" for event, _ in events)
+    assert any(
+        event == "workflow_step_done"
+        and data["payload"]["step_id"] == "sandbox-read"
+        and data["payload"]["status"] == "skipped"
+        for event, data in events
+    )
+    assert notices == ["no_external_sources", "no_external_tools"]
+    app.dependency_overrides.clear()
+
+
+@pytest.mark.asyncio
+async def test_student_chat_stream_runs_inline_attachment_in_controlled_sandbox(
+    app,
+    async_client: AsyncClient,
+) -> None:
+    provider = _FakeChatProvider(["根据运行结果，程序输出了 hi。"])
+    app.dependency_overrides[chat_model_provider] = lambda: provider
+    login = await _login(async_client, "student@example.edu")
+
+    response = await async_client.post(
+        "/api/v1/student/chat/stream",
+        headers=_bearer(login["access_token"]),
+        json={
+            "message": "请运行这个作业代码，解释结果。",
+            "attachments": [
+                {
+                    "id": "a1",
+                    "name": "homework.py",
+                    "mimeType": "text/x-python",
+                    "size": 11,
+                    "content": "print('hi')",
+                    "encoding": "text",
+                }
+            ],
+        },
+    )
+
+    assert response.status_code == 200
+    events = _standard_sse_events(response.text)
+    assert any(event == "workflow_plan" for event, _ in events)
+    assert any(
+        event == "workflow_step_started" and data["payload"]["step_id"] == "sandbox-read"
+        for event, data in events
+    )
+    assert any(
+        event == "workflow_artifact"
+        and data["payload"]["step_id"] == "sandbox-read"
+        and data["payload"]["title"] == "homework.py"
+        and "print('hi')" in data["payload"]["content"]
+        for event, data in events
+    )
+    assert any(
+        event == "tool_started" and data["payload"]["toolName"] == "read_uploaded_files"
+        for event, data in events
+    )
+    assert any(
+        event == "tool_started" and data["payload"]["toolName"] == "run_terminal"
+        for event, data in events
+    )
+    assert any(
+        event == "workflow_artifact"
+        and data["payload"]["step_id"] == "sandbox-run"
+        and "hi" in data["payload"]["content"]
+        for event, data in events
+    )
+    assert any(
+        event == "tool_done"
+        and data["payload"]["toolName"] == "run_terminal"
+        and data["payload"]["status"] == "success"
+        for event, data in events
+    )
+    assert any(event.action == "student.chat.sandbox.run" for event in store.audit_events)
+    assert provider.calls[0][-1].role == "user"
+    assert "后端受控临时沙箱的真实读取/执行结果" in provider.calls[0][-1].content
+    assert "python homework.py" in provider.calls[0][-1].content
+    assert "hi" in provider.calls[0][-1].content
+    app.dependency_overrides.clear()
+
+
+@pytest.mark.asyncio
+async def test_student_chat_stream_passes_read_markdown_attachment_to_model_context(
+    app,
+    async_client: AsyncClient,
+) -> None:
+    provider = _FakeChatProvider(["已根据资料整理。"])
+    app.dependency_overrides[chat_model_provider] = lambda: provider
+    login = await _login(async_client, "student@example.edu")
+
+    response = await async_client.post(
+        "/api/v1/student/chat/stream",
+        headers=_bearer(login["access_token"]),
+        json={
+            "message": "请根据资料整理当前方案。",
+            "attachments": [
+                {
+                    "id": "a1",
+                    "name": "architecture.md",
+                    "mimeType": "text/markdown",
+                    "size": 48,
+                    "content": "# AI 辅导员技术架构方案\n\n## 一、整体技术架构图\n",
+                    "encoding": "text",
+                }
+            ],
+        },
+    )
+
+    assert response.status_code == 200
+    events = _standard_sse_events(response.text)
+    assert any(
+        event == "workflow_step_done"
+        and data["payload"]["step_id"] == "sandbox-run"
+        and data["payload"]["status"] == "skipped"
+        for event, data in events
+    )
+    model_context = provider.calls[0][-1].content
+    assert "已读取文件：architecture.md" in model_context
+    assert "AI 辅导员技术架构方案" in model_context
+    assert "沙箱没有产生可汇总的命令输出" not in model_context
+    app.dependency_overrides.clear()
+
+
+@pytest.mark.asyncio
+async def test_student_chat_stream_persists_attachment_metadata_without_content(
+    app,
+    async_client: AsyncClient,
+) -> None:
+    provider = _FakeChatProvider(["已根据资料整理。"])
+    app.dependency_overrides[chat_model_provider] = lambda: provider
+    login = await _login(async_client, "student@example.edu")
+
+    response = await async_client.post(
+        "/api/v1/student/chat/stream",
+        headers=_bearer(login["access_token"]),
+        json={
+            "message": "请根据资料整理当前方案。",
+            "attachments": [
+                {
+                    "id": "a1",
+                    "name": "architecture.md",
+                    "mimeType": "text/markdown",
+                    "size": 48,
+                    "content": "# AI 辅导员技术架构方案\n",
+                    "encoding": "text",
+                }
+            ],
+        },
+    )
+
+    assert response.status_code == 200
+    conversation_id = next(iter(store.conversations))
+    history = await async_client.get(
+        f"/api/v1/student/conversations/{conversation_id}",
+        headers=_bearer(login["access_token"]),
+    )
+
+    assert history.status_code == 200
+    student_message = history.json()["messages"][0]
+    assert student_message["attachments"] == [
+        {
+            "id": "a1",
+            "name": "architecture.md",
+            "mimeType": "text/markdown",
+            "size": 48,
+            "encoding": "text",
+        }
+    ]
+    assert "content" not in student_message["attachments"][0]
+    app.dependency_overrides.clear()
+
+
+@pytest.mark.asyncio
+async def test_student_chat_stream_continues_once_after_provider_length_stop(
+    app,
+    async_client: AsyncClient,
+) -> None:
+    provider = _SequencedEventProvider(
+        [
+            [
+                ChatModelStreamEvent.delta("第一部分，"),
+                ChatModelStreamEvent.notice(
+                    "model_output_truncated",
+                    "Provider stopped because the configured output token budget was reached.",
+                ),
+            ],
+            [ChatModelStreamEvent.delta("第二部分完成。")],
+        ]
+    )
+    app.dependency_overrides[chat_model_provider] = lambda: provider
+    login = await _login(async_client, "student@example.edu")
+
+    response = await async_client.post(
+        "/api/v1/student/chat/stream",
+        headers=_bearer(login["access_token"]),
+        json={"message": "请根据上传资料写一份完整总结。"},
+    )
+
+    assert response.status_code == 200
+    events = _standard_sse_events(response.text)
+    notices = [
+        data["payload"]["code"]
+        for event, data in events
+        if event == "notice"
+    ]
+    assert "model_output_truncated" in notices
+    assert "continuing_after_token_limit" in notices
+    assert len(provider.calls) == 2
+    assert provider.calls[1][-1] == ChatModelMessage(
+        role="assistant",
+        content="第一部分，",
+        partial=True,
+    )
+
+    conversation = next(iter(store.conversations.values()))
+    assert conversation.messages[1].content == "第一部分，第二部分完成。"
+    app.dependency_overrides.clear()
+
+
+@pytest.mark.asyncio
+async def test_student_chat_stream_continues_multiple_times_until_provider_stops(
+    app,
+    async_client: AsyncClient,
+) -> None:
+    provider = _SequencedEventProvider(
+        [
+            [
+                ChatModelStreamEvent.delta("第一段，"),
+                ChatModelStreamEvent.notice(
+                    "model_output_truncated",
+                    "Provider stopped because the configured output token budget was reached.",
+                ),
+            ],
+            [
+                ChatModelStreamEvent.delta("第二段，"),
+                ChatModelStreamEvent.notice(
+                    "model_output_truncated",
+                    "Provider stopped because the configured output token budget was reached.",
+                ),
+            ],
+            [ChatModelStreamEvent.delta("第三段完成。")],
+        ]
+    )
+    app.dependency_overrides[chat_model_provider] = lambda: provider
+    login = await _login(async_client, "student@example.edu")
+
+    response = await async_client.post(
+        "/api/v1/student/chat/stream",
+        headers=_bearer(login["access_token"]),
+        json={"message": "请根据上传资料写一份较长的完整总结。"},
+    )
+
+    assert response.status_code == 200
+    events = _standard_sse_events(response.text)
+    continuation_notices = [
+        data["payload"]
+        for event, data in events
+        if event == "notice" and data["payload"].get("code") == "continuing_after_token_limit"
+    ]
+    assert len(continuation_notices) == 2
+    assert "1/3" in continuation_notices[0]["detail"]
+    assert "2/3" in continuation_notices[1]["detail"]
+    assert len(provider.calls) == 3
+    assert provider.calls[1][-1] == ChatModelMessage(
+        role="assistant",
+        content="第一段，",
+        partial=True,
+    )
+    assert provider.calls[2][-1] == ChatModelMessage(
+        role="assistant",
+        content="第一段，第二段，",
+        partial=True,
+    )
+
+    conversation = next(iter(store.conversations.values()))
+    assert conversation.messages[1].content == "第一段，第二段，第三段完成。"
+    app.dependency_overrides.clear()
+
+
+@pytest.mark.asyncio
+async def test_student_chat_stream_stops_after_max_continuations(
+    app,
+    async_client: AsyncClient,
+) -> None:
+    truncated_batch = [
+        ChatModelStreamEvent.delta("一段，"),
+        ChatModelStreamEvent.notice(
+            "model_output_truncated",
+            "Provider stopped because the configured output token budget was reached.",
+        ),
+    ]
+    provider = _SequencedEventProvider(
+        [
+            truncated_batch,
+            truncated_batch,
+            truncated_batch,
+            truncated_batch,
+            truncated_batch,
+        ]
+    )
+    app.dependency_overrides[chat_model_provider] = lambda: provider
+    login = await _login(async_client, "student@example.edu")
+
+    response = await async_client.post(
+        "/api/v1/student/chat/stream",
+        headers=_bearer(login["access_token"]),
+        json={"message": "请持续输出，直到 provider 多次报告长度上限。"},
+    )
+
+    assert response.status_code == 200
+    events = _standard_sse_events(response.text)
+    notices = [
+        data["payload"]["code"]
+        for event, data in events
+        if event == "notice"
+    ]
+    assert notices.count("continuing_after_token_limit") == 3
+    assert "max_output_continuations_reached" in notices
+    assert len(provider.calls) == 4
+
+    conversation = next(iter(store.conversations.values()))
+    assert conversation.messages[1].content == "一段，一段，一段，一段，"
+    app.dependency_overrides.clear()
+
+
+@pytest.mark.asyncio
+async def test_student_chat_stream_skips_oversized_inline_attachment(
+    app,
+    async_client: AsyncClient,
+) -> None:
+    provider = _FakeChatProvider(["附件过大，本轮没有运行代码。"])
+    app.dependency_overrides[chat_model_provider] = lambda: provider
+    app.dependency_overrides[get_settings] = lambda: Settings(
+        chat_sandbox_max_attachment_bytes=4,
+    )
+    login = await _login(async_client, "student@example.edu")
+
+    response = await async_client.post(
+        "/api/v1/student/chat/stream",
+        headers=_bearer(login["access_token"]),
+        json={
+            "message": "请运行这个作业代码。",
+            "attachments": [
+                {
+                    "name": "too-large.py",
+                    "content": "print('too large')",
+                    "encoding": "text",
+                }
+            ],
+        },
+    )
+
+    assert response.status_code == 200
+    events = _standard_sse_events(response.text)
+    assert any(
+        event == "workflow_step_done"
+        and data["payload"]["step_id"] == "sandbox-read"
+        and data["payload"]["status"] == "skipped"
+        for event, data in events
+    )
+    assert not any(
+        event == "workflow_artifact" and "too large" in data["payload"].get("content", "")
+        for event, data in events
+    )
     app.dependency_overrides.clear()
 
 
@@ -633,7 +1015,9 @@ def test_dashscope_payload_skips_web_search_for_simple_prompts() -> None:
     provider = DashScopeChatModelProvider(
         Settings(
             DASHSCOPE_API_KEY="test-key",
+            DASHSCOPE_API_MODE="compatible",
             DASHSCOPE_MODEL="qwen3.5-flash",
+            ENABLE_THINKING=False,
             chat_model_max_tokens=384,
             chat_model_web_search_enabled=True,
             chat_model_web_search_strategy="turbo",
@@ -650,10 +1034,52 @@ def test_dashscope_payload_skips_web_search_for_simple_prompts() -> None:
     assert "search_options" not in payload
 
 
+def test_dashscope_payload_uses_roomier_default_completion_budget() -> None:
+    provider = DashScopeChatModelProvider(
+        Settings(
+            DASHSCOPE_API_KEY="test-key",
+            DASHSCOPE_API_MODE="compatible",
+            DASHSCOPE_MODEL="qwen3.5-flash",
+        )
+    )
+
+    payload = provider._build_payload([ChatModelMessage(role="user", content="Summarize a file.")])
+
+    assert payload["max_tokens"] == 4096
+
+
+def test_dashscope_compatible_payload_marks_partial_assistant_prefix() -> None:
+    provider = DashScopeChatModelProvider(
+        Settings(
+            DASHSCOPE_API_KEY="test-key",
+            DASHSCOPE_API_MODE="compatible",
+            DASHSCOPE_MODEL="qwen3.5-flash",
+        )
+    )
+
+    payload = provider._build_payload(
+        [
+            ChatModelMessage(role="user", content="Summarize the uploaded file."),
+            ChatModelMessage(
+                role="assistant",
+                content="Partial answer prefix",
+                partial=True,
+            ),
+        ]
+    )
+
+    assert payload["messages"][-1] == {
+        "role": "assistant",
+        "content": "Partial answer prefix",
+        "partial": True,
+    }
+
+
 def test_dashscope_payload_skips_web_search_for_temporal_counseling_prompts() -> None:
     provider = DashScopeChatModelProvider(
         Settings(
             DASHSCOPE_API_KEY="test-key",
+            DASHSCOPE_API_MODE="compatible",
             DASHSCOPE_MODEL="qwen3.5-flash",
             chat_model_web_search_enabled=True,
             chat_model_web_search_strategy="turbo",
@@ -677,7 +1103,9 @@ def test_dashscope_payload_enables_web_search_for_current_fact_prompts() -> None
     provider = DashScopeChatModelProvider(
         Settings(
             DASHSCOPE_API_KEY="test-key",
+            DASHSCOPE_API_MODE="compatible",
             DASHSCOPE_MODEL="qwen3.5-flash",
+            ENABLE_THINKING=False,
             chat_model_max_tokens=384,
             chat_model_web_search_enabled=True,
             chat_model_web_search_strategy="turbo",
@@ -702,6 +1130,7 @@ def test_dashscope_payload_honors_explicit_web_search_override() -> None:
     provider = DashScopeChatModelProvider(
         Settings(
             DASHSCOPE_API_KEY="test-key",
+            DASHSCOPE_API_MODE="compatible",
             DASHSCOPE_MODEL="qwen3.5-flash",
             chat_model_web_search_enabled=True,
             chat_model_web_search_strategy="turbo",
@@ -758,6 +1187,33 @@ def test_dashscope_generation_payload_enables_sources_and_citations() -> None:
     }
 
 
+def test_dashscope_generation_payload_marks_partial_assistant_prefix() -> None:
+    provider = DashScopeChatModelProvider(
+        Settings(
+            DASHSCOPE_API_KEY="test-key",
+            DASHSCOPE_MODEL="qwen-plus",
+            DASHSCOPE_API_MODE="generation",
+        )
+    )
+
+    payload = provider._build_generation_payload(
+        [
+            ChatModelMessage(role="user", content="Summarize the uploaded file."),
+            ChatModelMessage(
+                role="assistant",
+                content="Partial answer prefix",
+                partial=True,
+            ),
+        ]
+    )
+
+    assert payload["input"]["messages"][-1] == {
+        "role": "assistant",
+        "content": "Partial answer prefix",
+        "partial": True,
+    }
+
+
 def test_dashscope_generation_payload_skips_sources_without_search() -> None:
     provider = DashScopeChatModelProvider(
         Settings(
@@ -774,6 +1230,52 @@ def test_dashscope_generation_payload_skips_sources_without_search() -> None:
 
     assert "enable_search" not in payload["parameters"]
     assert "search_options" not in payload["parameters"]
+
+
+def test_dashscope_responses_payload_enables_reasoning_and_web_search() -> None:
+    provider = DashScopeChatModelProvider(
+        Settings(
+            DASHSCOPE_API_KEY="test-key",
+            DASHSCOPE_API_MODE="responses",
+            DASHSCOPE_RESPONSES_MODEL="qwen3.7-max",
+            chat_model_max_tokens=384,
+        )
+    )
+
+    payload = provider._build_responses_payload(
+        [ChatModelMessage(role="user", content="请联网搜索今天最新的学校通知。")],
+        ChatModelRunOptions(web_search=True, reasoning_enabled=True, mode="focus"),
+    )
+
+    assert payload["model"] == "qwen3.7-max"
+    assert payload["max_output_tokens"] == 384
+    assert payload["stream"] is True
+    assert payload["input"][-1] == {
+        "role": "user",
+        "content": "请联网搜索今天最新的学校通知。",
+    }
+    assert payload["reasoning"] == {"effort": "high", "summary": "auto"}
+    assert payload["tools"] == [{"type": "web_search"}]
+
+
+def test_dashscope_responses_payload_can_disable_reasoning() -> None:
+    provider = DashScopeChatModelProvider(
+        Settings(
+            DASHSCOPE_API_KEY="test-key",
+            DASHSCOPE_API_MODE="responses",
+            DASHSCOPE_RESPONSES_MODEL="qwen3.7-max",
+            ENABLE_THINKING=True,
+            chat_model_web_search_enabled=True,
+        )
+    )
+
+    payload = provider._build_responses_payload(
+        [ChatModelMessage(role="user", content="我今天心情不好。")],
+        ChatModelRunOptions(reasoning_enabled=False),
+    )
+
+    assert payload["reasoning"] == {"effort": "none", "summary": "auto"}
+    assert "tools" not in payload
 
 
 def test_dashscope_generation_uses_native_model_config() -> None:
@@ -834,6 +1336,97 @@ def test_dashscope_generation_parser_extracts_real_citation_fields() -> None:
             }
         ),
         ChatModelStreamEvent.delta("See [ref_1]."),
+    ]
+
+
+def test_dashscope_parser_reports_provider_length_stop() -> None:
+    compatible_line = 'data: {"choices": [{"finish_reason": "length", "delta": {}}]}'
+    generation_line = 'data: {"output": {"choices": [{"finish_reason": "max_tokens"}]}}'
+
+    expected = [
+        ChatModelStreamEvent.notice(
+            "model_output_truncated",
+            "Provider stopped because the configured output token budget was reached.",
+        )
+    ]
+
+    assert DashScopeChatModelProvider._parse_compatible_sse_line(compatible_line) == expected
+    assert DashScopeChatModelProvider._parse_generation_sse_line(generation_line) == expected
+
+
+def test_dashscope_responses_parser_extracts_reasoning_tool_source_and_delta() -> None:
+    reasoning_line = (
+        'data: {"type": "response.reasoning_summary_text.delta", '
+        '"delta": "正在拆解问题。"}'
+    )
+    search_line = (
+        'data: {"type": "response.web_search_call.searching", '
+        '"item_id": "ws_1"}'
+    )
+    source_line = (
+        'data: {"type": "response.output_item.done", "item": {'
+        '"id": "ws_1", "type": "web_search_call", "action": {"sources": ['
+        '{"title": "学校官网通知", "url": "https://example.edu/news", '
+        '"snippet": "通知摘要"}]}}}'
+    )
+    delta_line = 'data: {"type": "response.output_text.delta", "delta": "请参考学校官网通知。"}'
+
+    assert DashScopeChatModelProvider._parse_responses_sse_line(reasoning_line) == [
+        ChatModelStreamEvent.reasoning("正在拆解问题。")
+    ]
+    assert DashScopeChatModelProvider._parse_responses_sse_line(search_line) == [
+        ChatModelStreamEvent.phase("searching"),
+        ChatModelStreamEvent.tool_delta(
+            "web_search",
+            tool_call_id="ws_1",
+            detail="Responses API is searching the web.",
+        ),
+    ]
+    assert DashScopeChatModelProvider._parse_responses_sse_line(source_line) == [
+        ChatModelStreamEvent.source(
+            {
+                "title": "学校官网通知",
+                "url": "https://example.edu/news",
+                "snippet": "通知摘要",
+            }
+        ),
+        ChatModelStreamEvent.tool_done(
+            "web_search",
+            tool_call_id="ws_1",
+            status="success",
+            detail="Responses API returned 1 source(s).",
+            result_count=1,
+        ),
+    ]
+    assert DashScopeChatModelProvider._parse_responses_sse_line(delta_line) == [
+        ChatModelStreamEvent.delta("请参考学校官网通知。")
+    ]
+
+
+def test_dashscope_responses_message_done_keeps_references_without_duplicate_text() -> None:
+    line = (
+        'data: {"type": "response.output_item.done", "item": {'
+        '"type": "message", "content": [{"type": "output_text", "text": "完整答案", '
+        '"annotations": [{"type": "url_citation", "title": "Notice", '
+        '"url": "https://example.edu/news"}]}]}}'
+    )
+
+    events = DashScopeChatModelProvider._parse_responses_sse_line(line)
+
+    assert ChatModelStreamEvent.delta("完整答案") not in events
+    assert events == [
+        ChatModelStreamEvent.source(
+            {
+                "title": "Notice",
+                "url": "https://example.edu/news",
+            }
+        ),
+        ChatModelStreamEvent.citation(
+            {
+                "title": "Notice",
+                "url": "https://example.edu/news",
+            }
+        ),
     ]
 
 

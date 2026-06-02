@@ -1,0 +1,86 @@
+- main [ref=e5]:
+  - main [ref=e90]:
+    - region "学生 AI 咨询助手" [ref=e91]:
+      - complementary "会话侧边栏" [ref=e92]:
+        - generic [ref=e93]:
+          - button "学生工作台" [ref=e94] [cursor=pointer]:
+            - img [ref=e95]
+            - text: 学生工作台
+          - generic [ref=e98]:
+            - generic [ref=e99]: 学生端
+            - heading "AI 咨询助手" [level=1] [ref=e100]
+        - generic [ref=e101]:
+          - generic "当前模型" [ref=e102]:
+            - generic [ref=e103]: 模型
+            - strong [ref=e104]: Qwen 3.7
+          - generic "主题切换" [ref=e105] [cursor=pointer]:
+            - switch "切换到深色模式" [ref=e106]
+            - generic:
+              - img
+              - img
+        - generic "会话记录" [ref=e107]:
+          - button "新会话" [ref=e108]:
+            - img
+            - text: 新会话
+          - generic [ref=e109]:
+            - button "???????:????????????????? 1 条消息" [ref=e111] [cursor=pointer]:
+              - generic [ref=e112]: "???????:?????????????????"
+              - generic [ref=e113]: 1 条消息
+            - button "请用三句话回答：现在这条消息是否可以正常流式返回？ 2 条消息" [ref=e115] [cursor=pointer]:
+              - generic [ref=e116]: 请用三句话回答：现在这条消息是否可以正常流式返回？
+              - generic [ref=e117]: 2 条消息
+            - button "请用一句话回答：这是 done 事件 smoke。 2 条消息" [ref=e119] [cursor=pointer]:
+              - generic [ref=e120]: 请用一句话回答：这是 done 事件 smoke。
+              - generic [ref=e121]: 2 条消息
+            - button "你好 6 条消息" [ref=e123] [cursor=pointer]:
+              - generic [ref=e124]: 你好
+              - generic [ref=e125]: 6 条消息
+      - generic [ref=e126]:
+        - generic [ref=e127]:
+          - generic [ref=e129]:
+            - generic [ref=e130]: AI 咨询助手
+            - heading "新会话" [level=2] [ref=e181]
+          - button "新会话" [active] [ref=e134] [cursor=pointer]:
+            - img [ref=e135]
+            - text: 新会话
+        - generic [ref=e136]:
+          - generic [ref=e182]:
+            - heading "有什么可以帮你？" [level=3] [ref=e183]
+            - generic [ref=e184]:
+              - button "我最近学习压力很大，应该怎么调整？" [ref=e185] [cursor=pointer]
+              - button "我和室友发生矛盾，不知道怎么开口沟通。" [ref=e186] [cursor=pointer]
+              - button "我错过了一次作业截止时间，应该怎么补救？" [ref=e187] [cursor=pointer]
+          - button "回到底部" [disabled]:
+            - img
+            - text: 回到底部
+          - generic [ref=e143]:
+            - textbox "输入咨询内容" [ref=e145]:
+              - /placeholder: 发消息给 AI 咨询助手
+            - generic "聊天运行控制" [ref=e146]:
+              - generic [ref=e147]:
+                - button "添加" [ref=e148] [cursor=pointer]:
+                  - img [ref=e149]
+                  - generic [ref=e150]: 添加
+                - generic [ref=e151] [cursor=pointer]:
+                  - checkbox "思考 On" [checked]
+                  - img [ref=e152]
+                  - generic [ref=e164]: 思考
+                  - strong [ref=e165]: "On"
+                - button "Choose File" [ref=e166]
+                - generic [ref=e167] [cursor=pointer]:
+                  - checkbox "Web search Off"
+                  - img [ref=e168]
+                  - generic [ref=e171]: Web search
+                  - strong [ref=e172]: "Off"
+                - generic [ref=e173] [cursor=pointer]:
+                  - img [ref=e174]
+                  - combobox "聊天模式" [ref=e175]:
+                    - option "标准" [selected]
+                    - option "深度"
+                    - option "快速"
+                - button "上传文件" [ref=e176] [cursor=pointer]:
+                  - img [ref=e177]
+                  - generic [ref=e179]: 上传文件
+              - generic [ref=e180]:
+                - button "发送" [disabled]:
+                  - img

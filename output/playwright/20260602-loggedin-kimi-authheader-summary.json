@@ -1,0 +1,28 @@
+{
+  "url": "https://www.kimi.com/chat/19e86c25-6c12-8619-8000-098a0889f9b0?chat_enter_method=home",
+  "authProbe": {
+    "status": 200,
+    "text": "[redacted-user-json]"
+  },
+  "initialTextLen": 282,
+  "finalTextLen": 5781,
+  "answerDelta": 5499,
+  "loginLikely": true,
+  "sentPrompt": "请作为产品设计评审专家，分析一个大学 AI 辅导员 Chatbox 要如何复原 Kimi 风格：请从空态、输入区、复杂问题回复过程、工具/来源展示、取消与续写、错误恢复、前后端事件协议七个角度给出详细方案，并说明哪些能力必须后端真实支持，不能只靠前端假展示。",
+  "files": {
+    "home": "C:\\Users\\liuqi\\Desktop\\agentproject\\output\\playwright\\20260602-loggedin-kimi-authheader-home.png",
+    "sent": "C:\\Users\\liuqi\\Desktop\\agentproject\\output\\playwright\\20260602-loggedin-kimi-authheader-sent.png",
+    "mid": "C:\\Users\\liuqi\\Desktop\\agentproject\\output\\playwright\\20260602-loggedin-kimi-authheader-mid.png",
+    "final": "C:\\Users\\liuqi\\Desktop\\agentproject\\output\\playwright\\20260602-loggedin-kimi-authheader-final.png",
+    "transcript": "C:\\Users\\liuqi\\Desktop\\agentproject\\output\\playwright\\20260602-loggedin-kimi-authheader-transcript.txt",
+    "network": "C:\\Users\\liuqi\\Desktop\\agentproject\\output\\playwright\\20260602-loggedin-kimi-authheader-network.json",
+    "summary": "C:\\Users\\liuqi\\Desktop\\agentproject\\output\\playwright\\20260602-loggedin-kimi-authheader-summary.json"
+  },
+  "networkCounts": {
+    "request:GET": 4,
+    "response:200": 30,
+    "request:POST": 26
+  },
+  "consoleCount": 4,
+  "sampleCount": 210
+}

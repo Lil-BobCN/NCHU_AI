@@ -46,6 +46,16 @@ class ResourceResponse(BaseModel):
     source_knowledge_id: str
 
 
+class MessageAttachmentResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    name: str
+    mime_type: str | None = Field(default=None, serialization_alias="mimeType")
+    size: int
+    encoding: str = "text"
+
+
 class MessageResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -54,6 +64,7 @@ class MessageResponse(BaseModel):
     content: str
     created_at: datetime
     resources: list[ResourceResponse] = Field(default_factory=list)
+    attachments: list[MessageAttachmentResponse] = Field(default_factory=list)
 
 
 class QuestionRequest(BaseModel):
@@ -82,6 +93,8 @@ class StudentChatAttachment(BaseModel):
         validation_alias=AliasChoices("mime_type", "mimeType"),
     )
     size: int | None = None
+    content: str | None = None
+    encoding: str = "text"
 
 
 class StudentChatRequest(BaseModel):
@@ -93,6 +106,10 @@ class StudentChatRequest(BaseModel):
     web_search: bool | None = Field(
         default=None,
         validation_alias=AliasChoices("web_search", "webSearch"),
+    )
+    reasoning_enabled: bool | None = Field(
+        default=None,
+        validation_alias=AliasChoices("reasoning_enabled", "reasoningEnabled", "reasoning"),
     )
     profile: str = "student"
     mode: str = "balanced"

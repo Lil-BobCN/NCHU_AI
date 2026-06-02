@@ -1,0 +1,115 @@
+- main [ref=e5]:
+  - main [ref=e6]:
+    - region "学生 AI 咨询助手" [ref=e7]:
+      - complementary "会话侧边栏" [ref=e8]:
+        - generic [ref=e9]:
+          - button "学生工作台" [ref=e10] [cursor=pointer]:
+            - img [ref=e11]
+            - text: 学生工作台
+          - generic [ref=e14]:
+            - generic [ref=e15]: 学生端
+            - heading "AI 咨询助手" [level=1] [ref=e16]
+        - generic [ref=e17]:
+          - generic "当前模型" [ref=e18]:
+            - generic [ref=e19]: 模型
+            - strong [ref=e20]: Qwen 3.7
+          - generic "主题切换" [ref=e21] [cursor=pointer]:
+            - switch "切换到深色模式" [ref=e22]
+            - generic:
+              - img
+              - img
+        - generic "会话记录" [ref=e23]:
+          - button "新会话" [ref=e24]:
+            - img
+            - text: 新会话
+          - generic [ref=e25]:
+            - button "???????:???????? 1 条消息" [ref=e84] [cursor=pointer]:
+              - generic [ref=e85]: "???????:????????"
+              - generic [ref=e86]: 1 条消息
+            - button "???????:???????? 1 条消息" [ref=e88] [cursor=pointer]:
+              - generic [ref=e89]: "???????:????????"
+              - generic [ref=e90]: 1 条消息
+            - button "???????????? smoke? 2 条消息" [ref=e92] [cursor=pointer]:
+              - generic [ref=e93]: "???????????? smoke?"
+              - generic [ref=e94]: 2 条消息
+            - button "???????????? smoke? 1 条消息" [ref=e96] [cursor=pointer]:
+              - generic [ref=e97]: "???????????? smoke?"
+              - generic [ref=e98]: 1 条消息
+      - generic [ref=e26]:
+        - generic [ref=e27]:
+          - generic [ref=e29]:
+            - generic [ref=e30]: AI 咨询助手
+            - heading "新会话" [level=2] [ref=e103]
+          - generic [ref=e32]:
+            - button "新会话" [ref=e34] [cursor=pointer]:
+              - img [ref=e35]
+              - text: 新会话
+            - button "正在回复" [disabled] [ref=e111]
+        - generic [ref=e36]:
+          - generic [ref=e43]:
+            - generic "你" [ref=e112]:
+              - paragraph [ref=e115]: 请联网检索并用三条要点回答：Kimi 官网首页当前公开展示了哪些主要入口？请给出来源。
+            - generic "AI 咨询助手" [ref=e116]:
+              - generic [ref=e117]:
+                - generic [ref=e118]:
+                  - generic [ref=e119]: AI 咨询助手
+                  - generic [ref=e120]: 正在回复
+                - generic [ref=e122]:
+                  - generic [ref=e123]:
+                    - generic [ref=e124]: AI 咨询助手 · 正在回答
+                    - generic [ref=e125]: 正在生成回答
+                  - generic "回答过程时间线" [ref=e126]:
+                    - generic [ref=e127]:
+                      - generic [ref=e128]:
+                        - img "check-circle" [ref=e130]:
+                          - img [ref=e131]
+                        - generic [ref=e135]:
+                          - generic [ref=e138]: Request Analyze
+                          - generic [ref=e139]: 任务理解完成，开始执行可用能力。
+                      - generic [ref=e140]:
+                        - img "loading" [ref=e142]:
+                          - img [ref=e143]
+                        - generic [ref=e146]:
+                          - generic [ref=e149]: 生成回答
+                          - generic [ref=e150]: 正在结合真实执行过程组织回复。
+                  - generic [ref=e152] [cursor=pointer]:
+                    - img "loading" [ref=e154]:
+                      - img [ref=e155]
+                    - generic [ref=e158]:
+                      - generic [ref=e159]: 思考摘要
+                      - generic [ref=e160]: 更新中
+                    - img "right" [ref=e161]:
+                      - img [ref=e162]
+          - button "回到底部" [disabled]:
+            - img
+            - text: 回到底部
+          - generic [ref=e45]:
+            - textbox "输入咨询内容" [active] [ref=e47]:
+              - /placeholder: 发消息给 AI 咨询助手
+            - generic "聊天运行控制" [ref=e48]:
+              - generic [ref=e49]:
+                - button "添加" [ref=e50] [cursor=pointer]:
+                  - img [ref=e51]
+                  - generic [ref=e52]: 添加
+                - generic [ref=e53] [cursor=pointer]:
+                  - checkbox "思考 On" [checked]
+                  - img [ref=e54]
+                  - generic [ref=e66]: 思考
+                  - strong [ref=e67]: "On"
+                - button "Choose File" [ref=e68]
+                - generic [ref=e69] [cursor=pointer]:
+                  - checkbox "Web search Auto" [checked]
+                  - img [ref=e70]
+                  - generic [ref=e73]: Web search
+                  - strong [ref=e74]: Auto
+                - generic [ref=e75] [cursor=pointer]:
+                  - img [ref=e76]
+                  - combobox "聊天模式" [ref=e77]:
+                    - option "标准" [selected]
+                    - option "深度"
+                    - option "快速"
+                - button "上传文件" [ref=e78] [cursor=pointer]:
+                  - img [ref=e79]
+                  - generic [ref=e81]: 上传文件
+              - button "停止生成" [ref=e164]:
+                - img

@@ -9,6 +9,7 @@ import {
 import type { AssistantConversationMeta } from '@/components/assistant-ui/thread-list'
 import { getRunPayload, readString, reduceChatRun } from '@/lib/chat-run'
 import type { ChatRunState, RunEventData } from '@/lib/chat-run'
+import type { StudentChatAttachmentPayload } from '@/lib/chat-attachments'
 import {
   ArrowLeft,
   Moon,
@@ -37,6 +38,16 @@ type ApiMessage = {
   role: 'student' | 'assistant'
   content: string
   created_at: string
+  attachments?: ApiMessageAttachment[]
+}
+
+type ApiMessageAttachment = {
+  id?: string
+  name?: string
+  mime_type?: string | null
+  mimeType?: string | null
+  size?: number | null
+  encoding?: string | null
 }
 
 type ApiConversation = {
@@ -50,6 +61,7 @@ type ChatMessage = {
   id: string
   role: 'student' | 'assistant'
   content: string
+  attachments?: StudentChatAttachmentPayload[]
   createdAt?: string
   run?: ChatRunState
   status?: MessageStatus
@@ -101,7 +113,10 @@ export default function StudentChatboxPage({
   const [lastPrompt, setLastPrompt] = useState('')
   const [chatTheme, setChatTheme] = useState<ChatTheme>(getInitialChatTheme)
   const [webSearchEnabled, setWebSearchEnabled] = useState(false)
+  const [reasoningEnabled, setReasoningEnabled] = useState(true)
   const [chatMode, setChatMode] = useState<StudentChatMode>('balanced')
+  const [pendingAttachments, setPendingAttachments] = useState<StudentChatAttachmentPayload[]>([])
+  const [lastAttachments, setLastAttachments] = useState<StudentChatAttachmentPayload[]>([])
 
   const token = session?.token ?? ''
   const activeConversation = conversations.find((item) => item.id === activeConversationId)
@@ -113,6 +128,9 @@ export default function StudentChatboxPage({
   const messageContents = Object.fromEntries(
     messages.map((message) => [message.id, message.content]),
   ) as Record<string, string>
+  const messageAttachments = Object.fromEntries(
+    messages.map((message) => [message.id, message.attachments ?? []]),
+  ) as Record<string, StudentChatAttachmentPayload[]>
   const conversationMeta: AssistantConversationMeta[] = conversations.map((conversation) => ({
     id: conversation.id,
     title: conversation.title || '未命名会话',
@@ -171,7 +189,7 @@ export default function StudentChatboxPage({
         const refreshed = items.find((item) => item.id === conversationId)
         if (refreshed) {
           setMessages((current) =>
-            preserveAssistantRunState(current, refreshed.messages.map(toChatMessage)),
+            preserveMessageSidecars(current, refreshed.messages.map(toChatMessage)),
           )
         }
       }
@@ -185,7 +203,20 @@ export default function StudentChatboxPage({
     setMessages([])
     setError('')
     setLastPrompt('')
+    setLastAttachments([])
+    setPendingAttachments([])
     setStatus('idle')
+  }, [])
+
+  const addPendingAttachments = useCallback((attachments: StudentChatAttachmentPayload[]) => {
+    if (attachments.length === 0) {
+      return
+    }
+    setPendingAttachments((current) => [...current, ...attachments].slice(0, 6))
+  }, [])
+
+  const removePendingAttachment = useCallback((attachmentId: string) => {
+    setPendingAttachments((current) => current.filter((item) => item.id !== attachmentId))
   }, [])
 
   const selectConversationById = useCallback(
@@ -206,11 +237,16 @@ export default function StudentChatboxPage({
   )
 
   const sendMessage = useCallback(
-    async (promptOverride: string, conversationOverride?: string | null) => {
+    async (
+      promptOverride: string,
+      conversationOverride?: string | null,
+      attachmentsOverride?: StudentChatAttachmentPayload[],
+    ) => {
       const prompt = promptOverride.trim()
       if (!prompt || isBusy || !token) {
         return
       }
+      const attachments = attachmentsOverride ?? pendingAttachments
 
       setMessages((current) => current.filter((message) => message.content.trim() !== ''))
 
@@ -222,10 +258,12 @@ export default function StudentChatboxPage({
       abortRef.current = controller
       setError('')
       setLastPrompt(prompt)
+      setLastAttachments(attachments)
+      setPendingAttachments([])
       setStatus('loading')
       setMessages((current) => [
         ...current,
-        { id: studentId, role: 'student', content: prompt },
+        { id: studentId, role: 'student', content: prompt, attachments },
         {
           id: assistantId,
           role: 'assistant',
@@ -245,9 +283,10 @@ export default function StudentChatboxPage({
             conversationId,
             message: prompt,
             webSearch: webSearchEnabled,
+            reasoning: reasoningEnabled,
             profile: 'student',
             mode: chatMode,
-            attachments: [],
+            attachments: attachments.map(toRequestAttachment),
           }),
           signal: controller.signal,
         })
@@ -273,17 +312,8 @@ export default function StudentChatboxPage({
         let streamedConversationId = conversationId
         let hasStandardRunEvents = false
 
-        while (true) {
-          const { done, value } = await reader.read()
-          if (done) {
-            break
-          }
-
-          buffer += decoder.decode(value, { stream: true })
-          const parsed = drainSseEvents(buffer)
-          buffer = parsed.rest
-
-          for (const event of parsed.events) {
+        const consumeStreamEvents = (events: StreamEvent[]) => {
+          for (const event of events) {
             const payload = getRunPayload(event.data)
             const eventType = readString(event.data.type) ?? event.event
             const isStandardRunEvent = event.data.schema_version === 'chat.run.v1'
@@ -320,6 +350,25 @@ export default function StudentChatboxPage({
               )
             }
           }
+        }
+
+        while (true) {
+          const { done, value } = await reader.read()
+          if (done) {
+            break
+          }
+
+          buffer += decoder.decode(value, { stream: true })
+          const parsed = drainSseEvents(buffer)
+          buffer = parsed.rest
+          consumeStreamEvents(parsed.events)
+        }
+
+        buffer += decoder.decode()
+        const finalParsed = drainSseEvents(buffer)
+        consumeStreamEvents(finalParsed.events)
+        if (finalParsed.rest.trim()) {
+          consumeStreamEvents(parseSseEvent(finalParsed.rest))
         }
 
         markAssistantStatus(assistantId, { type: 'complete', reason: 'stop' })
@@ -381,7 +430,9 @@ export default function StudentChatboxPage({
       refreshConversations,
       token,
       webSearchEnabled,
+      reasoningEnabled,
       chatMode,
+      pendingAttachments,
     ],
   )
 
@@ -393,8 +444,8 @@ export default function StudentChatboxPage({
     if (!lastPrompt) {
       return
     }
-    await sendMessage(lastPrompt, activeConversationId)
-  }, [activeConversationId, lastPrompt, sendMessage])
+    await sendMessage(lastPrompt, activeConversationId, lastAttachments)
+  }, [activeConversationId, lastPrompt, lastAttachments, sendMessage])
 
   const runtime = useExternalStoreRuntime<ChatMessage>({
     messages,
@@ -403,7 +454,7 @@ export default function StudentChatboxPage({
     isSendDisabled: !token || isBusy,
     suggestions: messages.length === 0 ? promptStarters.map((prompt) => ({ prompt })) : [],
     onNew: async (message) => {
-      await sendMessage(getAppendMessageText(message), activeConversationId)
+      await sendMessage(getAppendMessageText(message), activeConversationId, pendingAttachments)
     },
     onCancel: stopStreaming,
     onReload: async () => {
@@ -501,7 +552,7 @@ export default function StudentChatboxPage({
     <div className="aui-sidebar-utility">
       <div className="aui-model-card" aria-label="当前模型">
         <span>模型</span>
-        <strong>Qwen</strong>
+        <strong>Qwen 3.7</strong>
       </div>
       <label className="aui-theme-switch" aria-label="主题切换">
         <input
@@ -551,15 +602,21 @@ export default function StudentChatboxPage({
             canRetry={canRetry}
             chatMode={chatMode}
             error={error}
+            messageAttachments={messageAttachments}
             messageContents={messageContents}
             messageRuns={messageRuns}
             mobileSidebarTrigger={mobileSidebar}
+            onAttachmentsAdd={addPendingAttachments}
+            onAttachmentRemove={removePendingAttachment}
             onChatModeChange={setChatMode}
+            onReasoningChange={setReasoningEnabled}
             onRetry={() => void retryLastPrompt()}
             onWebSearchChange={setWebSearchEnabled}
+            pendingAttachments={pendingAttachments}
             promptStarters={promptStarters}
             status={status}
             toolbar={threadToolbar}
+            reasoningEnabled={reasoningEnabled}
             webSearchEnabled={webSearchEnabled}
             title={activeConversation?.title ?? '新会话'}
           />
@@ -590,11 +647,23 @@ function isAuthError(error: unknown): boolean {
   return error instanceof ApiRequestError && error.status === 401
 }
 
+function toRequestAttachment(attachment: StudentChatAttachmentPayload) {
+  return {
+    id: attachment.id,
+    name: attachment.name,
+    mimeType: attachment.mimeType,
+    size: attachment.size,
+    content: attachment.error ? undefined : attachment.content,
+    encoding: attachment.encoding,
+  }
+}
+
 function toChatMessage(message: ApiMessage): ChatMessage {
   return {
     id: message.id,
     role: message.role,
     content: message.content,
+    attachments: toChatAttachments(message.attachments),
     createdAt: message.created_at,
     status:
       message.role === 'assistant'
@@ -606,18 +675,55 @@ function toChatMessage(message: ApiMessage): ChatMessage {
   }
 }
 
-function preserveAssistantRunState(current: ChatMessage[], next: ChatMessage[]): ChatMessage[] {
-  const sidecars = current
+function toChatAttachments(
+  attachments: ApiMessageAttachment[] | undefined,
+): StudentChatAttachmentPayload[] | undefined {
+  if (!attachments || attachments.length === 0) {
+    return undefined
+  }
+  return attachments
+    .filter((attachment) => attachment.id && attachment.name)
+    .map((attachment) => ({
+      id: attachment.id as string,
+      name: attachment.name as string,
+      mimeType: attachment.mimeType ?? attachment.mime_type ?? undefined,
+      size: attachment.size ?? 0,
+      encoding: attachment.encoding === 'base64' ? 'base64' : 'text',
+    }))
+}
+
+function preserveMessageSidecars(current: ChatMessage[], next: ChatMessage[]): ChatMessage[] {
+  const assistantSidecars = current
     .filter((message) => message.role === 'assistant' && (message.run || message.status))
     .map((message) => ({ run: message.run, status: message.status }))
-  if (sidecars.length === 0) {
+  const studentSidecars = current
+    .filter((message) => message.role === 'student' && message.attachments?.length)
+    .map((message) => ({
+      attachments: message.attachments,
+      content: message.content,
+      used: false,
+    }))
+  if (assistantSidecars.length === 0 && studentSidecars.length === 0) {
     return next
   }
   return next.map((message) => {
+    if (message.role === 'student') {
+      const sidecar = studentSidecars.find(
+        (item) => !item.used && item.content === message.content,
+      )
+      if (!sidecar) {
+        return message
+      }
+      sidecar.used = true
+      return {
+        ...message,
+        attachments: sidecar.attachments,
+      }
+    }
     if (message.role !== 'assistant') {
       return message
     }
-    const sidecar = sidecars.shift()
+    const sidecar = assistantSidecars.shift()
     return sidecar
       ? {
           ...message,

@@ -1,0 +1,68 @@
+- main [ref=e5]:
+  - main [ref=e6]:
+    - region "学生 AI 咨询助手" [ref=e7]:
+      - complementary "会话侧边栏" [ref=e8]:
+        - generic [ref=e9]:
+          - button "学生工作台" [ref=e10] [cursor=pointer]:
+            - img [ref=e11]
+            - text: 学生工作台
+          - generic [ref=e14]:
+            - generic [ref=e15]: 学生端
+            - heading "AI 咨询助手" [level=1] [ref=e16]
+        - generic [ref=e17]:
+          - generic "当前模型" [ref=e18]:
+            - generic [ref=e19]: 模型
+            - strong [ref=e20]: Qwen
+          - generic "主题切换" [ref=e21] [cursor=pointer]:
+            - switch "切换到深色模式" [ref=e22]
+            - generic:
+              - img
+              - img
+        - generic "会话记录" [ref=e23]:
+          - button "新会话" [ref=e24]:
+            - img
+            - text: 新会话
+      - generic [ref=e26]:
+        - generic [ref=e27]:
+          - generic [ref=e29]:
+            - generic [ref=e30]: AI 咨询助手
+            - heading "我最近学习压力很大，应该怎么调整？" [level=2] [ref=e31]
+          - button "新会话" [ref=e34] [cursor=pointer]:
+            - img [ref=e35]
+            - text: 新会话
+        - generic [ref=e36]:
+          - generic [ref=e37]:
+            - heading "有什么可以帮你？" [level=3] [ref=e38]
+            - generic [ref=e39]:
+              - button "我最近学习压力很大，应该怎么调整？" [ref=e40] [cursor=pointer]
+              - button "我和室友发生矛盾，不知道怎么开口沟通。" [ref=e41] [cursor=pointer]
+              - button "我错过了一次作业截止时间，应该怎么补救？" [ref=e42] [cursor=pointer]
+          - button "回到底部" [disabled]:
+            - img
+            - text: 回到底部
+          - generic [ref=e45]:
+            - textbox "输入咨询内容" [active] [ref=e47]:
+              - /placeholder: 发消息给 AI 咨询助手
+            - generic "聊天运行控制" [ref=e48]:
+              - generic [ref=e49]:
+                - button "添加" [ref=e50]:
+                  - img [ref=e51]
+                  - generic [ref=e52]: 添加
+                - button "Choose File" [ref=e53]
+                - generic [ref=e54]:
+                  - checkbox "Web search Off"
+                  - img [ref=e55]
+                  - generic [ref=e58]: Web search
+                  - strong [ref=e59]: "Off"
+                - generic [ref=e60]:
+                  - img [ref=e61]
+                  - combobox "聊天模式" [ref=e62]:
+                    - option "标准" [selected]
+                    - option "深度"
+                    - option "快速"
+                - button "上传文件" [ref=e63]:
+                  - img [ref=e64]
+                  - generic [ref=e66]: 上传文件
+              - generic [ref=e67]:
+                - button "发送" [disabled]:
+                  - img

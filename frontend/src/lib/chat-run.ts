@@ -11,6 +11,34 @@ export type ChatRunSource = {
 
 export type ChatRunToolStatus = "running" | "success" | "error" | "no_results" | "disabled"
 
+export type ChatRunWorkflowStatus =
+  | "queued"
+  | "running"
+  | "success"
+  | "error"
+  | "skipped"
+  | "blocked"
+  | "disabled"
+  | "aborted"
+
+export type ChatRunWorkflowStep = {
+  id: string
+  kind: string
+  title: string
+  status: ChatRunWorkflowStatus
+  detail?: string
+  summary?: string
+  artifactCount?: number
+}
+
+export type ChatRunWorkflowArtifact = {
+  id: string
+  stepId: string
+  kind: string
+  title: string
+  content: string
+}
+
 export type ChatRunTool = {
   id: string
   name: string
@@ -51,6 +79,8 @@ export type ChatRunState = {
   sources: ChatRunSource[]
   citations: ChatRunCitation[]
   tools: ChatRunTool[]
+  workflowSteps: ChatRunWorkflowStep[]
+  workflowArtifacts: ChatRunWorkflowArtifact[]
   notices: ChatRunNotice[]
   usage?: ChatRunUsage
   error?: string
@@ -77,6 +107,8 @@ export function reduceChatRun(
     sources: current?.sources ?? [],
     citations: current?.citations ?? [],
     tools: current?.tools ?? [],
+    workflowSteps: current?.workflowSteps ?? [],
+    workflowArtifacts: current?.workflowArtifacts ?? [],
     notices: current?.notices ?? [],
     ...current,
     runId: readString(data.run_id) ?? current?.runId,
@@ -109,6 +141,36 @@ export function reduceChatRun(
   ) {
     const content = readString(payload.content)
     return content ? { ...next, reasoning: `${next.reasoning}${content}` } : next
+  }
+
+  if (eventType === "workflow_plan") {
+    const steps = workflowStepsFromPayload(payload)
+    return steps.length
+      ? { ...next, workflowSteps: mergeWorkflowSteps(next.workflowSteps, steps) }
+      : next
+  }
+
+  if (eventType === "workflow_step_started") {
+    const step = workflowStepFromPayload(payload, "running")
+    return step ? { ...next, workflowSteps: upsertWorkflowStep(next.workflowSteps, step) } : next
+  }
+
+  if (eventType === "workflow_step_delta") {
+    const step = workflowStepFromPayload(payload)
+    return step ? { ...next, workflowSteps: upsertWorkflowStep(next.workflowSteps, step, true) } : next
+  }
+
+  if (eventType === "workflow_step_done") {
+    const step = workflowStepFromPayload(payload)
+    return step ? { ...next, workflowSteps: upsertWorkflowStep(next.workflowSteps, step) } : next
+  }
+
+  if (eventType === "workflow_artifact") {
+    const artifact = workflowArtifactFromPayload(payload)
+    if (!artifact || next.workflowArtifacts.some((item) => item.id === artifact.id)) {
+      return next
+    }
+    return { ...next, workflowArtifacts: [...next.workflowArtifacts, artifact] }
   }
 
   if (eventType === "source") {
@@ -217,6 +279,60 @@ function legacyEventType(eventName: string): string {
   return eventName
 }
 
+function workflowStepsFromPayload(payload: RunEventData): ChatRunWorkflowStep[] {
+  const steps = Array.isArray(payload.steps) ? payload.steps : []
+  return steps.flatMap((value) => {
+    if (!isRecord(value)) {
+      return []
+    }
+    const step = workflowStepFromPayload(value)
+    return step ? [step] : []
+  })
+}
+
+function workflowStepFromPayload(
+  payload: RunEventData,
+  statusOverride?: ChatRunWorkflowStatus,
+): ChatRunWorkflowStep | undefined {
+  const id = readString(payload.step_id) ?? readString(payload.stepId)
+  if (!id) {
+    return undefined
+  }
+  return {
+    id,
+    kind: readString(payload.kind) ?? "step",
+    title: readString(payload.title) ?? formatToken(id),
+    status:
+      statusOverride ??
+      normalizeWorkflowStatus(readString(payload.status)) ??
+      "queued",
+    detail: readString(payload.detail),
+    summary: readString(payload.summary),
+    artifactCount:
+      readNumber(payload.artifact_count) ??
+      readNumber(payload.artifactCount),
+  }
+}
+
+function workflowArtifactFromPayload(payload: RunEventData): ChatRunWorkflowArtifact | undefined {
+  const stepId = readString(payload.step_id) ?? readString(payload.stepId)
+  const title = readString(payload.title)
+  const content = readString(payload.content)
+  if (!stepId || !title || !content) {
+    return undefined
+  }
+  return {
+    id:
+      readString(payload.artifact_id) ??
+      readString(payload.artifactId) ??
+      `${stepId}:${title}`,
+    stepId,
+    kind: readString(payload.kind) ?? "artifact",
+    title,
+    content,
+  }
+}
+
 function sourceFromPayload(payload: RunEventData): ChatRunSource | undefined {
   const url = readString(payload.url)
   if (!url) {
@@ -304,6 +420,40 @@ function upsertTool(
   )
 }
 
+function mergeWorkflowSteps(
+  current: ChatRunWorkflowStep[],
+  incoming: ChatRunWorkflowStep[],
+): ChatRunWorkflowStep[] {
+  return incoming.reduce((steps, step) => upsertWorkflowStep(steps, step), current)
+}
+
+function upsertWorkflowStep(
+  steps: ChatRunWorkflowStep[],
+  step: ChatRunWorkflowStep,
+  appendDetail = false,
+): ChatRunWorkflowStep[] {
+  const index = steps.findIndex((item) => item.id === step.id)
+  if (index === -1) {
+    return [...steps, step]
+  }
+  const existing = steps[index]
+  const detail =
+    appendDetail && existing.detail && step.detail
+      ? `${existing.detail}\n${step.detail}`
+      : step.detail ?? existing.detail
+  return steps.map((item) =>
+    item.id === step.id
+      ? {
+          ...item,
+          ...step,
+          detail,
+          summary: step.summary ?? item.summary,
+          artifactCount: step.artifactCount ?? item.artifactCount,
+        }
+      : item,
+  )
+}
+
 function normalizeToolStatus(status: string | undefined): ChatRunToolStatus {
   if (status === "success" || status === "error" || status === "disabled") {
     return status
@@ -312,6 +462,22 @@ function normalizeToolStatus(status: string | undefined): ChatRunToolStatus {
     return status
   }
   return "success"
+}
+
+function normalizeWorkflowStatus(status: string | undefined): ChatRunWorkflowStatus | undefined {
+  if (
+    status === "queued" ||
+    status === "running" ||
+    status === "success" ||
+    status === "error" ||
+    status === "skipped" ||
+    status === "blocked" ||
+    status === "disabled" ||
+    status === "aborted"
+  ) {
+    return status
+  }
+  return undefined
 }
 
 function formatToken(value: string): string {

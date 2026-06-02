@@ -1,0 +1,157 @@
+- generic [ref=e1]:
+  - generic [ref=e4]:
+    - complementary [ref=e5]:
+      - generic [ref=e6]:
+        - link [ref=e7] [cursor=pointer]:
+          - /url: /?chat_enter_method=new_chat
+        - img [ref=e139] [cursor=pointer]
+      - link "新建会话 Ctrl K" [ref=e9] [cursor=pointer]:
+        - /url: /?chat_enter_method=new_chat
+        - generic [ref=e10]:
+          - img [ref=e11]
+          - text: 新建会话
+        - generic [ref=e14]:
+          - generic [ref=e15]: Ctrl
+          - generic [ref=e16]: K
+      - generic [ref=e17]:
+        - generic [ref=e18]:
+          - list [ref=e19]:
+            - listitem [ref=e20]:
+              - link "PPT" [ref=e21] [cursor=pointer]:
+                - /url: /slides
+                - generic [ref=e22]:
+                  - img [ref=e23]
+                  - generic [ref=e25]: PPT
+            - listitem [ref=e26]:
+              - link "文档" [ref=e27] [cursor=pointer]:
+                - /url: /docs
+                - generic [ref=e28]:
+                  - img [ref=e29]
+                  - generic [ref=e32]: 文档
+            - listitem [ref=e33]:
+              - link "深度研究" [ref=e34] [cursor=pointer]:
+                - /url: /deep-research
+                - generic [ref=e35]:
+                  - img [ref=e36]
+                  - generic [ref=e38]: 深度研究
+            - listitem [ref=e39]:
+              - link "网站" [ref=e40] [cursor=pointer]:
+                - /url: /websites
+                - generic [ref=e41]:
+                  - img [ref=e42]
+                  - generic [ref=e45]: 网站
+            - listitem [ref=e46]:
+              - link "表格" [ref=e47] [cursor=pointer]:
+                - /url: /sheets
+                - generic [ref=e48]:
+                  - img [ref=e49]
+                  - generic [ref=e51]: 表格
+            - listitem [ref=e52]:
+              - link "Agent 集群" [ref=e53] [cursor=pointer]:
+                - /url: /agent-swarm
+                - generic [ref=e54]:
+                  - img [ref=e55]
+                  - generic [ref=e57]: Agent 集群
+          - link "Kimi Code" [ref=e58] [cursor=pointer]:
+            - /url: /code?from=kimi_homepage_sidebar
+            - img [ref=e59]
+            - generic [ref=e62]: Kimi Code
+          - generic [ref=e63]:
+            - generic [ref=e64] [cursor=pointer]:
+              - img [ref=e65]
+              - generic [ref=e67]:
+                - text: Kimi Claw
+                - generic [ref=e68]: Beta
+              - button [ref=e72]:
+                - img [ref=e74]
+            - generic:
+              - generic:
+                - generic:
+                  - generic:
+                    - list
+        - generic [ref=e77]:
+          - img [ref=e78]
+          - generic [ref=e80]: 历史会话
+        - generic [ref=e143] [cursor=pointer]: 登录以同步历史会话
+      - generic [ref=e81]:
+        - generic [ref=e82] [cursor=pointer]:
+          - img [ref=e83]
+          - generic [ref=e86]: 获取应用程序
+        - generic [ref=e162]:
+          - generic [ref=e164] [cursor=pointer]:
+            - img "default user avatar" [ref=e166]
+            - generic [ref=e167]: 登录
+          - img [ref=e169] [cursor=pointer]
+    - generic [ref=e101]:
+      - img "Kimi Doodle" [ref=e104]
+      - generic [ref=e106]:
+        - textbox [ref=e109]:
+          - paragraph [ref=e110]: 请作为产品设计评审专家，分析一个大学 AI 辅导员 Chatbox 要如何复原 Kimi 风格：请从空态、输入区、复杂问题回复过程、工具/来源展示、取消与续写、错误恢复、前后端事件协议七个角度给出详细方案，并说明哪些能力必须后端真实支持，不能只靠前端假展示。
+        - generic [ref=e111]:
+          - generic [ref=e112]:
+            - img [ref=e115] [cursor=pointer]
+            - generic [ref=e119] [cursor=pointer]:
+              - img [ref=e120]
+              - generic [ref=e122]: Agent
+          - generic [ref=e123]:
+            - generic [ref=e173] [cursor=pointer]:
+              - generic [ref=e174]: K2.6 快速
+              - img [ref=e175]
+            - img [ref=e125] [cursor=pointer]
+      - generic [ref=e127]:
+        - generic [ref=e178]:
+          - generic [ref=e183]:
+            - generic [ref=e184] [cursor=pointer]:
+              - img "activity image" [ref=e186]
+              - generic [ref=e187]:
+                - generic [ref=e188]: WebBridge 接入浏览器
+                - generic [ref=e189]: 让 AI 像人一样使用浏览器
+            - generic [ref=e190] [cursor=pointer]:
+              - img "activity image" [ref=e192]
+              - generic [ref=e193]:
+                - generic [ref=e194]: Kimi Claw 已就位！
+                - generic [ref=e195]: 一键部署 OpenClaw，Kimi 24小时为你干活
+            - generic [ref=e196] [cursor=pointer]:
+              - img "activity image" [ref=e198]
+              - generic [ref=e199]:
+                - generic [ref=e200]: WebBridge 接入浏览器
+                - generic [ref=e201]: 让 AI 像人一样使用浏览器
+          - img [ref=e203] [cursor=pointer]
+        - generic [ref=e131]:
+          - generic [ref=e132]: 内容由AI生成，请仔细甄别
+          - generic [ref=e133]: © 2026 北京月之暗面科技有限公司
+          - link "京ICP备2023011302号-14" [ref=e134] [cursor=pointer]:
+            - /url: https://beian.miit.gov.cn/#/Integrated/recordQuery
+          - link "京B2-20240852" [ref=e135] [cursor=pointer]:
+            - /url: https://tsm.miit.gov.cn/dxxzsp/xkz/xkzgl/resource/qiyesearch.jsp?num=%25E4%25BA%25ACB2-20240852&type=xuke
+          - link "京公网安备11010802043150号" [ref=e136] [cursor=pointer]:
+            - /url: http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=11010802043150
+  - generic [ref=e206]:
+    - banner [ref=e207]:
+      - text: 登录后
+      - text: 有问题，免费聊
+    - generic [ref=e208]:
+      - generic [ref=e209]:
+        - banner [ref=e211]: 微信扫码登录
+        - generic [ref=e216]:
+          - heading "手机号快捷登录" [level=1] [ref=e217]
+          - generic [ref=e218]:
+            - generic [ref=e219]:
+              - textbox "+86" [ref=e220]
+              - generic: "+86"
+              - img
+            - textbox "请输入手机号" [active] [ref=e221]
+          - generic [ref=e222]:
+            - textbox "请输入验证码" [ref=e223]
+            - button "发送验证码" [disabled] [ref=e224]
+          - button "登录" [ref=e225] [cursor=pointer]
+      - generic [ref=e226] [cursor=pointer]:
+        - checkbox "已阅读同意 《模型服务协议》 和 《用户隐私协议》" [ref=e228]
+        - paragraph [ref=e229]:
+          - text: 已阅读同意
+          - link "《模型服务协议》" [ref=e230]:
+            - /url: /user/agreement/modelUse?version=v2
+          - text: 和
+          - link "《用户隐私协议》" [ref=e231]:
+            - /url: /user/agreement/userPrivacy?version=v2
+      - generic [ref=e232]: 遇到问题？ 去反馈

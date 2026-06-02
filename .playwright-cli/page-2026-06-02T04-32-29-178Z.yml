@@ -1,0 +1,60 @@
+- generic [ref=e4]:
+  - banner [ref=e670]:
+    - button "NCHU AI AI Counselor Demo" [ref=e671] [cursor=pointer]:
+      - img [ref=e673]:
+        - img [ref=e674]
+      - generic [ref=e676]:
+        - generic [ref=e677]: NCHU AI
+        - generic [ref=e678]: AI Counselor Demo
+    - menu [ref=e679]:
+      - menuitem "认识产品" [ref=e680] [cursor=pointer]
+      - menuitem "平台能力" [ref=e681] [cursor=pointer]
+      - menuitem "角色场景" [ref=e682] [cursor=pointer]
+      - menuitem "治理边界" [ref=e683] [cursor=pointer]
+      - menuitem [disabled]:
+        - img:
+          - img
+    - generic [ref=e684]:
+      - generic [ref=e756]: 学生身份
+      - button "学生工作台" [ref=e757] [cursor=pointer]:
+        - generic [ref=e690]: 学生工作台
+      - button "logout 退出" [ref=e759] [cursor=pointer]:
+        - img "logout" [ref=e761]:
+          - img [ref=e762]
+        - generic [ref=e764]: 退出
+  - main [ref=e5]:
+    - main [ref=e765]:
+      - generic [ref=e766]:
+        - generic [ref=e767]:
+          - generic [ref=e768]:
+            - generic [ref=e770]: 学生工作台
+            - generic [ref=e772]: Demo
+          - heading "Demo Student" [level=2] [ref=e773]
+          - generic [ref=e774]: 学生问答、来源卡片、会话历史。当前只使用已批准的 Demo 契约，不包含真实学生数据或生产 SSO。
+        - button "message 打开 Chatbox" [ref=e775] [cursor=pointer]:
+          - img "message" [ref=e777]:
+            - img [ref=e778]
+          - generic [ref=e780]: 打开 Chatbox
+      - generic [ref=e781]:
+        - generic [ref=e784]:
+          - generic [ref=e786]: 会话状态
+          - generic [ref=e788]: authenticated
+        - generic [ref=e791]:
+          - generic [ref=e793]: Demo 账号
+          - generic [ref=e795]: "true"
+        - generic [ref=e798]:
+          - generic [ref=e800]: 当前角色
+          - generic [ref=e802]: 学生
+      - generic [ref=e803]:
+        - generic [ref=e804]:
+          - generic [ref=e807]: 交互结构
+          - list [ref=e809]:
+            - listitem [ref=e810]: 登录成功后进入角色专属工作台。
+            - listitem [ref=e811]: 学生、老师、运维管理人员各自只显示自己的主入口。
+            - listitem [ref=e812]: 未授权角色会被重定向回可访问路径。
+        - generic [ref=e813]:
+          - generic [ref=e816]: 下一阶段接口
+          - list [ref=e818]:
+            - listitem [ref=e819]: 学生 Chatbox 独立页。
+            - listitem [ref=e820]: 老师案例与建议。
+            - listitem [ref=e821]: 运维管理人员知识、审计和统计。

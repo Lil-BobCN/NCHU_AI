@@ -1,0 +1,198 @@
+- main [ref=e5]:
+  - main [ref=e90]:
+    - region "学生 AI 咨询助手" [ref=e91]:
+      - complementary "会话侧边栏" [ref=e92]:
+        - generic [ref=e93]:
+          - button "学生工作台" [ref=e94] [cursor=pointer]:
+            - img [ref=e95]
+            - text: 学生工作台
+          - generic [ref=e98]:
+            - generic [ref=e99]: 学生端
+            - heading "AI 咨询助手" [level=1] [ref=e100]
+        - generic [ref=e101]:
+          - generic "当前模型" [ref=e102]:
+            - generic [ref=e103]: 模型
+            - strong [ref=e104]: Qwen 3.7
+          - generic "主题切换" [ref=e105] [cursor=pointer]:
+            - switch "切换到深色模式" [ref=e106]
+            - generic:
+              - img
+              - img
+        - generic "会话记录" [ref=e107]:
+          - button "新会话" [ref=e108]:
+            - img
+            - text: 新会话
+          - generic [ref=e109]:
+            - button "???????:????????????????? 1 条消息" [ref=e111] [cursor=pointer]:
+              - generic [ref=e112]: "???????:?????????????????"
+              - generic [ref=e113]: 1 条消息
+            - button "请用三句话回答：现在这条消息是否可以正常流式返回？ 2 条消息" [ref=e115] [cursor=pointer]:
+              - generic [ref=e116]: 请用三句话回答：现在这条消息是否可以正常流式返回？
+              - generic [ref=e117]: 2 条消息
+            - button "请用一句话回答：这是 done 事件 smoke。 2 条消息" [ref=e119] [cursor=pointer]:
+              - generic [ref=e120]: 请用一句话回答：这是 done 事件 smoke。
+              - generic [ref=e121]: 2 条消息
+            - button "你好 6 条消息" [ref=e123] [cursor=pointer]:
+              - generic [ref=e124]: 你好
+              - generic [ref=e125]: 6 条消息
+      - generic [ref=e126]:
+        - generic [ref=e127]:
+          - generic [ref=e129]:
+            - generic [ref=e130]: AI 咨询助手
+            - heading "新会话" [level=2] [ref=e181]
+          - generic [ref=e132]:
+            - button "新会话" [ref=e134] [cursor=pointer]:
+              - img [ref=e135]
+              - text: 新会话
+            - button "正在回复" [disabled] [ref=e189]
+        - generic [ref=e136]:
+          - generic [ref=e137]:
+            - generic "你" [ref=e190]:
+              - paragraph [ref=e193]: 请作为产品设计评审专家，分析一个大学 AI 辅导员 Chatbox 要如何复原 Kimi 风格：请从空态、输入区、复杂问题回复过程、工具/来源展示、取消与续写、错误恢复、前后端事件协议七个角度给出详细方案，并说明哪些能力必须后端真实支持，不能只靠前端假展示。
+            - generic "AI 咨询助手" [ref=e194]:
+              - generic [ref=e195]:
+                - generic [ref=e196]:
+                  - generic [ref=e197]: AI 咨询助手
+                  - generic [ref=e198]: 正在回复
+                - generic [ref=e200]:
+                  - generic [ref=e201]:
+                    - generic [ref=e202]: AI 咨询助手 · 正在回答
+                    - generic [ref=e203]: 正在生成回答
+                  - generic "回答过程时间线" [ref=e204]:
+                    - generic [ref=e205]:
+                      - generic [ref=e206]:
+                        - img "check-circle" [ref=e208]:
+                          - img [ref=e209]
+                        - generic [ref=e213]:
+                          - generic [ref=e216]: Request Analyze
+                          - generic [ref=e217]: 任务理解完成，开始执行可用能力。
+                      - generic [ref=e218]:
+                        - img "loading" [ref=e220]:
+                          - img [ref=e221]
+                        - generic [ref=e224]:
+                          - generic [ref=e227]: 生成回答
+                          - generic [ref=e228]: 正在结合真实执行过程组织回复。
+                  - generic [ref=e230]:
+                    - img [ref=e233] [cursor=pointer]
+                    - img [ref=e238] [cursor=pointer]
+                - generic [ref=e244]:
+                  - paragraph [ref=e245]: 你好！作为产品设计评审专家，针对南昌航空大学 AI 辅导员 Chatbox 项目，若要复刻 Kimi（月之暗面）那种“极简、流畅、高智商感”的交互风格，不能仅停留在 UI 层面的模仿，必须深入到底层架构与交互逻辑的协同。
+                  - paragraph [ref=e246]:
+                    - text: 以下是基于你提出的七个维度的详细设计方案，并特别标注了
+                    - strong [ref=e247]: 必须后端真实支持
+                    - text: 的核心能力。
+                  - separator [ref=e248]
+                  - heading "1. 空态设计 (Empty State)" [level=3] [ref=e249]
+                  - paragraph [ref=e250]:
+                    - strong [ref=e251]: 设计目标
+                    - text: ：消除冷启动焦虑，引导用户自然开口，体现“懂学校”的亲切感。
+                  - list [ref=e252]:
+                    - listitem [ref=e253]:
+                      - strong [ref=e254]: 前端表现
+                      - text: ： *
+                      - strong [ref=e255]: 文案策略
+                      - text: ：避免通用的“有什么可以帮您？”。应结合场景动态展示，如：“同学你好，我是你的 AI 辅导员。想查课表、问政策，还是聊聊社团活动？”
+                    - listitem [ref=e256]:
+                      - strong [ref=e257]: 快捷气泡
+                      - text: ：提供 3-4 个高频场景胶囊（如：查询学分绩点、预约心理咨询、报修流程、校历查询）。 *
+                      - strong [ref=e258]: 视觉风格
+                      - text: ：留白充足，无干扰元素，头像采用南航辅导员 IP 形象或简洁图标。
+                    - listitem [ref=e259]:
+                      - strong [ref=e260]: ✅ 必须后端真实支持的能力
+                      - text: ： *
+                      - strong [ref=e261]: 上下文感知/意图预演
+                      - text: ：后端需根据当前时间（如考试周、开学季）或用户历史标签（如有），动态生成不同的欢迎语和推荐问题，而非静态硬编码。
+                      - list [ref=e262]:
+                        - listitem [ref=e263]:
+                          - strong [ref=e264]: 合规性校验
+                          - text: ：后端需预先配置好敏感词库，确保推荐的快捷问题符合学校宣传规范。
+                  - heading "2. 输入区设计 (Input Area)" [level=3] [ref=e265]
+                  - paragraph [ref=e266]:
+                    - strong [ref=e267]: 设计目标
+                    - text: ：降低输入门槛，支持多模态，保持界面整洁。*
+                    - strong [ref=e268]: 前端表现
+                    - text: ： *
+                    - strong [ref=e269]: 布局
+                    - text: ：底部固定，圆角矩形，右侧为发送按钮。 *
+                    - strong [ref=e270]: 功能入口
+                    - text: ：左侧集成“文件上传”图标（支持 PDF、图片、截图），暗示支持长文档分析。 *
+                    - strong [ref=e271]: 智能提示
+                    - text: ：当用户输入模糊时，输入框上方出现“您可能想问..."的下拉建议。 *
+                    - strong [ref=e272]: 状态反馈
+                    - text: ：点击发送后，输入框瞬间变为加载动画，无需跳转页面。
+                  - list [ref=e273]:
+                    - listitem [ref=e274]:
+                      - strong [ref=e275]: ✅ 必须后端真实支持的能力
+                      - text: ：
+                      - list [ref=e276]:
+                        - listitem [ref=e277]:
+                          - strong [ref=e278]: 实时语义补全 (Completion API)
+                          - text: ：下拉建议不能是简单的关键词匹配，需调用大模型进行实时预测，根据当前对话流生成最可能的后续意图。
+                        - listitem [ref=e279]:
+                          - strong [ref=e280]: 多模态解析管线
+                          - text: ：后端必须具备 OCR（文字识别）、PDF 解析及图像理解能力，能将用户上传的文件内容转化为 Token 喂给模型，否则前端只能传文件名，无法实现“读懂文件”的效果。
+                  - heading "3. 复杂问题回复过程 (Complex Response Flow)" [level=3] [ref=e281]
+                  - paragraph [ref=e282]:
+                    - strong [ref=e283]: 设计目标
+                    - text: ：模拟人类思考过程，避免“秒回”带来的机械感，建立信任。
+                  - list [ref=e284]:
+                    - listitem [ref=e285]:
+                      - strong [ref=e286]: 前端表现
+                      - text: ： *
+                      - strong [ref=e287]: 打字机效果
+                      - text: ：字符逐个浮现，但速度要快且均匀。
+                      - list [ref=e288]:
+                        - listitem [ref=e289]:
+                          - strong [ref=e290]: 思维链可视化 (CoT)
+                          - text: ：对于复杂问题（如“帮我规划考研复习计划”），在正文前显示一个折叠的“思考中..."模块，展开后展示分步逻辑（1.分析现状 -> 2.制定阶段目标 -> 3.推荐资源）。
+                        - listitem [ref=e291]:
+                          - strong [ref=e292]: 流式渲染优化
+                          - text: ：首字延迟控制在 500ms 以内，中间不卡顿。
+                    - listitem [ref=e293]:
+                      - strong [ref=e294]: ✅ 必须后端真实支持的能力
+                      - text: ：
+                      - list [ref=e295]:
+                        - listitem [ref=e296]:
+                          - strong [ref=e297]: 流式输出 (SSE/WebSocket)
+                          - text: ：这是核心。后端必须支持
+                          - code [ref=e298]: Server-Sent Events
+                          - text: 协议，将生成的文本切分成小块实时推送，前端才能逐字显示。如果后端一次性返回完整 JSON，前端只能等待，无法实现“边写边看”的体验。
+                        - listitem [ref=e299]:
+                          - strong [ref=e300]: 结构化思维链生成
+                          - text: ：后端模型需开启 CoT 模式，并在输出流中嵌入特定的标记（如
+                          - code [ref=e301]: <thought>
+                          - text: ），前端据此解析并渲染“思考过程”面板。
+                  - heading "4. 工具/来源▋" [level=3] [ref=e302]
+          - button "回到底部" [disabled]:
+            - img
+            - text: 回到底部
+          - generic [ref=e143]:
+            - textbox "输入咨询内容" [active] [ref=e145]:
+              - /placeholder: 发消息给 AI 咨询助手
+            - generic "聊天运行控制" [ref=e146]:
+              - generic [ref=e147]:
+                - button "添加" [ref=e148] [cursor=pointer]:
+                  - img [ref=e149]
+                  - generic [ref=e150]: 添加
+                - generic [ref=e151] [cursor=pointer]:
+                  - checkbox "思考 On" [checked]
+                  - img [ref=e152]
+                  - generic [ref=e164]: 思考
+                  - strong [ref=e165]: "On"
+                - button "Choose File" [ref=e166]
+                - generic [ref=e167] [cursor=pointer]:
+                  - checkbox "Web search Off"
+                  - img [ref=e168]
+                  - generic [ref=e171]: Web search
+                  - strong [ref=e172]: "Off"
+                - generic [ref=e173] [cursor=pointer]:
+                  - img [ref=e174]
+                  - combobox "聊天模式" [ref=e175]:
+                    - option "标准" [selected]
+                    - option "深度"
+                    - option "快速"
+                - button "上传文件" [ref=e176] [cursor=pointer]:
+                  - img [ref=e177]
+                  - generic [ref=e179]: 上传文件
+              - button "停止生成" [ref=e303]:
+                - img

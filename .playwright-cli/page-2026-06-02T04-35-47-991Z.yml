@@ -1,0 +1,331 @@
+- main [ref=e5]:
+  - main [ref=e6]:
+    - region "学生 AI 咨询助手" [ref=e7]:
+      - complementary "会话侧边栏" [ref=e8]:
+        - generic [ref=e9]:
+          - button "学生工作台" [ref=e10] [cursor=pointer]:
+            - img [ref=e11]
+            - text: 学生工作台
+          - generic [ref=e14]:
+            - generic [ref=e15]: 学生端
+            - heading "AI 咨询助手" [level=1] [ref=e16]
+        - generic [ref=e17]:
+          - generic "当前模型" [ref=e18]:
+            - generic [ref=e19]: 模型
+            - strong [ref=e20]: Qwen 3.7
+          - generic "主题切换" [ref=e21] [cursor=pointer]:
+            - switch "切换到深色模式" [ref=e22]
+            - generic:
+              - img
+              - img
+        - generic "会话记录" [ref=e23]:
+          - button "新会话" [ref=e24]:
+            - img
+            - text: 新会话
+          - generic [ref=e25]:
+            - button "???????:???????? 1 条消息" [ref=e84] [cursor=pointer]:
+              - generic [ref=e85]: "???????:????????"
+              - generic [ref=e86]: 1 条消息
+            - button "???????:???????? 1 条消息" [ref=e88] [cursor=pointer]:
+              - generic [ref=e89]: "???????:????????"
+              - generic [ref=e90]: 1 条消息
+            - button "???????????? smoke? 2 条消息" [ref=e92] [cursor=pointer]:
+              - generic [ref=e93]: "???????????? smoke?"
+              - generic [ref=e94]: 2 条消息
+            - button "???????????? smoke? 2 条消息" [ref=e192] [cursor=pointer]:
+              - generic [ref=e97]: "???????????? smoke?"
+              - generic [ref=e98]: 2 条消息
+            - button "请联网检索并用三条要点回答：Kimi 官网首页当前公开展示了哪些 2 条消息" [ref=e194] [cursor=pointer]:
+              - generic [ref=e195]: 请联网检索并用三条要点回答：Kimi 官网首页当前公开展示了哪些
+              - generic [ref=e196]: 2 条消息
+      - generic [ref=e26]:
+        - generic [ref=e27]:
+          - generic [ref=e29]:
+            - generic [ref=e30]: AI 咨询助手
+            - heading "请联网检索并用三条要点回答：Kimi 官网首页当前公开展示了哪些" [level=2] [ref=e197]
+          - button "新会话" [ref=e34] [cursor=pointer]:
+            - img [ref=e35]
+            - text: 新会话
+        - generic [ref=e36]:
+          - generic [ref=e43]:
+            - generic "你" [ref=e112]:
+              - paragraph [ref=e198]: 请联网检索并用三条要点回答：Kimi 官网首页当前公开展示了哪些主要入口？请给出来源。
+            - generic "AI 咨询助手" [ref=e116]:
+              - generic [ref=e117]:
+                - generic [ref=e199]:
+                  - generic [ref=e200]:
+                    - generic [ref=e201]: AI 咨询助手 · 回答完成
+                    - generic [ref=e202]: Web Search · 已完成
+                  - generic "回答过程时间线" [ref=e203]:
+                    - generic [ref=e204]:
+                      - generic [ref=e205]:
+                        - img "check-circle" [ref=e207]:
+                          - img [ref=e208]
+                        - generic [ref=e212]:
+                          - generic [ref=e215]: Request Analyze
+                          - generic [ref=e216]: 任务理解完成，开始执行可用能力。
+                      - generic [ref=e217]:
+                        - img "check-circle" [ref=e219]:
+                          - img [ref=e220]
+                        - generic [ref=e224]:
+                          - generic [ref=e227]: Answer Generate
+                          - generic [ref=e228]: 回答生成完成。
+                      - generic [ref=e229]:
+                        - img "check-circle" [ref=e231]:
+                          - img [ref=e232]
+                        - generic [ref=e236]:
+                          - generic [ref=e238]:
+                            - generic [ref=e239]: Web Search
+                            - generic [ref=e240]: 37 个结果
+                          - generic [ref=e241]: Responses API returned 37 source(s).
+                  - generic [ref=e243] [cursor=pointer]:
+                    - img [ref=e245]:
+                      - img "think" [ref=e246]
+                    - generic [ref=e249]:
+                      - generic [ref=e250]: 思考摘要
+                      - generic [ref=e251]: 已完成
+                    - img "right" [ref=e252]:
+                      - img [ref=e253]
+                  - generic [ref=e255]:
+                    - generic [ref=e256] [cursor=pointer]:
+                      - img "right" [ref=e257]:
+                        - img [ref=e258]
+                      - generic [ref=e261]:
+                        - img [ref=e262]
+                        - text: 来源
+                    - list [ref=e313]:
+                      - listitem [ref=e314]:
+                        - link "Untitled source" [ref=e315] [cursor=pointer]:
+                          - /url: https://www.kimi.com/zh
+                          - img [ref=e317]
+                          - generic [ref=e320]: Untitled source
+                      - listitem [ref=e321]:
+                        - link "Untitled source" [ref=e322] [cursor=pointer]:
+                          - /url: https://www.moonshot.cn/
+                          - img [ref=e324]
+                          - generic [ref=e327]: Untitled source
+                      - listitem [ref=e328]:
+                        - link "Untitled source" [ref=e329] [cursor=pointer]:
+                          - /url: https://platform.moonshot.cn/
+                          - img [ref=e331]
+                          - generic [ref=e334]: Untitled source
+                      - listitem [ref=e335]:
+                        - link "Untitled source" [ref=e336] [cursor=pointer]:
+                          - /url: https://apps.apple.com/cn/app/kimi/id6474233312
+                          - img [ref=e338]
+                          - generic [ref=e341]: Untitled source
+                      - listitem [ref=e342]:
+                        - link "Untitled source" [ref=e343] [cursor=pointer]:
+                          - /url: https://kimi.aigc.cn/
+                          - img [ref=e345]
+                          - generic [ref=e348]: Untitled source
+                      - listitem [ref=e349]:
+                        - link "Untitled source" [ref=e350] [cursor=pointer]:
+                          - /url: https://kimi-ai.chat/
+                          - img [ref=e352]
+                          - generic [ref=e355]: Untitled source
+                      - listitem [ref=e356]:
+                        - link "Untitled source" [ref=e357] [cursor=pointer]:
+                          - /url: https://zhuanlan.zhihu.com/p/1989414835767776185
+                          - img [ref=e359]
+                          - generic [ref=e362]: Untitled source
+                      - listitem [ref=e363]:
+                        - link "Untitled source" [ref=e364] [cursor=pointer]:
+                          - /url: https://apps.apple.com/us/app/kimi/id6474233312?l=zh-Hans-CN
+                          - img [ref=e366]
+                          - generic [ref=e369]: Untitled source
+                      - listitem [ref=e370]:
+                        - link "Untitled source" [ref=e371] [cursor=pointer]:
+                          - /url: https://net.hnuahe.edu.cn/info/1078/2407.htm
+                          - img [ref=e373]
+                          - generic [ref=e376]: Untitled source
+                      - listitem [ref=e377]:
+                        - link "Untitled source" [ref=e378] [cursor=pointer]:
+                          - /url: https://developer.volcengine.com/articles/7535836948670513198
+                          - img [ref=e380]
+                          - generic [ref=e383]: Untitled source
+                      - listitem [ref=e384]:
+                        - link "Untitled source" [ref=e385] [cursor=pointer]:
+                          - /url: https://www.pmbaobao.com/sites/1874.html
+                          - img [ref=e387]
+                          - generic [ref=e390]: Untitled source
+                      - listitem [ref=e391]:
+                        - link "Untitled source" [ref=e392] [cursor=pointer]:
+                          - /url: https://docs.feishu.cn/v/wiki/KDrawEYeoinU2SkfsgVcztilnsg/a1
+                          - img [ref=e394]
+                          - generic [ref=e397]: Untitled source
+                      - listitem [ref=e398]:
+                        - link "Untitled source" [ref=e399] [cursor=pointer]:
+                          - /url: https://zhuanlan.zhihu.com/p/683139758
+                          - img [ref=e401]
+                          - generic [ref=e404]: Untitled source
+                      - listitem [ref=e405]:
+                        - link "Untitled source" [ref=e406] [cursor=pointer]:
+                          - /url: https://www.wsisp.com/helps/70846.html
+                          - img [ref=e408]
+                          - generic [ref=e411]: Untitled source
+                      - listitem [ref=e412]:
+                        - link "Untitled source" [ref=e413] [cursor=pointer]:
+                          - /url: https://gamma.app/docs/AI-PPT-004t31lx1mfy4r2
+                          - img [ref=e415]
+                          - generic [ref=e418]: Untitled source
+                      - listitem [ref=e419]:
+                        - link "Untitled source" [ref=e420] [cursor=pointer]:
+                          - /url: https://mcp.csdn.net/683565e4606a8318e85a86bd.html
+                          - img [ref=e422]
+                          - generic [ref=e425]: Untitled source
+                      - listitem [ref=e426]:
+                        - link "Untitled source" [ref=e427] [cursor=pointer]:
+                          - /url: https://post.smzdm.com/p/apw0xdd0
+                          - img [ref=e429]
+                          - generic [ref=e432]: Untitled source
+                      - listitem [ref=e433]:
+                        - link "Untitled source" [ref=e434] [cursor=pointer]:
+                          - /url: https://www.kimi.com/zh-cn/help/new-user-guide/overview
+                          - img [ref=e436]
+                          - generic [ref=e439]: Untitled source
+                      - listitem [ref=e440]:
+                        - link "Untitled source" [ref=e441] [cursor=pointer]:
+                          - /url: https://kimi.ai-kit.cn/
+                          - img [ref=e443]
+                          - generic [ref=e446]: Untitled source
+                      - listitem [ref=e447]:
+                        - link "Untitled source" [ref=e448] [cursor=pointer]:
+                          - /url: https://apps.microsoft.com/detail/xpddsnjvv005gv?hl=zh-CN&gl=HK
+                          - img [ref=e450]
+                          - generic [ref=e453]: Untitled source
+                      - listitem [ref=e454]:
+                        - link "Untitled source" [ref=e455] [cursor=pointer]:
+                          - /url: https://zhuanlan.zhihu.com/p/2049020595
+                          - img [ref=e457]
+                          - generic [ref=e460]: Untitled source
+                      - listitem [ref=e461]:
+                        - link "Untitled source" [ref=e462] [cursor=pointer]:
+                          - /url: https://adg.csdn.net/694cf1485b9f5f31781a96c9.html
+                          - img [ref=e464]
+                          - generic [ref=e467]: Untitled source
+                      - listitem [ref=e468]:
+                        - link "Untitled source" [ref=e469] [cursor=pointer]:
+                          - /url: https://www.juhe.cn/news/index/id/11470
+                          - img [ref=e471]
+                          - generic [ref=e474]: Untitled source
+                      - listitem [ref=e475]:
+                        - link "Untitled source" [ref=e476] [cursor=pointer]:
+                          - /url: https://sj.qq.com/appdetail/com.moonshot.kimichat
+                          - img [ref=e478]
+                          - generic [ref=e481]: Untitled source
+                      - listitem [ref=e482]:
+                        - link "Untitled source" [ref=e483] [cursor=pointer]:
+                          - /url: https://www.kimi.com/zh/websites
+                          - img [ref=e485]
+                          - generic [ref=e488]: Untitled source
+                      - listitem [ref=e489]:
+                        - link "Untitled source" [ref=e490] [cursor=pointer]:
+                          - /url: https://www.kimi.com/zh-cn/help
+                          - img [ref=e492]
+                          - generic [ref=e495]: Untitled source
+                      - listitem [ref=e496]:
+                        - link "Untitled source" [ref=e497] [cursor=pointer]:
+                          - /url: https://platform.kimi.com/docs/guide/start-using-kimi-api
+                          - img [ref=e499]
+                          - generic [ref=e502]: Untitled source
+                      - listitem [ref=e503]:
+                        - link "Untitled source" [ref=e504] [cursor=pointer]:
+                          - /url: https://agents.baidu.com/content/question/e0afb3ba7d1505f24de74b5c
+                          - img [ref=e506]
+                          - generic [ref=e509]: Untitled source
+                      - listitem [ref=e510]:
+                        - link "Untitled source" [ref=e511] [cursor=pointer]:
+                          - /url: https://www.yuduo.cn/app/286/web
+                          - img [ref=e513]
+                          - generic [ref=e516]: Untitled source
+                      - listitem [ref=e517]:
+                        - link "Untitled source" [ref=e518] [cursor=pointer]:
+                          - /url: https://platform.kimi.com/docs/introduction
+                          - img [ref=e520]
+                          - generic [ref=e523]: Untitled source
+                  - generic [ref=e268]:
+                    - img [ref=e271] [cursor=pointer]
+                    - img [ref=e276] [cursor=pointer]
+                - generic [ref=e282]:
+                  - paragraph [ref=e283]: 根据联网检索结果，Kimi 官网（kimi.com / kimi.moonshot.cn）首页当前公开展示的主要入口可归纳为以下三条要点：
+                  - heading "1. 核心对话与前沿 Agent 交互入口" [level=3] [ref=e284]
+                  - paragraph [ref=e285]:
+                    - text: 首页视觉中心为智能对话输入区（标语为“尽管问”），默认接入最新的 Kimi K2.6 模型。该区域不仅是基础的文本问答入口，还公开展示了
+                    - strong [ref=e286]: 全新建站功能
+                    - text: （一句话生成可交互网站）、
+                    - strong [ref=e287]: Office 文档一键处理
+                    - text: ，以及
+                    - strong [ref=e288]: Agent 集群（如 Kimi Claw 群组）
+                    - text: 等多智能体协作的交互入口。
+                  - heading "2. Kimi+ 应用广场与垂直工具入口" [level=3] [ref=e289]
+                  - paragraph [ref=e290]:
+                    - text: 通过首页侧边栏或导航，用户可进入“Kimi+ 广场”及各类专项生产力工具入口。主要包括：
+                    - strong [ref=e291]: PPT/幻灯片助手
+                    - text: 、
+                    - strong [ref=e292]: 深度研究
+                    - text: 、
+                    - strong [ref=e293]: Kimi Code
+                    - text: （代码辅助）、
+                    - strong [ref=e294]: Kimi WebBridge
+                    - text: 以及各类预设的智能体应用，覆盖学术研究、数据分析、办公写作等垂直场景。
+                  - heading "3. 多端下载、账户与开发者 API 入口" [level=3] [ref=e295]
+                  - paragraph [ref=e296]:
+                    - text: 首页顶部及全局导航栏提供了明确的**“下载 APP”
+                    - strong [ref=e297]: （涵盖 iOS、Android 及 Windows 客户端）与
+                    - text: “登录/注册”**入口。此外，首页及底部导航也提供了面向开发者的
+                    - strong [ref=e298]: Kimi API 开放平台
+                    - text: （platform.kimi.com）入口，以及会员订阅和帮助中心指南。
+                  - separator [ref=e299]
+                  - paragraph [ref=e300]:
+                    - strong [ref=e301]: 参考来源：
+                  - list [ref=e302]:
+                    - listitem [ref=e303]:
+                      - strong [ref=e304]: Kimi 官方网站
+                      - text: （
+                      - code [ref=e305]: www.kimi.com/zh
+                      - text: 及
+                      - code [ref=e306]: kimi.moonshot.cn
+                      - text: ）：首页 UI 布局、K2.6 模型发布通告及顶部导航栏信息。
+                    - listitem [ref=e307]:
+                      - strong [ref=e308]: Kimi 官方帮助中心
+                      - text: （
+                      - code [ref=e309]: www.kimi.com/zh-cn/help
+                      - text: ）：关于网页版界面介绍及 Agent 模式、Kimi+、幻灯片、网页生成、API 等功能模块的官方指南。
+                    - listitem [ref=e310]:
+                      - strong [ref=e311]: 第三方应用分发平台
+                      - text: （Apple App Store、Microsoft Store 等）：关于 Kimi 多端下载入口、客户端支持及界面功能布局的产品描述。
+          - button "回到底部" [disabled]:
+            - img
+            - text: 回到底部
+          - generic [ref=e45]:
+            - textbox "输入咨询内容" [ref=e47]:
+              - /placeholder: 发消息给 AI 咨询助手
+            - generic "聊天运行控制" [ref=e48]:
+              - generic [ref=e49]:
+                - button "添加" [ref=e50] [cursor=pointer]:
+                  - img [ref=e51]
+                  - generic [ref=e52]: 添加
+                - generic [ref=e53] [cursor=pointer]:
+                  - checkbox "思考 On" [checked]
+                  - img [ref=e54]
+                  - generic [ref=e66]: 思考
+                  - strong [ref=e67]: "On"
+                - button "Choose File" [ref=e68]
+                - generic [ref=e69] [cursor=pointer]:
+                  - checkbox "Web search Auto" [checked]
+                  - img [ref=e70]
+                  - generic [ref=e73]: Web search
+                  - strong [ref=e74]: Auto
+                - generic [ref=e75] [cursor=pointer]:
+                  - img [ref=e76]
+                  - combobox "聊天模式" [ref=e77]:
+                    - option "标准" [selected]
+                    - option "深度"
+                    - option "快速"
+                - button "上传文件" [ref=e78] [cursor=pointer]:
+                  - img [ref=e79]
+                  - generic [ref=e81]: 上传文件
+              - generic [ref=e82]:
+                - button "发送" [disabled]:
+                  - img

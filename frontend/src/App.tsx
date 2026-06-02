@@ -65,7 +65,8 @@ type LoginFormValues = {
   password: string
 }
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL ?? ''
+const viteApiBase = import.meta.env.VITE_API_BASE_URL
+const API_BASE = viteApiBase === 'proxy' ? '' : (viteApiBase ?? '')
 const STORAGE_KEY = 'ai-counselor-demo-session'
 
 const roleMeta: Record<
