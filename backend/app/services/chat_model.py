@@ -4,7 +4,9 @@ from __future__ import annotations
 import json
 from collections.abc import AsyncIterator
 from dataclasses import dataclass
+from ipaddress import ip_address
 from typing import Any, Protocol
+from urllib.parse import urlparse
 
 import httpx
 
@@ -915,9 +917,16 @@ class DashScopeChatModelProvider:
             title = "Untitled source"
         if not isinstance(url, str) or not url.strip():
             return None
+        parsed_url = urlparse(url.strip())
+        hostname = (parsed_url.hostname or "").strip().lower()
+        if not DashScopeChatModelProvider._is_public_source_url(parsed_url.scheme, hostname):
+            return None
         normalized: dict[str, Any] = {
             "title": title.strip(),
             "url": url.strip(),
+            "hostname": hostname,
+            "sourceQuality": "public_web",
+            "trustLabel": "Public web source",
         }
         for source_key, event_key in (
             ("snippet", "snippet"),
@@ -932,6 +941,25 @@ class DashScopeChatModelProvider:
             if value not in (None, "") and event_key not in normalized:
                 normalized[event_key] = value
         return normalized
+
+    @staticmethod
+    def _is_public_source_url(scheme: str, hostname: str) -> bool:
+        if scheme not in {"http", "https"} or not hostname:
+            return False
+        if hostname in {"localhost", "localhost.localdomain"} or hostname.endswith(".local"):
+            return False
+        try:
+            address = ip_address(hostname)
+        except ValueError:
+            return True
+        return not (
+            address.is_private
+            or address.is_loopback
+            or address.is_link_local
+            or address.is_multicast
+            or address.is_reserved
+            or address.is_unspecified
+        )
 
     @staticmethod
     def _citation_events(payload: Any) -> list[ChatModelStreamEvent]:
