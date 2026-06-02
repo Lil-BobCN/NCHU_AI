@@ -370,28 +370,33 @@ function AssistantRunPanel({
         ) : null}
 
         {run.sources.length > 0 ? (
-          <Sources
-            className="aui-source-section"
-            defaultExpanded={false}
-            items={run.sources.map((source, index) => ({
-              key: source.key || source.url || index,
-              title: source.title,
-              url: source.url,
-              icon: <FileText aria-hidden="true" />,
-              description: source.snippet ?? source.siteName ?? source.url,
-            }))}
-            onClick={(source) => {
-              if (source.url) {
-                window.open(source.url, "_blank", "noopener,noreferrer")
+          <div className="aui-source-trust-block">
+            <Sources
+              className="aui-source-section"
+              defaultExpanded={false}
+              items={run.sources.map((source, index) => ({
+                key: source.key || source.url || index,
+                title: source.title,
+                url: source.url,
+                icon: <FileText aria-hidden="true" />,
+                description: formatSourceDescription(source),
+              }))}
+              onClick={(source) => {
+                if (source.url) {
+                  window.open(source.url, "_blank", "noopener,noreferrer")
+                }
+              }}
+              title={
+                <span className="aui-source-title">
+                  <Globe2 aria-hidden="true" />
+                  公网来源
+                </span>
               }
-            }}
-            title={
-              <span className="aui-source-title">
-                <Globe2 aria-hidden="true" />
-                来源
-              </span>
-            }
-          />
+            />
+            <p className="aui-source-trust-note">
+              仅展示后端确认的公开 http(s) 来源；回答仍由 AI 生成，请以来源原文为准。
+            </p>
+          </div>
         ) : null}
 
         {run.citations.length > 0 ? (
