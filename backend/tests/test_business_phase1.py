@@ -488,6 +488,72 @@ async def test_student_chat_stream_wraps_events_in_standard_run_envelope(
 
 
 @pytest.mark.asyncio
+async def test_student_chat_stream_exposes_credible_source_citation_and_usage_counts(
+    app,
+    async_client: AsyncClient,
+) -> None:
+    provider = _FakeEventProvider(
+        [
+            ChatModelStreamEvent.tool_started(
+                "web_search",
+                tool_call_id="search-credible",
+                title="Provider web search",
+            ),
+            ChatModelStreamEvent.source(
+                {
+                    "title": "Public student affairs notice",
+                    "url": "https://example.edu/student-affairs",
+                    "snippet": "Published student support notice.",
+                }
+            ),
+            ChatModelStreamEvent.citation(
+                {
+                    "citationId": "cite-1",
+                    "marker": "[ref_1]",
+                    "title": "Public student affairs notice",
+                    "url": "https://example.edu/student-affairs",
+                    "sourceIndex": 1,
+                }
+            ),
+            ChatModelStreamEvent.tool_done(
+                "web_search",
+                tool_call_id="search-credible",
+                status="success",
+                detail="Provider returned 1 public source.",
+                result_count=1,
+            ),
+            ChatModelStreamEvent.delta("Use the public notice and ask a counselor if unsure."),
+        ]
+    )
+    app.dependency_overrides[chat_model_provider] = lambda: provider
+    login = await _login(async_client, "student@example.edu")
+
+    response = await async_client.post(
+        "/api/v1/student/chat/stream",
+        headers=_bearer(login["access_token"]),
+        json={"message": "Please search public support guidance."},
+    )
+
+    assert response.status_code == 200
+    events = _standard_sse_events(response.text)
+    source = next(data for event, data in events if event == "source")
+    citation = next(data for event, data in events if event == "citation")
+    usage = next(data for event, data in events if event == "usage")
+    notices = [data["payload"]["code"] for event, data in events if event == "notice"]
+
+    assert source["payload"]["url"] == "https://example.edu/student-affairs"
+    assert source["payload"]["snippet"] == "Published student support notice."
+    assert citation["payload"]["citationId"] == "cite-1"
+    assert citation["payload"]["sourceIndex"] == 1
+    assert citation["payload"]["url"] == source["payload"]["url"]
+    assert usage["payload"]["source_count"] == 1
+    assert usage["payload"]["tool_count"] == 1
+    assert "no_external_sources" not in notices
+    assert "no_external_tools" not in notices
+    app.dependency_overrides.clear()
+
+
+@pytest.mark.asyncio
 async def test_student_chat_stream_emits_no_source_no_tool_notices(
     app,
     async_client: AsyncClient,
