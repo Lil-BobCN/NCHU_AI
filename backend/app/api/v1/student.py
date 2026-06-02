@@ -6,7 +6,9 @@ import json
 import time
 from collections.abc import AsyncIterator
 from datetime import UTC, datetime
+from ipaddress import ip_address
 from typing import Annotated, Any
+from urllib.parse import urlparse
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -330,7 +332,7 @@ async def _stream_chat_events(
                     content = event.data.get("content")
                     if isinstance(content, str):
                         chunks.append(content)
-                if event.type == "source":
+                if event_type == "source":
                     source_count += 1
                 if event.type == "tool_started":
                     tool_count += 1
@@ -567,7 +569,8 @@ def _standard_payload(
     if event.type == "phase":
         return "phase", {"phase": _string_value(data.get("phase"))}
     if event.type == "source":
-        return "source", _source_payload(data, next_source_index)
+        source_payload = _source_payload(data, next_source_index)
+        return ("source", source_payload) if source_payload else (None, {})
     if event.type == "citation":
         return "citation", _citation_payload(data)
     if event.type in {"tool_started", "tool_delta", "tool_done"}:
@@ -597,14 +600,48 @@ def _base_workflow_steps() -> list[dict[str, Any]]:
     ]
 
 
-def _source_payload(source: dict[str, Any], index: int) -> dict[str, Any]:
+def _source_payload(source: dict[str, Any], index: int) -> dict[str, Any] | None:
     payload = dict(source)
+    url = _string_value(payload.get("url"))
+    if not url:
+        return None
+    parsed_url = urlparse(url)
+    hostname = (parsed_url.hostname or "").strip().lower()
+    if not _is_public_source_url(parsed_url.scheme, hostname):
+        return None
+    payload["url"] = url
+    payload.setdefault("hostname", hostname)
     source_id = payload.get("source_id") or payload.get("sourceId")
     if not isinstance(source_id, str) or not source_id:
         source_id = f"source-{index}"
     payload["source_id"] = source_id
     payload["sourceId"] = source_id
+    payload.setdefault("sourceQuality", "public_web")
+    payload.setdefault("trustLabel", "Public web source")
+    payload.setdefault(
+        "sourcePolicy",
+        "Shown only when the provider returned a public http(s) source URL.",
+    )
     return payload
+
+
+def _is_public_source_url(scheme: str, hostname: str) -> bool:
+    if scheme not in {"http", "https"} or not hostname:
+        return False
+    if hostname in {"localhost", "localhost.localdomain"} or hostname.endswith(".local"):
+        return False
+    try:
+        address = ip_address(hostname)
+    except ValueError:
+        return True
+    return not (
+        address.is_private
+        or address.is_loopback
+        or address.is_link_local
+        or address.is_multicast
+        or address.is_reserved
+        or address.is_unspecified
+    )
 
 
 def _citation_payload(citation: dict[str, Any]) -> dict[str, Any]:
