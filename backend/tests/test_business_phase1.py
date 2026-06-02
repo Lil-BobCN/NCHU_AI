@@ -470,6 +470,9 @@ async def test_student_chat_stream_wraps_events_in_standard_run_envelope(
     assert source["type"] == "source"
     assert source["payload"]["type"] == "provider-source"
     assert source["payload"]["url"] == "https://example.edu/notice"
+    assert source["payload"]["hostname"] == "example.edu"
+    assert source["payload"]["sourceQuality"] == "public_web"
+    assert source["payload"]["trustLabel"] == "Public web source"
     assert source["url"] == "https://example.edu/notice"
 
     terminal_types = [
@@ -1309,11 +1312,32 @@ def test_dashscope_generation_parser_extracts_source_reasoning_and_delta() -> No
             "title": "学校官网通知",
             "url": "https://example.edu/news",
             "snippet": "通知摘要",
+            "hostname": "example.edu",
+            "sourceQuality": "public_web",
+            "trustLabel": "Public web source",
             "index": 1,
         }
     )
     assert events[1] == ChatModelStreamEvent.reasoning("正在核对来源。")
     assert events[2] == ChatModelStreamEvent.delta("请参考学校官网通知。")
+
+
+def test_dashscope_source_parser_filters_non_public_urls() -> None:
+    line = (
+        'data: {"output": {"search_info": {"search_results": ['
+        '{"title": "Local debug URL", "url": "http://localhost:8000/private"}, '
+        '{"title": "Private network URL", "url": "http://10.0.0.8/private"}, '
+        '{"title": "Public notice", "url": "https://example.edu/news"}'
+        ']}, "choices": [{"message": {"content": "See public notice."}}]}}'
+    )
+
+    events = DashScopeChatModelProvider._parse_generation_sse_line(line)
+
+    assert [
+        event.data["url"]
+        for event in events
+        if event.type == "source"
+    ] == ["https://example.edu/news"]
 
 
 def test_dashscope_generation_parser_extracts_real_citation_fields() -> None:
@@ -1388,6 +1412,9 @@ def test_dashscope_responses_parser_extracts_reasoning_tool_source_and_delta() -
                 "title": "学校官网通知",
                 "url": "https://example.edu/news",
                 "snippet": "通知摘要",
+                "hostname": "example.edu",
+                "sourceQuality": "public_web",
+                "trustLabel": "Public web source",
             }
         ),
         ChatModelStreamEvent.tool_done(
@@ -1419,6 +1446,9 @@ def test_dashscope_responses_message_done_keeps_references_without_duplicate_tex
             {
                 "title": "Notice",
                 "url": "https://example.edu/news",
+                "hostname": "example.edu",
+                "sourceQuality": "public_web",
+                "trustLabel": "Public web source",
             }
         ),
         ChatModelStreamEvent.citation(
