@@ -2,9 +2,9 @@
 from __future__ import annotations
 
 import json
-from ipaddress import ip_address
 from collections.abc import AsyncIterator
 from dataclasses import dataclass
+from ipaddress import ip_address
 from typing import Any, Protocol
 from urllib.parse import urlparse
 
