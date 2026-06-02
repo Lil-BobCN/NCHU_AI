@@ -1904,6 +1904,19 @@
   gap: 8px;
 }
 
+.aui-source-trust-block {
+  display: grid;
+  gap: 6px;
+}
+
+.aui-source-trust-note {
+  margin: 0;
+  padding: 0 2px;
+  color: var(--chat-soft);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
 .aui-source-section .ant-sources-title-wrapper {
   width: fit-content;
   margin-bottom: 6px;
