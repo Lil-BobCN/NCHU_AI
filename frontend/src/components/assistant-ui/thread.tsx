@@ -712,6 +712,15 @@ function formatArtifactKind(kind: string): string {
   return labels[kind] ?? kind
 }
 
+function formatSourceDescription(source: ChatRunState["sources"][number]): string {
+  const parts = [
+    source.trustLabel ?? "Public web source",
+    source.hostname ?? source.siteName,
+    source.snippet,
+  ].filter((part): part is string => Boolean(part))
+  return parts.join(" · ") || source.url
+}
+
 function formatPhase(value: string): string {
   const labels: Record<string, string> = {
     aborted: "已停止",
