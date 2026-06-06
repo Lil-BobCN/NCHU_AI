@@ -47,7 +47,9 @@ test("chat run reducer merges workflow, source, citation, tool, notice, and usag
   run = reduceChatRun(run, "source", {
     type: "source",
     payload: {
-      key: "source-1",
+      sourceId: "source-1",
+      dedupeKey: "https://example.edu/notice",
+      displayTitle: "Public notice display",
       title: "Public notice",
       url: "https://example.edu/notice",
       snippet: "Public student support notice.",
@@ -57,8 +59,9 @@ test("chat run reducer merges workflow, source, citation, tool, notice, and usag
     type: "source",
     payload: {
       key: "source-1-duplicate",
+      dedupeKey: "https://example.edu/notice",
       title: "Duplicate public notice",
-      url: "https://example.edu/notice",
+      url: "https://example.edu/notice#section",
     },
   })
   run = reduceChatRun(run, "citation", {
@@ -68,6 +71,7 @@ test("chat run reducer merges workflow, source, citation, tool, notice, and usag
       marker: "[ref_1]",
       title: "Public notice",
       url: "https://example.edu/notice",
+      sourceId: "source-1",
       sourceIndex: 1,
     },
   })
@@ -98,7 +102,11 @@ test("chat run reducer merges workflow, source, citation, tool, notice, and usag
   assert.equal(run.tools[0].name, "web_search")
   assert.equal(run.sources.length, 1)
   assert.equal(run.sources[0].url, "https://example.edu/notice")
+  assert.equal(run.sources[0].sourceId, "source-1")
+  assert.equal(run.sources[0].displayTitle, "Public notice display")
+  assert.equal(run.sources[0].dedupeKey, "https://example.edu/notice")
   assert.equal(run.citations[0].key, "cite-1")
+  assert.equal(run.citations[0].sourceId, "source-1")
   assert.equal(run.citations[0].sourceIndex, 1)
   assert.equal(run.notices[0].code, "provider_public_source")
   assert.deepEqual(run.usage, {

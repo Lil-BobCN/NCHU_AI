@@ -23,7 +23,7 @@ import {
 
 type StudentChatboxPageProps = {
   apiBase: string
-  onSessionExpired: () => void
+  onSessionExpired: (intent?: SessionExpiredIntent) => void
   session: {
     token: string
     user: {
@@ -31,6 +31,10 @@ type StudentChatboxPageProps = {
       role: string
     }
   } | null
+}
+
+type SessionExpiredIntent = {
+  returnTo?: string
 }
 
 type ApiMessage = {
@@ -96,6 +100,16 @@ const promptStarters = [
 const assistantDisplayName = 'AI 咨询助手'
 
 const chatThemeStorageKey = 'nchu-ai-chat-theme'
+const chatboxRoute = '/app/student/chatbox'
+const pendingRetryStorageKey = 'nchu-ai-chatbox-pending-retry'
+const pendingRetryTtlMs = 30 * 60 * 1000
+
+type PendingChatRetry = {
+  prompt: string
+  conversationId: string | null
+  attachments: StudentChatAttachmentPayload[]
+  createdAt: number
+}
 
 export default function StudentChatboxPage({
   apiBase,
@@ -103,20 +117,31 @@ export default function StudentChatboxPage({
   session,
 }: StudentChatboxPageProps) {
   const navigate = useNavigate()
+  const [initialPendingRetry] = useState<PendingChatRetry | null>(() =>
+    session?.token ? takePendingChatRetry() : null,
+  )
   const abortRef = useRef<AbortController | null>(null)
-  const initialHistoryLoadedRef = useRef(false)
+  const initialHistoryLoadedRef = useRef(Boolean(initialPendingRetry))
   const [conversations, setConversations] = useState<ApiConversation[]>([])
-  const [activeConversationId, setActiveConversationId] = useState<string | null>(null)
+  const [activeConversationId, setActiveConversationId] = useState<string | null>(
+    initialPendingRetry?.conversationId ?? null,
+  )
   const [messages, setMessages] = useState<ChatMessage[]>([])
-  const [status, setStatus] = useState<StreamStatus>('idle')
-  const [error, setError] = useState('')
-  const [lastPrompt, setLastPrompt] = useState('')
+  const [status, setStatus] = useState<StreamStatus>(initialPendingRetry ? 'error' : 'idle')
+  const [error, setError] = useState(
+    initialPendingRetry ? '登录已恢复，刚才的问题已保留，可以点击重试继续发送。' : '',
+  )
+  const [lastPrompt, setLastPrompt] = useState(initialPendingRetry?.prompt ?? '')
   const [chatTheme, setChatTheme] = useState<ChatTheme>(getInitialChatTheme)
   const [webSearchEnabled, setWebSearchEnabled] = useState(false)
   const [reasoningEnabled, setReasoningEnabled] = useState(true)
   const [chatMode, setChatMode] = useState<StudentChatMode>('balanced')
-  const [pendingAttachments, setPendingAttachments] = useState<StudentChatAttachmentPayload[]>([])
-  const [lastAttachments, setLastAttachments] = useState<StudentChatAttachmentPayload[]>([])
+  const [pendingAttachments, setPendingAttachments] = useState<StudentChatAttachmentPayload[]>(
+    initialPendingRetry?.attachments ?? [],
+  )
+  const [lastAttachments, setLastAttachments] = useState<StudentChatAttachmentPayload[]>(
+    initialPendingRetry?.attachments ?? [],
+  )
 
   const token = session?.token ?? ''
   const activeConversation = conversations.find((item) => item.id === activeConversationId)
@@ -411,7 +436,13 @@ export default function StudentChatboxPage({
           error: message,
         })
         if (isAuthError(sendError)) {
-          onSessionExpired()
+          storePendingChatRetry({
+            prompt,
+            conversationId,
+            attachments,
+            createdAt: Date.now(),
+          })
+          onSessionExpired({ returnTo: chatboxRoute })
         }
       } finally {
         if (abortRef.current === controller) {
@@ -507,7 +538,7 @@ export default function StudentChatboxPage({
         setError(message)
         setStatus('error')
         if (isAuthError(loadError)) {
-          onSessionExpired()
+          onSessionExpired({ returnTo: chatboxRoute })
         }
       })
     return () => {
@@ -791,6 +822,83 @@ function parseSseEvent(block: string): StreamEvent[] {
 
 function isRunEventData(value: unknown): value is RunEventData {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
+}
+
+function storePendingChatRetry(retry: PendingChatRetry) {
+  const prompt = retry.prompt.trim()
+  if (!prompt) {
+    return
+  }
+  try {
+    window.sessionStorage.setItem(
+      pendingRetryStorageKey,
+      JSON.stringify({
+        prompt,
+        conversationId: retry.conversationId,
+        attachments: sanitizeRetryAttachments(retry.attachments),
+        createdAt: retry.createdAt,
+      } satisfies PendingChatRetry),
+    )
+  } catch {
+    // Retry recovery is best-effort; login still proceeds if tab storage fails.
+  }
+}
+
+function takePendingChatRetry(): PendingChatRetry | null {
+  try {
+    const raw = window.sessionStorage.getItem(pendingRetryStorageKey)
+    window.sessionStorage.removeItem(pendingRetryStorageKey)
+    if (!raw) {
+      return null
+    }
+    const parsed = JSON.parse(raw) as unknown
+    if (!isPendingChatRetry(parsed)) {
+      return null
+    }
+    if (Date.now() - parsed.createdAt > pendingRetryTtlMs) {
+      return null
+    }
+    return {
+      ...parsed,
+      attachments: sanitizeRetryAttachments(parsed.attachments),
+    }
+  } catch {
+    return null
+  }
+}
+
+function isPendingChatRetry(value: unknown): value is PendingChatRetry {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return false
+  }
+  const retry = value as Partial<PendingChatRetry>
+  return (
+    typeof retry.prompt === 'string' &&
+    retry.prompt.trim().length > 0 &&
+    (typeof retry.conversationId === 'string' || retry.conversationId === null) &&
+    Array.isArray(retry.attachments) &&
+    typeof retry.createdAt === 'number'
+  )
+}
+
+function sanitizeRetryAttachments(
+  attachments: StudentChatAttachmentPayload[] | undefined,
+): StudentChatAttachmentPayload[] {
+  if (!attachments?.length) {
+    return []
+  }
+  return attachments
+    .filter((attachment) => attachment.id && attachment.name)
+    .slice(0, 6)
+    .map((attachment) => ({
+      id: attachment.id,
+      name: attachment.name,
+      mimeType: attachment.mimeType,
+      size: Math.max(attachment.size, 0),
+      content: attachment.error ? undefined : attachment.content,
+      encoding: attachment.encoding === 'base64' ? 'base64' : 'text',
+      error: attachment.error,
+    }))
 }
 
 function getInitialChatTheme(): ChatTheme {

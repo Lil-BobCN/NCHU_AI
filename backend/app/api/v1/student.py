@@ -8,7 +8,7 @@ from collections.abc import AsyncIterator
 from datetime import UTC, datetime
 from ipaddress import ip_address
 from typing import Annotated, Any
-from urllib.parse import urlparse
+from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -183,8 +183,13 @@ def _student_chat_conversation(payload: StudentChatRequest, user: User) -> Conve
                 detail="Only the owning student can use this conversation",
             )
         return conversation
-    title = payload.message.strip().replace("\n", " ")[:32] or "New chat"
+    title = _chat_title_from_message(payload.message)
     return store.create_empty_conversation(user.id, title)
+
+
+def _chat_title_from_message(message: str) -> str:
+    title = " ".join(message.split())
+    return title[:32] or "新会话"
 
 
 def _attachment_metadata(attachments: list[Any]) -> list[MessageAttachment]:
@@ -229,6 +234,7 @@ async def _stream_chat_events(
     chunks: list[str] = []
     run = _ChatRunSseBuilder(conversation.id)
     source_count = 0
+    source_dedupe_keys: set[str] = set()
     tool_count = 0
     started_at = time.perf_counter()
     options = ChatModelRunOptions(
@@ -333,6 +339,12 @@ async def _stream_chat_events(
                     if isinstance(content, str):
                         chunks.append(content)
                 if event_type == "source":
+                    dedupe_key = _string_value(
+                        event_payload.get("dedupe_key") or event_payload.get("dedupeKey")
+                    )
+                    if dedupe_key in source_dedupe_keys:
+                        continue
+                    source_dedupe_keys.add(dedupe_key)
                     source_count += 1
                 if event.type == "tool_started":
                     tool_count += 1
@@ -611,6 +623,13 @@ def _source_payload(source: dict[str, Any], index: int) -> dict[str, Any] | None
         return None
     payload["url"] = url
     payload.setdefault("hostname", hostname)
+    title = _string_value(payload.get("title")) or _source_display_title(parsed_url)
+    payload["title"] = title
+    payload.setdefault("display_title", title)
+    payload.setdefault("displayTitle", title)
+    dedupe_key = _source_dedupe_key(parsed_url)
+    payload["dedupe_key"] = dedupe_key
+    payload["dedupeKey"] = dedupe_key
     source_id = payload.get("source_id") or payload.get("sourceId")
     if not isinstance(source_id, str) or not source_id:
         source_id = f"source-{index}"
@@ -623,6 +642,35 @@ def _source_payload(source: dict[str, Any], index: int) -> dict[str, Any] | None
         "Shown only when the provider returned a public http(s) source URL.",
     )
     return payload
+
+
+def _source_display_title(parsed_url: Any) -> str:
+    hostname = (parsed_url.hostname or "").strip().lower()
+    path_parts = [
+        part.replace("-", " ").replace("_", " ").strip()
+        for part in parsed_url.path.split("/")
+        if part.strip()
+    ]
+    if path_parts:
+        leaf = path_parts[-1].rsplit(".", 1)[0].strip()
+        if leaf:
+            return f"{hostname} / {leaf}" if hostname else leaf
+    return hostname or "Public web source"
+
+
+def _source_dedupe_key(parsed_url: Any) -> str:
+    query = urlencode(sorted(parse_qsl(parsed_url.query, keep_blank_values=True)))
+    path = parsed_url.path.rstrip("/") or "/"
+    return urlunparse(
+        (
+            parsed_url.scheme.lower(),
+            (parsed_url.netloc or "").lower(),
+            path,
+            "",
+            query,
+            "",
+        )
+    )
 
 
 def _is_public_source_url(scheme: str, hostname: str) -> bool:
@@ -650,6 +698,19 @@ def _citation_payload(citation: dict[str, Any]) -> dict[str, Any]:
     if isinstance(citation_id, str) and citation_id:
         payload["citation_id"] = citation_id
         payload["citationId"] = citation_id
+    source_id = payload.get("source_id") or payload.get("sourceId")
+    source_index = payload.get("source_index") or payload.get("sourceIndex")
+    if (
+        (not isinstance(source_id, str) or not source_id)
+        and (
+            (isinstance(source_index, int) and source_index > 0)
+            or (isinstance(source_index, str) and source_index.isdigit())
+        )
+    ):
+        source_id = f"source-{source_index}"
+    if isinstance(source_id, str) and source_id:
+        payload["source_id"] = source_id
+        payload["sourceId"] = source_id
     return payload
 
 

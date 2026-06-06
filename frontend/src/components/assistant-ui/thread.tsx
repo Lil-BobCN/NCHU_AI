@@ -321,6 +321,12 @@ function AssistantRunPanel({
   const activeStep =
     workflowSteps.find((step) => step.status === "running") ??
     [...workflowSteps].reverse().find((step) => step.status !== "queued")
+  const visibleSources = run.sources.slice(0, 3)
+  const foldedSourceCount = Math.max(run.sources.length - visibleSources.length, 0)
+  const citationItems = run.citations.map((citation) => ({
+    citation,
+    source: findCitationSource(citation, run.sources),
+  }))
   const thoughtItems = workflowSteps.map((step) =>
     workflowStepToThoughtItem(
       step,
@@ -373,10 +379,10 @@ function AssistantRunPanel({
           <div className="aui-source-trust-block">
             <Sources
               className="aui-source-section"
-              defaultExpanded={false}
-              items={run.sources.map((source, index) => ({
+              defaultExpanded
+              items={visibleSources.map((source, index) => ({
                 key: source.key || source.url || index,
-                title: source.title,
+                title: source.displayTitle ?? source.title,
                 url: source.url,
                 icon: <FileText aria-hidden="true" />,
                 description: formatSourceDescription(source),
@@ -393,18 +399,29 @@ function AssistantRunPanel({
                 </span>
               }
             />
+            {foldedSourceCount > 0 ? (
+              <p className="aui-source-fold-note">
+                另有 {foldedSourceCount} 个公开来源已折叠；引用仍会按后端返回的来源编号匹配。
+              </p>
+            ) : null}
             <p className="aui-source-trust-note">
               仅展示后端确认的公开 http(s) 来源；回答仍由 AI 生成，请以来源原文为准。
             </p>
           </div>
         ) : null}
 
-        {run.citations.length > 0 ? (
+        {citationItems.length > 0 ? (
           <ul className="aui-run-citations" aria-label="引用">
-            {run.citations.map((citation) => (
+            {citationItems.map(({ citation, source }) => (
               <li key={citation.key}>
                 <span>{citation.marker ?? "引用"}</span>
-                {citation.title ?? citation.url ?? `来源 ${citation.sourceIndex ?? ""}`}
+                {source ? (
+                  <a href={source.url} rel="noreferrer" target="_blank">
+                    {formatCitationLabel(citation, source)}
+                  </a>
+                ) : (
+                  <em>{formatCitationLabel(citation)}</em>
+                )}
               </li>
             ))}
           </ul>
@@ -721,6 +738,38 @@ function formatSourceDescription(source: ChatRunState["sources"][number]): strin
   return parts.join(" · ") || source.url
 }
 
+function findCitationSource(
+  citation: ChatRunState["citations"][number],
+  sources: ChatRunState["sources"],
+): ChatRunState["sources"][number] | undefined {
+  if (citation.sourceId) {
+    const byId = sources.find((source) => source.sourceId === citation.sourceId || source.key === citation.sourceId)
+    if (byId) {
+      return byId
+    }
+  }
+  if (citation.url) {
+    const byUrl = sources.find((source) => source.url === citation.url)
+    if (byUrl) {
+      return byUrl
+    }
+  }
+  if (typeof citation.sourceIndex === "number") {
+    return sources[citation.sourceIndex - 1]
+  }
+  return undefined
+}
+
+function formatCitationLabel(
+  citation: ChatRunState["citations"][number],
+  source?: ChatRunState["sources"][number],
+): string {
+  if (source) {
+    return citation.title ?? source.displayTitle ?? source.title
+  }
+  return citation.title ?? citation.url ?? `来源 ${citation.sourceIndex ?? ""}`.trim()
+}
+
 function formatPhase(value: string): string {
   const labels: Record<string, string> = {
     aborted: "已停止",
@@ -859,8 +908,8 @@ function StudentComposer({
               type="checkbox"
             />
             <BrainCircuit aria-hidden="true" />
-            <span>思考</span>
-            <strong>{reasoningEnabled ? "On" : "Off"}</strong>
+            <span>深度思考</span>
+            <strong>{reasoningEnabled ? "开" : "关"}</strong>
           </label>
           <input
             accept=".py,.js,.ts,.tsx,.jsx,.json,.md,.txt,.css,.html,.csv,.yaml,.yml"
@@ -877,8 +926,8 @@ function StudentComposer({
               type="checkbox"
             />
             <Search aria-hidden="true" />
-            <span>Web search</span>
-            <strong>{webSearchEnabled ? "Auto" : "Off"}</strong>
+            <span>联网检索</span>
+            <strong>{webSearchEnabled ? "开" : "关"}</strong>
           </label>
           {reasoningEnabled ? (
             <label className="aui-composer-select">
@@ -888,8 +937,8 @@ function StudentComposer({
                 onChange={(event) => onChatModeChange(event.target.value as StudentChatMode)}
                 value={chatMode}
               >
-                <option value="balanced">标准</option>
-                <option value="focus">深度</option>
+                <option value="balanced">均衡</option>
+                <option value="focus">深入</option>
                 <option value="fast">快速</option>
               </select>
             </label>

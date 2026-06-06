@@ -913,16 +913,18 @@ class DashScopeChatModelProvider:
             return None
         title = source.get("title") or source.get("site_name") or source.get("hostname")
         url = source.get("url") or source.get("link")
-        if not isinstance(title, str) or not title.strip():
-            title = "Untitled source"
         if not isinstance(url, str) or not url.strip():
             return None
         parsed_url = urlparse(url.strip())
         hostname = (parsed_url.hostname or "").strip().lower()
         if not DashScopeChatModelProvider._is_public_source_url(parsed_url.scheme, hostname):
             return None
+        if not isinstance(title, str) or not title.strip():
+            title = DashScopeChatModelProvider._source_display_title(parsed_url)
         normalized: dict[str, Any] = {
             "title": title.strip(),
+            "displayTitle": title.strip(),
+            "display_title": title.strip(),
             "url": url.strip(),
             "hostname": hostname,
             "sourceQuality": "public_web",
@@ -941,6 +943,20 @@ class DashScopeChatModelProvider:
             if value not in (None, "") and event_key not in normalized:
                 normalized[event_key] = value
         return normalized
+
+    @staticmethod
+    def _source_display_title(parsed_url: Any) -> str:
+        hostname = (parsed_url.hostname or "").strip().lower()
+        path_parts = [
+            part.replace("-", " ").replace("_", " ").strip()
+            for part in parsed_url.path.split("/")
+            if part.strip()
+        ]
+        if path_parts:
+            leaf = path_parts[-1].rsplit(".", 1)[0].strip()
+            if leaf:
+                return f"{hostname} / {leaf}" if hostname else leaf
+        return hostname or "Public web source"
 
     @staticmethod
     def _is_public_source_url(scheme: str, hostname: str) -> bool:

@@ -4,6 +4,9 @@ export type ChatRunSource = {
   key: string
   title: string
   url: string
+  sourceId?: string
+  displayTitle?: string
+  dedupeKey?: string
   snippet?: string
   siteName?: string
   hostname?: string
@@ -62,6 +65,7 @@ export type ChatRunCitation = {
   marker?: string
   title?: string
   url?: string
+  sourceId?: string
   sourceIndex?: number
 }
 
@@ -179,7 +183,7 @@ export function reduceChatRun(
 
   if (eventType === "source") {
     const source = sourceFromPayload(payload)
-    if (!source || next.sources.some((item) => item.url === source.url)) {
+    if (!source || next.sources.some((item) => sourceDedupeKey(item) === sourceDedupeKey(source))) {
       return next
     }
     return { ...next, sources: [...next.sources, source] }
@@ -342,17 +346,30 @@ function sourceFromPayload(payload: RunEventData): ChatRunSource | undefined {
   if (!url) {
     return undefined
   }
+  const sourceId = readString(payload.sourceId) ?? readString(payload.source_id)
+  const displayTitle =
+    readString(payload.displayTitle) ??
+    readString(payload.display_title) ??
+    readString(payload.title) ??
+    url
+  const dedupeKey =
+    readString(payload.dedupeKey) ??
+    readString(payload.dedupe_key) ??
+    normalizeSourceUrl(url)
   return {
-    key: readString(payload.sourceId) ?? readString(payload.source_id) ?? readString(payload.key) ?? url,
-    title: readString(payload.title) ?? url,
+    key: sourceId ?? readString(payload.key) ?? dedupeKey ?? url,
+    title: displayTitle,
     url,
+    sourceId,
+    displayTitle,
+    dedupeKey,
     snippet: readString(payload.snippet),
-    siteName: readString(payload.siteName),
+    siteName: readString(payload.siteName) ?? readString(payload.site_name),
     hostname: readString(payload.hostname),
-    publishedAt: readString(payload.publishedAt),
-    sourceQuality: readString(payload.sourceQuality),
-    trustLabel: readString(payload.trustLabel),
-    sourcePolicy: readString(payload.sourcePolicy),
+    publishedAt: readString(payload.publishedAt) ?? readString(payload.published_at),
+    sourceQuality: readString(payload.sourceQuality) ?? readString(payload.source_quality),
+    trustLabel: readString(payload.trustLabel) ?? readString(payload.trust_label),
+    sourcePolicy: readString(payload.sourcePolicy) ?? readString(payload.source_policy),
   }
 }
 
@@ -360,10 +377,15 @@ function citationFromPayload(payload: RunEventData): ChatRunCitation | undefined
   const marker = readString(payload.marker)
   const url = readString(payload.url)
   const sourceIndex = readNumber(payload.sourceIndex) ?? readNumber(payload.source_index)
+  const sourceId =
+    readString(payload.sourceId) ??
+    readString(payload.source_id) ??
+    (sourceIndex !== undefined ? `source-${sourceIndex}` : undefined)
   const key =
     readString(payload.citationId) ??
     readString(payload.citation_id) ??
     marker ??
+    sourceId ??
     url ??
     (sourceIndex !== undefined ? `source-${sourceIndex}` : undefined)
   if (!key) {
@@ -374,7 +396,26 @@ function citationFromPayload(payload: RunEventData): ChatRunCitation | undefined
     marker,
     title: readString(payload.title),
     url,
+    sourceId,
     sourceIndex,
+  }
+}
+
+function sourceDedupeKey(source: ChatRunSource): string {
+  return source.dedupeKey ?? source.sourceId ?? normalizeSourceUrl(source.url) ?? source.url
+}
+
+function normalizeSourceUrl(url: string): string | undefined {
+  try {
+    const parsed = new URL(url)
+    parsed.hash = ""
+    parsed.searchParams.sort()
+    if (parsed.pathname !== "/" && parsed.pathname.endsWith("/")) {
+      parsed.pathname = parsed.pathname.slice(0, -1)
+    }
+    return parsed.toString()
+  } catch {
+    return undefined
   }
 }
 

@@ -60,6 +60,10 @@ type SessionState = {
   user: DemoUser
 }
 
+type SessionExpiredIntent = {
+  returnTo?: string
+}
+
 type LoginFormValues = {
   username: string
   password: string
@@ -68,6 +72,9 @@ type LoginFormValues = {
 const viteApiBase = import.meta.env.VITE_API_BASE_URL
 const API_BASE = viteApiBase === 'proxy' ? '' : (viteApiBase ?? '')
 const STORAGE_KEY = 'ai-counselor-demo-session'
+const LOGIN_RETURN_TO_KEY = 'nchu-ai-login-return-to'
+const CHATBOX_PENDING_RETRY_KEY = 'nchu-ai-chatbox-pending-retry'
+const STUDENT_CHATBOX_PATH = '/app/student/chatbox'
 
 const roleMeta: Record<
   Role,
@@ -160,6 +167,49 @@ function readStoredSession(): SessionState | null {
   }
 }
 
+function normalizeLoginReturnTo(value: string | undefined): string | null {
+  if (!value) {
+    return null
+  }
+  const path = value.trim()
+  if (path === STUDENT_CHATBOX_PATH) {
+    return path
+  }
+  return null
+}
+
+function writeLoginReturnTo(returnTo: string) {
+  try {
+    window.sessionStorage.setItem(LOGIN_RETURN_TO_KEY, returnTo)
+  } catch {
+    // Session recovery is best-effort; failed storage still falls back to login.
+  }
+}
+
+function takeLoginReturnTo(): string | null {
+  try {
+    const returnTo = normalizeLoginReturnTo(
+      window.sessionStorage.getItem(LOGIN_RETURN_TO_KEY) ?? undefined,
+    )
+    window.sessionStorage.removeItem(LOGIN_RETURN_TO_KEY)
+    return returnTo
+  } catch {
+    return null
+  }
+}
+
+function canUseLoginReturn(returnTo: string, role: Role): boolean {
+  return role === 'student' && returnTo === STUDENT_CHATBOX_PATH
+}
+
+function hasPendingChatboxRetry(): boolean {
+  try {
+    return Boolean(window.sessionStorage.getItem(CHATBOX_PENDING_RETRY_KEY))
+  } catch {
+    return false
+  }
+}
+
 async function loginDemo(payload: LoginFormValues): Promise<TokenResponse> {
   const response = await fetch(`${API_BASE}/api/v1/auth/login`, {
     method: 'POST',
@@ -202,7 +252,14 @@ function AppShell() {
         password: account.password,
       })
       setSession({ token: result.access_token, user: result.user })
-      navigate(roleMeta[result.user.role].path)
+      const returnTo = takeLoginReturnTo()
+      const destination =
+        returnTo && canUseLoginReturn(returnTo, result.user.role)
+          ? returnTo
+          : result.user.role === 'student' && hasPendingChatboxRetry()
+            ? STUDENT_CHATBOX_PATH
+          : roleMeta[result.user.role].path
+      navigate(destination, { replace: Boolean(returnTo) })
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Login failed'
       window.alert(message)
@@ -216,10 +273,14 @@ function AppShell() {
     navigate('/')
   }
 
-  const handleSessionExpired = useCallback(() => {
+  const handleSessionExpired = useCallback((intent?: SessionExpiredIntent) => {
+    const returnTo = normalizeLoginReturnTo(intent?.returnTo ?? location.pathname)
+    if (returnTo) {
+      writeLoginReturnTo(returnTo)
+    }
     setSession(null)
     navigate('/login', { replace: true })
-  }, [navigate])
+  }, [location.pathname, navigate])
 
   const handleTopnavClick = ({ key }: { key: string }) => {
     if (!key.startsWith('#')) {
@@ -328,7 +389,7 @@ function RouterOutlet({
 }: {
   session: SessionState | null
   onLogin: (account: (typeof demoAccounts)[number]) => Promise<void>
-  onSessionExpired: () => void
+  onSessionExpired: (intent?: SessionExpiredIntent) => void
   loadingRole: Role | null
 }) {
   return (
@@ -374,7 +435,15 @@ function LoginPage({
 
   useEffect(() => {
     if (session) {
-      navigate(roleMeta[session.user.role].path, { replace: true })
+      const returnTo = takeLoginReturnTo()
+      navigate(
+        returnTo && canUseLoginReturn(returnTo, session.user.role)
+          ? returnTo
+          : session.user.role === 'student' && hasPendingChatboxRetry()
+            ? STUDENT_CHATBOX_PATH
+          : roleMeta[session.user.role].path,
+        { replace: true },
+      )
     }
   }, [navigate, session])
 

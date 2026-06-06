@@ -363,6 +363,37 @@ async def test_student_chat_stream_writes_runtime_history(
 
 
 @pytest.mark.asyncio
+async def test_student_chat_stream_uses_readable_chinese_history_title(
+    app,
+    async_client: AsyncClient,
+) -> None:
+    provider = _FakeChatProvider(["可以先把复习任务拆成三段。"])
+    app.dependency_overrides[chat_model_provider] = lambda: provider
+    login = await _login(async_client, "student@example.edu")
+    message = "我最近学习压力很大，\n不知道怎么安排复习和睡眠。还有一段很长的补充说明用于测试截断。"
+
+    response = await async_client.post(
+        "/api/v1/student/chat/stream",
+        headers=_bearer(login["access_token"]),
+        json={"message": message},
+    )
+
+    assert response.status_code == 200
+    listing = await async_client.get(
+        "/api/v1/student/conversations",
+        headers=_bearer(login["access_token"]),
+    )
+
+    assert listing.status_code == 200
+    title = listing.json()[0]["title"]
+    assert "我最近学习压力很大" in title
+    assert "\n" not in title
+    assert "????" not in title
+    assert len(title) <= 32
+    app.dependency_overrides.clear()
+
+
+@pytest.mark.asyncio
 async def test_student_chat_stream_forwards_structured_model_events(
     app,
     async_client: AsyncClient,
@@ -506,6 +537,13 @@ async def test_student_chat_stream_exposes_credible_source_citation_and_usage_co
                     "snippet": "Published student support notice.",
                 }
             ),
+            ChatModelStreamEvent.source(
+                {
+                    "title": "Duplicate public student affairs notice",
+                    "url": "https://example.edu/student-affairs#section",
+                    "snippet": "Duplicate provider result.",
+                }
+            ),
             ChatModelStreamEvent.citation(
                 {
                     "citationId": "cite-1",
@@ -536,15 +574,20 @@ async def test_student_chat_stream_exposes_credible_source_citation_and_usage_co
 
     assert response.status_code == 200
     events = _standard_sse_events(response.text)
-    source = next(data for event, data in events if event == "source")
+    sources = [data for event, data in events if event == "source"]
+    source = sources[0]
     citation = next(data for event, data in events if event == "citation")
     usage = next(data for event, data in events if event == "usage")
     notices = [data["payload"]["code"] for event, data in events if event == "notice"]
 
+    assert len(sources) == 1
     assert source["payload"]["url"] == "https://example.edu/student-affairs"
+    assert source["payload"]["sourceId"] == "source-1"
+    assert source["payload"]["dedupeKey"] == "https://example.edu/student-affairs"
     assert source["payload"]["snippet"] == "Published student support notice."
     assert citation["payload"]["citationId"] == "cite-1"
     assert citation["payload"]["sourceIndex"] == 1
+    assert citation["payload"]["sourceId"] == "source-1"
     assert citation["payload"]["url"] == source["payload"]["url"]
     assert usage["payload"]["source_count"] == 1
     assert usage["payload"]["tool_count"] == 1
@@ -1376,6 +1419,8 @@ def test_dashscope_generation_parser_extracts_source_reasoning_and_delta() -> No
     assert events[0] == ChatModelStreamEvent.source(
         {
             "title": "学校官网通知",
+            "displayTitle": "学校官网通知",
+            "display_title": "学校官网通知",
             "url": "https://example.edu/news",
             "snippet": "通知摘要",
             "hostname": "example.edu",
@@ -1404,6 +1449,21 @@ def test_dashscope_source_parser_filters_non_public_urls() -> None:
         for event in events
         if event.type == "source"
     ] == ["https://example.edu/news"]
+
+
+def test_dashscope_source_parser_uses_readable_title_fallback() -> None:
+    line = (
+        'data: {"output": {"search_info": {"search_results": ['
+        '{"url": "https://news.example.edu/student-support/current-guide.html"}'
+        ']}, "choices": [{"message": {"content": "See guide."}}]}}'
+    )
+
+    events = DashScopeChatModelProvider._parse_generation_sse_line(line)
+
+    source = next(event.data for event in events if event.type == "source")
+    assert source["title"] == "news.example.edu / current guide"
+    assert source["displayTitle"] == "news.example.edu / current guide"
+    assert source["title"] != "Untitled source"
 
 
 def test_dashscope_generation_parser_extracts_real_citation_fields() -> None:
@@ -1476,6 +1536,8 @@ def test_dashscope_responses_parser_extracts_reasoning_tool_source_and_delta() -
         ChatModelStreamEvent.source(
             {
                 "title": "学校官网通知",
+                "displayTitle": "学校官网通知",
+                "display_title": "学校官网通知",
                 "url": "https://example.edu/news",
                 "snippet": "通知摘要",
                 "hostname": "example.edu",
@@ -1511,6 +1573,8 @@ def test_dashscope_responses_message_done_keeps_references_without_duplicate_tex
         ChatModelStreamEvent.source(
             {
                 "title": "Notice",
+                "displayTitle": "Notice",
+                "display_title": "Notice",
                 "url": "https://example.edu/news",
                 "hostname": "example.edu",
                 "sourceQuality": "public_web",

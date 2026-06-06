@@ -1,4 +1,4 @@
-﻿# Acceptance Log: Chatbox Kimi-like B-next Boundary Review
+# Acceptance Log: Chatbox Kimi-like B-next Boundary Review
 
 Date: 2026-06-02
 Team: implement-approved-b-next-chat
@@ -45,13 +45,13 @@ Additional boundary files:
 
 ## Boundary Findings
 
-PASS — Request contract preserved in this worker snapshot.
+PASS - Request contract preserved in this worker snapshot.
 
 - `StudentChatRequest` fields remain: `message`, `conversation_id`, `web_search`, `reasoning_enabled`, `profile`, `mode`, `attachments`.
 - The frontend request body still uses the approved semantic fields: `conversationId`, `message`, `webSearch`, `reasoning`, `profile`, `mode`, `attachments`.
 - No `toolMode`, `sandboxConfirmation`, provider selector, persistence flag, real-resource selector, or Agent/task field was found.
 
-PASS — Sandbox governance boundary preserved.
+PASS - Sandbox governance boundary preserved.
 
 - Defaults remain:
   - `chat_sandbox_enabled=True`
@@ -62,19 +62,19 @@ PASS — Sandbox governance boundary preserved.
 - Trigger behavior remains attachment-driven plus existing keyword matching: `运行`, `测试`, `pytest`, `npm test`, `node`, `python`.
 - No implementation change was made to sandbox confirmation, dependency installation, resource limits, request fields, or trigger policy.
 
-PASS — Provider/key boundary preserved.
+PASS - Provider/key boundary preserved.
 
 - Model API key handling remains backend-only in `backend/app/config.py` and `backend/app/services/chat_model.py`.
 - Frontend TypeScript/TSX search found no `DASHSCOPE_API_KEY`, `QWEN_API_KEY`, `CHAT_MODEL_API_KEY`, `sk-`, or `apiKey` secret material.
 - The frontend still calls FastAPI `/api/v1/student/chat/stream` rather than a browser-direct provider endpoint.
 
-PASS — Component boundary preserved.
+PASS - Component boundary preserved.
 
 - `frontend/src/components/assistant-ui/thread.tsx` still uses `ThreadPrimitive.Root` and `ComposerPrimitive.Root`.
 - Ant Design X usage is limited to local renderers/actions (`ThoughtChain`, `Think`, `Sources`, `Actions`).
 - No Ant Design X `Bubble`, `Sender`, or `Conversations` replacement of the assistant-ui main chat surfaces was found.
 
-PASS — UI capability claims remain bounded in reviewed code.
+PASS - UI capability claims remain bounded in reviewed code.
 
 - Frontend TypeScript/TSX search found no claims for school database access, internal school systems, RAG knowledge-base access, or real student records.
 - Source/citation/tool UI is driven by `chat.run.v1` reducer state (`source`, `citation`, `tool_*`, `workflow_*`, `notice`, `usage`), not by hard-coded fake source/tool content in the reviewed frontend files.
@@ -82,7 +82,7 @@ PASS — UI capability claims remain bounded in reviewed code.
 
 ## Files Changed By Worker 4
 
-- `.omx/logs/chatbox-kimi-like-b-next-20260602.md` — added this boundary review / acceptance log.
+- `.omx/logs/chatbox-kimi-like-b-next-20260602.md` - added this boundary review / acceptance log.
 
 No product code files were changed by worker-4.
 
@@ -117,10 +117,9 @@ git diff -- backend/app/schemas/business.py backend/app/services/sandbox.py back
 
 Search evidence:
 
-- `rg DASHSCOPE_API_KEY|QWEN_API_KEY|CHAT_MODEL_API_KEY|sk-|apiKey frontend/src -S` — no frontend secret-key hits in TS/TSX guard script.
-- `rg 真实学校数据库|学校内部系统|RAG 知识库|真实学生档案|school database|real student record frontend/src -S` — no unapproved frontend capability claims in TS/TSX guard script.
+- `rg DASHSCOPE_API_KEY|QWEN_API_KEY|CHAT_MODEL_API_KEY|sk-|apiKey frontend/src -S` - no frontend secret-key hits in TS/TSX guard script.
+- `rg 真实学校数据库|学校内部系统|RAG 知识库|真实学生档案|school database|real student record frontend/src -S` - no unapproved frontend capability claims in TS/TSX guard script.
 - Backend hits for provider env names are expected and remain in backend-only config/provider code.
-
 
 Project verification attempts from worker-4:
 
@@ -187,3 +186,45 @@ No new SDAR stop line was crossed in the integrated branch:
 - no persistence/provider/API-key handling change;
 - no real school resources, real student data, RAG/vector/embedding, Agent/task queue, production SSO, deployment, or broad security-boundary change;
 - frontend source/citation/tool UI remains driven by backend `chat.run.v1` events and local reducer state.
+
+## Ralph Closure Addendum
+
+Date: 2026-06-02 19:20 Asia/Shanghai
+Leader status: remaining B-next P0 closure completed after local smoke recovery.
+
+### Additional Scope Closed
+
+- Login recovery now preserves the pending Chatbox prompt across a stream-time 401 and returns the user to `/app/student/chatbox` for one-click retry.
+- Source governance now carries `sourceId`, `displayTitle`, and `dedupeKey` through backend events and the frontend reducer.
+- Source display now shows Top 3 public sources by default, folds additional sources, and renders citation chips as clickable links only when they match returned source metadata.
+- Composer control text was tightened to Chinese Kimi-like labels without replacing assistant-ui Thread/Composer/runtime ownership.
+- Obsolete route-based Playwright smoke attempts were removed after proving that static CLI route bodies truncate multiline SSE.
+
+### Additional Verification
+
+- `backend> ..\.venv\Scripts\python.exe -m pytest` -> PASS, 56 tests.
+- `backend> ..\.venv\Scripts\python.exe -m ruff check app tests` -> PASS.
+- `frontend> node --test tests\chat-run-reducer.test.mjs` -> PASS, 2 tests.
+- `frontend> npm run lint` -> PASS.
+- `frontend> npm run build` -> PASS; Vite large-chunk warning only.
+- Browser smoke with local HTTP/SSE mock:
+  - `bash /mnt/c/Users/liuqi/Desktop/agentproject/output/playwright/run-chatbox-b-next-smoke-local-api-20260602.sh` -> PASS.
+  - Final URL: `http://127.0.0.1:5300/app/student/chatbox`.
+  - `hasPublicSources=1`, `hasFoldNote=1`, `hasCitationSource=1`.
+  - The only browser console error is the expected first `401 Unauthorized` from the recovery test leg.
+- Screenshot evidence:
+  - `output/playwright/chatbox-b-next-401-recovery-sources-desktop-20260602.png`
+  - `output/playwright/chatbox-b-next-401-recovery-sources-mobile-20260602.png`
+
+### Additional Not-tested
+
+- Live provider smoke against real DashScope/Moonshot credentials was not run.
+- Direct local FastAPI server smoke remains environment-gated because the default backend startup path expects local PostgreSQL availability on this machine.
+- The known Vite large-chunk warning is not addressed in this B-next P0 closure.
+
+### Additional Rollback
+
+- Revert the Ralph-owned frontend files: `frontend/src/App.tsx`, `frontend/src/StudentChatboxPage.tsx`, `frontend/src/lib/chat-run.ts`, `frontend/src/components/assistant-ui/thread.tsx`, `frontend/src/App.css`.
+- Revert the Ralph-owned backend files: `backend/app/api/v1/student.py`, `backend/app/services/chat_model.py`.
+- Revert the added/updated tests: `backend/tests/test_business_phase1.py`, `frontend/tests/chat-run-reducer.test.mjs`.
+- Remove local smoke artifacts under `output/playwright/chatbox-b-next-*` if the closure evidence needs to be regenerated.

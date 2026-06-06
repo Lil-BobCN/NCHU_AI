@@ -1917,6 +1917,14 @@
   line-height: 1.55;
 }
 
+.aui-source-fold-note {
+  margin: 0;
+  padding: 0 2px;
+  color: var(--chat-muted);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
 .aui-source-section .ant-sources-title-wrapper {
   width: fit-content;
   margin-bottom: 6px;
@@ -2103,6 +2111,21 @@
 .aui-run-citations span {
   color: var(--chat-primary);
   font-weight: 740;
+}
+
+.aui-run-citations a,
+.aui-run-citations em {
+  min-width: 0;
+  overflow: hidden;
+  color: inherit;
+  font-style: normal;
+  text-decoration: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.aui-run-citations a:hover {
+  color: var(--chat-primary);
 }
 
 .aui-run-actions {
