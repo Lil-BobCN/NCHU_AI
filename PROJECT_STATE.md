@@ -1,6 +1,6 @@
 # Project State
 
-Last updated: 2026-05-26
+Last updated: 2026-05-27
 
 ## Workflow Baseline
 
@@ -61,6 +61,32 @@ Mounted endpoints:
 The business surface is in-memory for now. The full persistence-backed student
 Q&A loop, admin UI, notifications, dashboards, and frontend delivery are still
 future work.
+
+## Chat UI Context
+
+assistant-ui is the approved chat UI/runtime context for project chat
+interfaces. The context entry point for future agents is now recorded in
+`AGENTS.md` and `.omx/context/assistant-ui-chat-context-engineering-20260527.md`.
+
+Key patterns:
+
+- Use `AssistantRuntimeProvider` at the app root or chat feature root.
+- Use assistant-ui `Thread` / `ThreadPrimitive` for full chat interfaces.
+- Use `AssistantModal` / `AssistantModalPrimitive` for floating chat widgets.
+- Use `useChatRuntime` with an AI SDK transport such as
+  `AssistantChatTransport` for future AI SDK compatible backends.
+
+Current approved implementation:
+
+- `frontend/src/StudentChatboxPage.tsx`
+- `frontend/package.json` includes `@assistant-ui/react`.
+- The student Chatbox currently uses assistant-ui primitives with an
+  external-store runtime adapter for the existing FastAPI SSE boundary.
+
+Do not add assistant-ui companion packages, switch transports, expose model
+provider keys in the browser, or enable unapproved models, web search, RAG,
+attachments, real school resources, real student data, persistence, or
+multi-role Chatbox expansion without product-manager approval.
 
 ## Legacy Cleanup
 
