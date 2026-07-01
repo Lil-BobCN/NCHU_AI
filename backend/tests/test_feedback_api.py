@@ -26,6 +26,14 @@ class FeedbackApiTests(unittest.TestCase):
             self.assertEqual(payload.error_type, error_type)
             self.assertEqual(payload.description, "说明")
 
+    def test_feedback_payload_accepts_empty_description(self) -> None:
+        payload = AnswerFeedbackCreate(
+            assistant_message_id="message-1",
+            error_type="answer_wrong",
+        )
+
+        self.assertEqual(payload.description, "")
+
     def test_feedback_payload_rejects_unsupported_error_type(self) -> None:
         with self.assertRaises(ValidationError):
             AnswerFeedbackCreate(

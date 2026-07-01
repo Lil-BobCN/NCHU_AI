@@ -1071,6 +1071,24 @@ textarea:focus {
   opacity: 1;
 }
 
+.feedback-toast {
+  position: fixed;
+  top: 24px;
+  left: 50%;
+  z-index: 70;
+  transform: translateX(-50%);
+  max-width: min(420px, calc(100vw - 32px));
+  padding: 10px 14px;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  background: #f0fdf4;
+  color: #166534;
+  box-shadow: var(--shadow-md);
+  font-size: 14px;
+  font-weight: 700;
+  text-align: center;
+}
+
 .feedback-dialog {
   width: min(520px, calc(100vw - 32px));
   display: grid;

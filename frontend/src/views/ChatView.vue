@@ -259,6 +259,10 @@
         </form>
       </section>
 
+      <div v-if="feedbackToast" class="feedback-toast" role="status" aria-live="polite">
+        {{ feedbackToast }}
+      </div>
+
       <div v-if="feedbackTarget" class="document-preview-modal" role="dialog" aria-modal="true">
         <form class="feedback-dialog" @submit.prevent="submitFeedback">
           <header>
@@ -279,7 +283,7 @@
           </div>
 
           <label class="feedback-description">
-            <span>补充说明</span>
+            <span>补充说明（选填）</span>
             <textarea
               v-model="feedbackDescription"
               rows="4"
@@ -308,6 +312,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import AppShell from '../components/AppShell.vue'
 import { Check, CircleAlert, LoaderCircle, MessageSquareText, Pencil, Plus, Search, SendHorizontal, Square, Trash2, Undo2, X } from 'lucide-vue-next'
+import { apiErrorMessage } from '../api/client'
 import { useChatStreamStore, type Conversation, type Message } from '../stores/chatStream'
 
 const chatStore = useChatStreamStore()
@@ -338,6 +343,8 @@ const feedbackType = ref('answer_wrong')
 const feedbackDescription = ref('')
 const feedbackSubmitting = ref(false)
 const feedbackError = ref('')
+const feedbackToast = ref('')
+let feedbackToastTimer: number | undefined
 const feedbackTypeOptions = [
   { value: 'answer_wrong', label: '答案错误' },
   { value: 'citation_wrong', label: '参考来源错误' },
@@ -365,6 +372,7 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
   if (conversationSearchTimer) window.clearTimeout(conversationSearchTimer)
+  if (feedbackToastTimer) window.clearTimeout(feedbackToastTimer)
   chatStore.attachScrollTarget(null)
 })
 
@@ -531,17 +539,29 @@ async function submitFeedback() {
   feedbackSubmitting.value = true
   feedbackError.value = ''
   try {
+    // 补充说明为选填项，提交前仅做去空格规整，允许空字符串正常入库。
     await chatStore.submitAnswerFeedback(
       feedbackTarget.value,
       feedbackType.value,
-      feedbackDescription.value
+      feedbackDescription.value.trim()
     )
+    feedbackSubmitting.value = false
     closeFeedbackDialog()
+    showFeedbackToast('反馈提交成功，我们将尽快优化知识库')
   } catch (error) {
-    feedbackError.value = error instanceof Error ? error.message : '反馈提交失败'
+    feedbackError.value = apiErrorMessage(error, '反馈提交失败，请稍后重试')
   } finally {
     feedbackSubmitting.value = false
   }
+}
+
+function showFeedbackToast(message: string) {
+  if (feedbackToastTimer) window.clearTimeout(feedbackToastTimer)
+  feedbackToast.value = message
+  feedbackToastTimer = window.setTimeout(() => {
+    feedbackToast.value = ''
+    feedbackToastTimer = undefined
+  }, 2600)
 }
 
 function formatConversationTime(value?: string | null) {

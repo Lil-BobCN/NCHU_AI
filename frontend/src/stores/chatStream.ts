@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { computed, nextTick, reactive, ref } from 'vue'
-import { api, streamApiUrl, unwrap } from '../api/client'
+import { api, apiErrorMessage, streamApiUrl, unwrap } from '../api/client'
 import { createLocalId } from '../utils/id'
 
 export type Message = {
@@ -203,13 +203,19 @@ export const useChatStreamStore = defineStore('chatStream', () => {
 
   async function submitAnswerFeedback(message: Message, errorType: string, description: string) {
     if (!message.id || message.role !== 'assistant') throw new Error('无法定位要反馈的回答')
-    const data = unwrap<any>(
-      await api.post('/feedback/answers', {
-        assistant_message_id: message.id,
-        error_type: errorType,
-        description
-      })
-    )
+    let data: any
+    try {
+      data = unwrap<any>(
+        await api.post('/feedback/answers', {
+          assistant_message_id: message.id,
+          error_type: errorType,
+          // 补充说明允许为空，后端会保存为空字符串而不是阻断提交。
+          description: description.trim()
+        })
+      )
+    } catch (error) {
+      throw new Error(apiErrorMessage(error, '反馈提交失败，请检查网络后重试'))
+    }
     message.feedback_status = data.status || 'open'
     message.feedback_error_type = data.error_type || errorType
     if (data.conversation_id) {
