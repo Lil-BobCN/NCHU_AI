@@ -3,13 +3,17 @@
     <div class="page">
       <header class="page-header">
         <h1>文档管理</h1>
-        <label class="upload">
-          上传文件
-          <input type="file" @change="upload" />
-        </label>
+        <div class="page-header-actions">
+          <button @click="exportDocuments">导出清单</button>
+          <label class="upload">
+            上传文件
+            <input type="file" @change="upload" />
+          </label>
+        </div>
       </header>
 
       <p v-if="pageError" class="error">{{ pageError }}</p>
+      <p v-if="actionMessage" class="document-state-note">{{ actionMessage }}</p>
 
       <section v-if="visibleUploads.length" class="upload-queue">
         <article v-for="item in visibleUploads" :key="item.id" class="upload-item">
@@ -24,12 +28,57 @@
         </article>
       </section>
 
+      <form class="document-toolbar" @submit.prevent="loadDocuments">
+        <input v-model="documentFilters.keyword" placeholder="搜索文档名称" />
+        <select v-model="documentFilters.status" aria-label="按状态筛选">
+          <option value="">全部状态</option>
+          <option v-for="option in documentStatusOptions" :key="option.value" :value="option.value">
+            {{ option.label }}
+          </option>
+        </select>
+        <input v-model="documentFilters.knowledgeBase" placeholder="所属知识库" list="knowledge-base-options" />
+        <datalist id="knowledge-base-options">
+          <option v-for="item in knowledgeBaseOptions" :key="item" :value="item" />
+        </datalist>
+        <button type="submit">筛选</button>
+        <button type="button" @click="resetDocumentFilters">重置</button>
+      </form>
+
+      <section class="document-batch-toolbar">
+        <label class="checkbox-line">
+          <input type="checkbox" :checked="allVisibleDocumentsSelected" @change="toggleAllVisibleDocuments" />
+          本页全选
+        </label>
+        <span>已选 {{ selectedDocumentIds.size }} 项</span>
+        <input v-model="batchKnowledgeBase" placeholder="批量归类到知识库" list="knowledge-base-options" />
+        <button :disabled="!hasSelectedDocuments || Boolean(batchBusy)" @click="batchUpdateKnowledgeBase">
+          批量归类
+        </button>
+        <button :disabled="!hasSelectedDocuments || Boolean(batchBusy)" @click="batchReparseDocuments">
+          批量重解析
+        </button>
+        <button :disabled="!hasSelectedDocuments || Boolean(batchBusy)" @click="batchRechunkDocuments">
+          批量重切片
+        </button>
+        <button class="danger" :disabled="!hasSelectedDocuments || Boolean(batchBusy)" @click="batchDeleteDocuments">
+          批量删除
+        </button>
+        <button type="button" :disabled="!hasSelectedDocuments || Boolean(batchBusy)" @click="clearDocumentSelection">
+          清空选择
+        </button>
+        <small v-if="batchBusy">{{ batchBusy }}...</small>
+      </section>
+
       <div class="table-scroll">
         <table class="data-table">
           <thead>
             <tr>
+              <th class="select-cell">
+                <input type="checkbox" :checked="allVisibleDocumentsSelected" @change="toggleAllVisibleDocuments" />
+              </th>
               <th>文档</th>
               <th>大小</th>
+              <th>所属知识库</th>
               <th>状态</th>
               <th>处理进度</th>
               <th>质量</th>
@@ -39,8 +88,18 @@
           </thead>
           <tbody>
             <tr v-for="doc in documents" :key="doc.id">
+              <td class="select-cell">
+                <input
+                  type="checkbox"
+                  :checked="isDocumentSelected(doc.id)"
+                  :aria-label="`选择 ${doc.title || doc.file_name}`"
+                  @click.stop
+                  @change="toggleDocumentSelection(doc.id)"
+                />
+              </td>
               <td class="document-name-cell" :title="doc.title || doc.file_name">{{ doc.title || doc.file_name }}</td>
               <td>{{ formatSize(doc.file_size) }}</td>
+              <td><span class="knowledge-badge">{{ formatKnowledgeBase(doc) }}</span></td>
               <td><span class="status">{{ formatDocumentStatus(doc) }}</span></td>
               <td>
                 <div class="table-progress">
@@ -51,10 +110,12 @@
                 </div>
               </td>
               <td>{{ doc.parse_quality_score || '-' }}</td>
-              <td>
+              <td class="source-actions">
                 <button class="linklike" :disabled="!doc.preview_url && !doc.download_url" @click="openPreview(doc)">
                   预览
                 </button>
+                <button class="linklike" @click="jumpToParsedContent(doc)">解析文本</button>
+                <button class="linklike" @click="jumpToChunks(doc)">切片</button>
               </td>
               <td class="actions">
                 <button @click="inspectDocument(doc)">解析/切片</button>
@@ -70,6 +131,8 @@
           <header class="document-preview-head">
             <strong>{{ previewDocument.title || previewDocument.file_name }}</strong>
             <div>
+              <button @click="jumpToParsedContent(previewDocument)">解析文本</button>
+              <button @click="jumpToChunks(previewDocument)">切片</button>
               <a class="buttonlike" :href="previewDocument.download_url || previewDocument.preview_url" target="_blank">
                 下载
               </a>
@@ -215,15 +278,15 @@
           </div>
         </div>
 
-        <div class="panel parse-preview">
+        <div ref="parsePreviewEl" class="panel parse-preview">
           <header class="panel-header">
             <h2>解析预览</h2>
           </header>
-          <pre v-if="parseResult">{{ previewContent(parseResult.content) }}</pre>
+          <pre v-if="parseResult" class="parse-content" v-html="highlightedParsePreview"></pre>
           <p v-else class="empty-state">暂无解析结果</p>
         </div>
 
-        <div class="panel chunk-panel">
+        <div ref="chunkPanelEl" class="panel chunk-panel">
           <header class="panel-header">
             <div>
               <h2>切片预览</h2>
@@ -236,11 +299,14 @@
           </header>
 
           <article v-for="chunk in chunks" :key="chunk.id" class="chunk">
-            <strong>
-              #{{ chunk.chunk_no }}
-              <span v-if="chunk.page_start">第 {{ chunk.page_start }} 页</span>
-              <span v-if="chunk.section_path"> · {{ chunk.section_path }}</span>
-            </strong>
+            <header class="chunk-head">
+              <strong>
+                #{{ chunk.chunk_no }}
+                <span v-if="chunk.page_start">第 {{ chunk.page_start }} 页</span>
+                <span v-if="chunk.section_path"> · {{ chunk.section_path }}</span>
+              </strong>
+              <button class="linklike" @click="locateChunkInParsedContent(chunk)">定位原文</button>
+            </header>
             <div class="chunk-meta">
               <span>{{ chunk.chunk_type }}</span>
               <span>{{ chunk.char_count || chunk.content.length }} 字符</span>
@@ -257,7 +323,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
 import AppShell from '../components/AppShell.vue'
 import { api, apiErrorMessage, unwrap } from '../api/client'
 import { createLocalId } from '../utils/id'
@@ -323,9 +389,31 @@ const qaCount = ref(10)
 const qaAutoEnable = ref(true)
 const actionBusy = ref('')
 const actionMessage = ref('')
+const batchBusy = ref('')
 const pageError = ref('')
 const duplicateUpload = ref<PendingDuplicateUpload | null>(null)
+const selectedDocumentIds = ref<Set<string>>(new Set())
+const batchKnowledgeBase = ref('')
+const parsePreviewEl = ref<HTMLElement | null>(null)
+const chunkPanelEl = ref<HTMLElement | null>(null)
+const highlightedChunkText = ref('')
+const documentFilters = ref({
+  keyword: '',
+  status: '',
+  knowledgeBase: ''
+})
 let pollTimer: number | undefined
+
+const documentStatusOptions = [
+  { value: 'uploaded', label: '已上传' },
+  { value: 'parsed', label: '已解析' },
+  { value: 'chunked', label: '已切片' },
+  { value: 'indexed', label: '处理完成' },
+  { value: 'failed', label: '处理失败' },
+  { value: 'needs_conversion', label: '待转换' },
+  { value: 'needs_extraction', label: '待解压' },
+  { value: 'no_indexable_content', label: '无可入库正文' }
+]
 
 const selectedDocumentNotice = computed(() => {
   if (!selectedDocument.value) return ''
@@ -333,6 +421,31 @@ const selectedDocumentNotice = computed(() => {
 })
 
 const visibleUploads = computed(() => uploads.value.filter((item) => !item.done))
+const hasSelectedDocuments = computed(() => selectedDocumentIds.value.size > 0)
+const allVisibleDocumentsSelected = computed(() => (
+  documents.value.length > 0 && documents.value.every((doc) => selectedDocumentIds.value.has(doc.id))
+))
+const selectedDocumentIdList = computed(() => [...selectedDocumentIds.value])
+const knowledgeBaseOptions = computed(() => {
+  const values = new Set(['default'])
+  for (const doc of documents.value) values.add(formatKnowledgeBase(doc))
+  return [...values].sort()
+})
+const highlightedParsePreview = computed(() => {
+  const content = previewContent(parseResult.value?.content || '')
+  const needle = highlightedChunkText.value.trim()
+  if (!needle) return escapeHtml(content)
+  const sample = needle.length > 220 ? needle.slice(0, 220) : needle
+  const index = content.indexOf(sample)
+  if (index < 0) return escapeHtml(content)
+  return [
+    escapeHtml(content.slice(0, index)),
+    '<mark class="parse-highlight">',
+    escapeHtml(content.slice(index, index + sample.length)),
+    '</mark>',
+    escapeHtml(content.slice(index + sample.length))
+  ].join('')
+})
 const duplicateDialogTitle = computed(() => {
   const check = duplicateUpload.value?.check
   if (!check) return ''
@@ -368,8 +481,9 @@ async function load() {
 
 async function loadDocuments() {
   try {
-    const data = unwrap<any>(await api.get('/documents'))
+    const data = unwrap<any>(await api.get('/documents', { params: documentListParams() }))
     documents.value = data.items
+    pruneDocumentSelection()
     if (selectedDocument.value) {
       const updated = documents.value.find((item) => item.id === selectedDocument.value?.id)
       if (updated) selectedDocument.value = updated
@@ -378,6 +492,20 @@ async function loadDocuments() {
   } catch (error) {
     pageError.value = apiErrorMessage(error, '加载文档失败')
   }
+}
+
+function documentListParams() {
+  return {
+    keyword: documentFilters.value.keyword.trim() || undefined,
+    status: documentFilters.value.status || undefined,
+    knowledge_base: documentFilters.value.knowledgeBase.trim() || undefined,
+    page_size: 100
+  }
+}
+
+async function resetDocumentFilters() {
+  documentFilters.value = { keyword: '', status: '', knowledgeBase: '' }
+  await loadDocuments()
 }
 
 async function upload(event: Event) {
@@ -541,12 +669,154 @@ async function remove(id: string) {
   }
 }
 
+function isDocumentSelected(id: string) {
+  return selectedDocumentIds.value.has(id)
+}
+
+function toggleDocumentSelection(id: string) {
+  const next = new Set(selectedDocumentIds.value)
+  if (next.has(id)) {
+    next.delete(id)
+  } else {
+    next.add(id)
+  }
+  selectedDocumentIds.value = next
+}
+
+function toggleAllVisibleDocuments() {
+  if (allVisibleDocumentsSelected.value) {
+    selectedDocumentIds.value = new Set()
+    return
+  }
+  selectedDocumentIds.value = new Set(documents.value.map((doc) => doc.id))
+}
+
+function clearDocumentSelection() {
+  selectedDocumentIds.value = new Set()
+}
+
+function pruneDocumentSelection() {
+  const visibleIds = new Set(documents.value.map((doc) => doc.id))
+  const next = new Set([...selectedDocumentIds.value].filter((id) => visibleIds.has(id)))
+  if (next.size !== selectedDocumentIds.value.size) selectedDocumentIds.value = next
+}
+
+async function batchDeleteDocuments() {
+  if (!hasSelectedDocuments.value || batchBusy.value) return
+  const confirmed = window.confirm(`确认删除选中的 ${selectedDocumentIds.value.size} 个文档？`)
+  if (!confirmed) return
+  await runBatchAction('批量删除', async () => {
+    await api.post('/documents/batch/delete', { document_ids: selectedDocumentIdList.value })
+    if (selectedDocument.value && selectedDocumentIds.value.has(selectedDocument.value.id)) {
+      selectedDocument.value = null
+      chunks.value = []
+      parseResult.value = null
+      selectedJobs.value = []
+    }
+    clearDocumentSelection()
+  })
+}
+
+async function batchUpdateKnowledgeBase() {
+  const target = batchKnowledgeBase.value.trim()
+  if (!hasSelectedDocuments.value || batchBusy.value || !target) {
+    if (!target) pageError.value = '请输入要归类到的知识库名称'
+    return
+  }
+  await runBatchAction('批量归类', async () => {
+    await api.post('/documents/batch/knowledge-base', {
+      document_ids: selectedDocumentIdList.value,
+      knowledge_base: target
+    })
+  })
+}
+
+async function batchReparseDocuments() {
+  if (!hasSelectedDocuments.value || batchBusy.value) return
+  await runBatchAction('批量重解析', async () => {
+    await api.post('/documents/batch/reparse', { document_ids: selectedDocumentIdList.value })
+  })
+}
+
+async function batchRechunkDocuments() {
+  if (!hasSelectedDocuments.value || batchBusy.value) return
+  await runBatchAction('批量重切片', async () => {
+    const data = unwrap<any>(await api.post('/documents/batch/rechunk', { document_ids: selectedDocumentIdList.value }))
+    if (data.skipped?.length) {
+      actionMessage.value = `已提交 ${data.count || 0} 个重切片任务，${data.skipped.length} 个文档因状态限制跳过`
+    }
+  })
+}
+
+async function runBatchAction(label: string, action: () => Promise<void>) {
+  pageError.value = ''
+  actionMessage.value = ''
+  batchBusy.value = label
+  try {
+    await action()
+    if (!actionMessage.value) actionMessage.value = `${label}已提交`
+    await load()
+  } catch (error) {
+    pageError.value = apiErrorMessage(error, `${label}失败`)
+  } finally {
+    batchBusy.value = ''
+  }
+}
+
+async function exportDocuments() {
+  pageError.value = ''
+  try {
+    const response = await api.get('/documents/export', {
+      params: documentListParams(),
+      responseType: 'blob',
+      timeout: 0
+    })
+    const blob = new Blob([response.data], { type: 'text/csv;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = exportFileName(response.headers['content-disposition'])
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    URL.revokeObjectURL(url)
+  } catch (error) {
+    pageError.value = apiErrorMessage(error, '导出文档清单失败')
+  }
+}
+
+function exportFileName(disposition?: string) {
+  const match = String(disposition || '').match(/filename="?([^";]+)"?/i)
+  return match?.[1] || `documents-${new Date().toISOString().slice(0, 10)}.csv`
+}
+
 function openPreview(doc: any) {
   previewDocument.value = doc
 }
 
 function closePreview() {
   previewDocument.value = null
+}
+
+async function jumpToParsedContent(doc: any) {
+  closePreview()
+  await inspectDocument(doc)
+  highlightedChunkText.value = ''
+  await nextTick()
+  parsePreviewEl.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
+
+async function jumpToChunks(doc: any) {
+  closePreview()
+  await inspectDocument(doc)
+  await nextTick()
+  chunkPanelEl.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
+
+async function locateChunkInParsedContent(chunk: any) {
+  highlightedChunkText.value = String(chunk?.content || '')
+  await nextTick()
+  parsePreviewEl.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 
 async function inspectDocument(doc: any) {
@@ -741,6 +1011,10 @@ function formatDocumentStatus(doc: any) {
   return labels[String(doc?.status || '')] || doc?.status || '-'
 }
 
+function formatKnowledgeBase(doc: any) {
+  return String(doc?.knowledge_base || 'default')
+}
+
 function documentBlocker(doc: any) {
   const status = String(doc?.status || '')
   const meta = parseResult.value?.parse_meta || {}
@@ -838,6 +1112,15 @@ function previewContent(content: string) {
   if (!content) return ''
   if (content.length <= 8000) return content
   return `${content.slice(0, 8000)}\n\n...`
+}
+
+function escapeHtml(value: string) {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
 }
 
 function formatSize(size: number) {

@@ -28,6 +28,15 @@ def _item(source: str, index: int) -> dict:
     }
 
 
+def _corpus_version() -> dict:
+    return {
+        "document_count": 2,
+        "latest_document_update": "2026-06-23 00:00:00+00:00",
+        "knowledge_base_version": 1,
+        "latest_knowledge_update": "2026-06-23 00:00:00+00:00",
+    }
+
+
 class RetrievalServiceParameterTests(unittest.IsolatedAsyncioTestCase):
     async def test_top_k_controls_recall_and_rerank_top_k_controls_final_context(self) -> None:
         service = RetrievalService()
@@ -43,6 +52,7 @@ class RetrievalServiceParameterTests(unittest.IsolatedAsyncioTestCase):
         }
         service._get_cached_retrieval = AsyncMock(return_value=None)
         service._set_cached_retrieval = AsyncMock()
+        service._corpus_version = AsyncMock(return_value=_corpus_version())
 
         calls: dict[str, int] = {}
 
@@ -130,6 +140,7 @@ class RetrievalServiceParameterTests(unittest.IsolatedAsyncioTestCase):
         }
         service._get_cached_retrieval = AsyncMock(return_value=None)
         service._set_cached_retrieval = AsyncMock()
+        service._corpus_version = AsyncMock(return_value=_corpus_version())
 
         async def vector_search(db, query, top_k, document_ids=None):
             return [
@@ -179,6 +190,7 @@ class RetrievalServiceParameterTests(unittest.IsolatedAsyncioTestCase):
         }
         service._get_cached_retrieval = AsyncMock(return_value=None)
         service._set_cached_retrieval = AsyncMock()
+        service._corpus_version = AsyncMock(return_value=_corpus_version())
 
         async def vector_search(db, query, top_k, document_ids=None):
             return [
@@ -257,6 +269,144 @@ class RetrievalServiceParameterTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertFalse(stats["enabled"])
         self.assertEqual(len(filtered), 1)
+
+    async def test_legacy_encoded_document_sources_are_filtered_from_answer_and_citations(self) -> None:
+        service = RetrievalService()
+        service.rag_settings = {
+            "vector_top_k": 30,
+            "keyword_top_k": 30,
+            "qa_top_k": 10,
+            "rerank_top_k": 5,
+            "rerank_max_candidates": 10,
+            "rerank_enabled": False,
+            "similarity_threshold": 0,
+            "rerank_threshold": 0,
+        }
+        service._get_cached_retrieval = AsyncMock(return_value=None)
+        service._set_cached_retrieval = AsyncMock()
+        service._corpus_version = AsyncMock(return_value=_corpus_version())
+
+        async def vector_search(db, query, top_k, document_ids=None):
+            return [
+                {
+                    **_item("vector", 1),
+                    "document_title": "%bd%93%e8%82%b2%e6%96%87%e4%bb%b6.doc",
+                    "document_name": "%bd%93%e8%82%b2%e6%96%87%e4%bb%b6.doc",
+                    "content": "legacy encoded document content",
+                },
+                {
+                    **_item("vector", 2),
+                    "document_title": "student handbook",
+                    "document_name": "student-handbook.pdf",
+                    "content": "sports venue fee policy for students",
+                },
+            ]
+
+        async def empty_search(db, query, top_k, document_ids=None):
+            return []
+
+        async def rerank(query, candidates):
+            return candidates
+
+        service._vector_search = vector_search
+        service._keyword_search = empty_search
+        service._qa_search = empty_search
+        service._rerank = rerank
+
+        result = await service.search(db=None, query="sports venue fee", rerank_top_k=5)
+
+        self.assertTrue(result["answer_context"])
+        self.assertTrue(all("%bd%93" not in item["document_title"] for item in result["answer_context"]))
+        self.assertTrue(all("%bd%93" not in item["document_title"] for item in result["citations"]))
+
+    async def test_citations_skip_legacy_encoded_document_sources(self) -> None:
+        service = RetrievalService()
+        citations = service._citations(
+            [
+                {
+                    **_item("keyword", 1),
+                    "document_title": "%bd%93%e8%82%b2%e6%96%87%e4%bb%b6.doc",
+                    "document_name": "%bd%93%e8%82%b2%e6%96%87%e4%bb%b6.doc",
+                },
+                {
+                    **_item("keyword", 2),
+                    "document_title": "student handbook",
+                    "document_name": "student-handbook.pdf",
+                },
+            ]
+        )
+
+        self.assertEqual(len(citations), 1)
+        self.assertNotIn("%bd%93", citations[0]["document_title"])
+
+    async def test_internal_documents_are_filtered_from_answer_and_citations(self) -> None:
+        service = RetrievalService()
+        service.rag_settings = {
+            "vector_top_k": 30,
+            "keyword_top_k": 30,
+            "qa_top_k": 10,
+            "rerank_top_k": 5,
+            "rerank_max_candidates": 10,
+            "rerank_enabled": False,
+            "similarity_threshold": 0,
+            "rerank_threshold": 0,
+        }
+        service._get_cached_retrieval = AsyncMock(return_value=None)
+        service._set_cached_retrieval = AsyncMock()
+        service._corpus_version = AsyncMock(return_value=_corpus_version())
+
+        async def vector_search(db, query, top_k, document_ids=None):
+            return [
+                {
+                    **_item("vector", 1),
+                    "document_title": "接口测试文档-2026-06-12",
+                    "document_name": "接口测试文档-2026-06-12.md",
+                    "content": "POST /api/v1/chat/stream internal API test cases",
+                },
+                {
+                    **_item("vector", 2),
+                    "document_title": "学生手册",
+                    "document_name": "学生手册.pdf",
+                    "content": "学生办事指南和校方公开政策说明",
+                },
+            ]
+
+        async def empty_search(db, query, top_k, document_ids=None):
+            return []
+
+        async def rerank(query, candidates):
+            return candidates
+
+        service._vector_search = vector_search
+        service._keyword_search = empty_search
+        service._qa_search = empty_search
+        service._rerank = rerank
+
+        result = await service.search(db=None, query="学生办事指南", rerank_top_k=5)
+
+        self.assertTrue(result["answer_context"])
+        self.assertTrue(all("接口测试" not in item["document_title"] for item in result["answer_context"]))
+        self.assertTrue(all("接口测试" not in item["document_title"] for item in result["citations"]))
+
+    async def test_citations_skip_internal_documents(self) -> None:
+        service = RetrievalService()
+        citations = service._citations(
+            [
+                {
+                    **_item("keyword", 1),
+                    "document_title": "API接口设计",
+                    "document_name": "API接口设计.md",
+                },
+                {
+                    **_item("keyword", 2),
+                    "document_title": "官方办事指南",
+                    "document_name": "官方办事指南.pdf",
+                },
+            ]
+        )
+
+        self.assertEqual(len(citations), 1)
+        self.assertEqual(citations[0]["document_title"], "官方办事指南")
 
     async def test_direct_qa_normalized_text_matching(self) -> None:
         service = RetrievalService()
@@ -342,7 +492,7 @@ class RetrievalServiceParameterTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertFalse(coverage["enabled"])
 
-    async def test_citations_include_chunk_evidence_and_keep_distinct_chunks(self) -> None:
+    async def test_citations_merge_same_document_and_hide_evidence(self) -> None:
         service = RetrievalService()
         contexts = [
             {
@@ -351,7 +501,7 @@ class RetrievalServiceParameterTests(unittest.IsolatedAsyncioTestCase):
                 "chunk_id": "00000000-0000-0000-0000-000000000101",
                 "content": "转学申请应当说明理由，经所在学校和拟转入学校同意后办理。",
                 "page_start": 3,
-                "section_path": "转学管理 第一条",
+                "section_path": "转学管理 表格 1",
             },
             {
                 **_item("keyword", 2),
@@ -359,30 +509,33 @@ class RetrievalServiceParameterTests(unittest.IsolatedAsyncioTestCase):
                 "chunk_id": "00000000-0000-0000-0000-000000000102",
                 "content": "转学完成后3个月内，由转入学校报所在地省级教育行政部门备案。",
                 "page_start": 4,
-                "section_path": "转学管理 第二条",
+                "section_path": "转学管理 表格 2",
             },
         ]
 
         citations = service._citations(contexts, query="转学备案时间", answer="转学完成后3个月内备案。")
 
-        self.assertEqual(len(citations), 2)
+        self.assertEqual(len(citations), 1)
         self.assertEqual(citations[0]["chunk_id"], "00000000-0000-0000-0000-000000000101")
-        self.assertIn("转学申请", citations[0]["evidence"])
-        self.assertEqual(citations[1]["chunk_id"], "00000000-0000-0000-0000-000000000102")
-        self.assertIn("3个月内", citations[1]["evidence"])
+        self.assertEqual(citations[0]["page_numbers"], [3, 4])
+        self.assertEqual(citations[0]["table_numbers"], ["表格 1", "表格 2"])
+        self.assertEqual(citations[0]["location_label"], "第 3-4 页，表格 1、表格 2")
+        self.assertNotIn("evidence", citations[0])
 
-    async def test_citation_evidence_is_clipped_around_relevant_term(self) -> None:
+    async def test_citations_location_label_uses_page_ranges(self) -> None:
         service = RetrievalService()
-        filler = "无关内容" * 80
         item = {
             **_item("keyword", 1),
-            "content": f"{filler} 转学完成后3个月内应当备案，备案材料由学校提交。 {filler}",
+            "page_start": 7,
+            "page_end": 8,
+            "section_path": "办理说明",
         }
 
         citations = service._citations([item], query="转学备案时间", answer="3个月内备案")
 
-        self.assertLessEqual(len(citations[0]["evidence"]), service.CITATION_EVIDENCE_CHARS + 6)
-        self.assertIn("3个月内", citations[0]["evidence"])
+        self.assertEqual(citations[0]["page_numbers"], [7, 8])
+        self.assertEqual(citations[0]["section_paths"], ["办理说明"])
+        self.assertEqual(citations[0]["location_label"], "第 7-8 页")
 
 
 if __name__ == "__main__":

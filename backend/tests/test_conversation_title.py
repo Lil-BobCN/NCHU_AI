@@ -12,8 +12,14 @@ BACKEND_ROOT = Path(__file__).resolve().parents[1]
 if str(BACKEND_ROOT) not in sys.path:
     sys.path.insert(0, str(BACKEND_ROOT))
 
-from app.db.models import Conversation  # noqa: E402
-from app.api.v1.conversations import backfill_default_conversation_titles  # noqa: E402
+from app.db.models import Conversation, ConversationMessage  # noqa: E402
+from app.api.v1.conversations import (  # noqa: E402
+    backfill_default_conversation_titles,
+    conversation_list_filters,
+    normalize_conversation_search_query,
+    serialize_conversation,
+    serialize_message,
+)
 from app.services.chat_service import ChatService  # noqa: E402
 from app.services.conversation_title import (  # noqa: E402
     DEFAULT_CONVERSATION_TITLE,
@@ -80,6 +86,61 @@ class ConversationTitleTests(unittest.TestCase):
         self.assertEqual(custom_conversation.title, "保留手动标题")
         self.assertEqual(db.updated_titles, ["奖学金申请需要准备哪些材料"])
         self.assertEqual(db.commit_count, 1)
+
+
+    def test_conversation_search_query_is_normalized(self) -> None:
+        self.assertEqual(normalize_conversation_search_query("  奖学金   材料  "), "奖学金 材料")
+        self.assertEqual(normalize_conversation_search_query(""), "")
+
+    def test_conversation_search_filters_include_title_summary_and_message_content(self) -> None:
+        filters = conversation_list_filters("奖学金")
+        statement_text = str(filters[1])
+
+        self.assertEqual(len(filters), 2)
+        self.assertIn("lower(conversations.title)", statement_text)
+        self.assertIn("lower(conversations.summary)", statement_text)
+        self.assertIn("conversation_messages", statement_text)
+        self.assertIn("lower(conversation_messages.content)", statement_text)
+
+    def test_conversation_feedback_filter_requires_open_feedback(self) -> None:
+        filters = conversation_list_filters(feedback_only=True)
+        statement_text = str(filters[1])
+
+        self.assertEqual(len(filters), 2)
+        self.assertIn("answer_feedbacks", statement_text)
+        self.assertIn("answer_feedbacks.conversation_id", statement_text)
+        self.assertIn("answer_feedbacks.status", statement_text)
+
+
+    def test_serialize_conversation_includes_feedback_badge_fields(self) -> None:
+        conversation = Conversation(title="奖学金咨询")
+        conversation.id = "conv-1"
+        conversation.summary = ""
+        conversation.context_state = {}
+        conversation.message_count = 2
+        conversation.last_message_at = None
+        conversation.created_at = None
+
+        data = serialize_conversation(conversation, open_feedback_count=2)
+
+        self.assertTrue(data["has_feedback"])
+        self.assertEqual(data["open_feedback_count"], 2)
+
+    def test_serialize_message_includes_feedback_state(self) -> None:
+        message = ConversationMessage(conversation_id="conv-1", role="assistant", content="answer")
+        message.id = "msg-1"
+        message.retrieval_trace = {}
+        message.citations = []
+        message.suggested_questions = []
+        message.created_at = None
+
+        data = serialize_message(
+            message,
+            {"feedback_status": "open", "feedback_error_type": "answer_wrong"},
+        )
+
+        self.assertEqual(data["feedback_status"], "open")
+        self.assertEqual(data["feedback_error_type"], "answer_wrong")
 
 
 class FakeTitleSession:

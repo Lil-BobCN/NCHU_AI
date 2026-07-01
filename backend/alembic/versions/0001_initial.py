@@ -29,6 +29,7 @@ def downgrade() -> None:
         "evaluation_results",
         "evaluation_runs",
         "evaluation_cases",
+        "answer_feedbacks",
         "retrieval_logs",
         "conversation_messages",
         "conversations",

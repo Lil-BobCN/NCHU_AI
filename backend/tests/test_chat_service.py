@@ -12,10 +12,33 @@ BACKEND_ROOT = Path(__file__).resolve().parents[1]
 if str(BACKEND_ROOT) not in sys.path:
     sys.path.insert(0, str(BACKEND_ROOT))
 
-from app.services.chat_service import ChatService  # noqa: E402
+from app.services.chat_service import ChatService, SMALLTALK_WELCOME  # noqa: E402
 
 
 class ChatServiceFollowupTests(unittest.TestCase):
+    def test_answer_cache_key_changes_with_corpus_version(self) -> None:
+        service = ChatService()
+        retrieval = {
+            "answer_context": [
+                {
+                    "chunk_id": "chunk-1",
+                    "document_id": "doc-1",
+                    "document_title": "doc.pdf",
+                    "content": "same context",
+                }
+            ],
+            "corpus_version": {"knowledge_base_version": 1},
+        }
+        updated_retrieval = {
+            **retrieval,
+            "corpus_version": {"knowledge_base_version": 2},
+        }
+
+        self.assertNotEqual(
+            service._answer_cache_key("same question", retrieval),
+            service._answer_cache_key("same question", updated_retrieval),
+        )
+
     def test_answer_prompts_include_numbering_rules(self) -> None:
         service = ChatService()
 
@@ -243,6 +266,43 @@ class ChatServiceFollowupTests(unittest.TestCase):
         self.assertTrue(db.retrieval_logs[0].answer.startswith("标准答案"))
 
 
+    def test_smalltalk_greeting_bypasses_retrieval_and_citations(self) -> None:
+        service = ChatService()
+        service.retrieval_service = FakeNoRetrievalService()
+        service.model_service = FakeNoModelService()
+        db = FakeChatStreamSession()
+
+        async def consume() -> list[str]:
+            events = []
+            async for event in service.stream_chat(
+                db,
+                "你好",
+                None,
+                enable_suggested_questions=False,
+            ):
+                events.append(event)
+            return events
+
+        events = asyncio.run(consume())
+        answer = ""
+        citations = None
+        event_names = [event.split("\n", 1)[0].replace("event: ", "") for event in events]
+        for event in events:
+            if event.startswith("event: delta"):
+                answer += json.loads(event.split("data: ", 1)[1]).get("content", "")
+            if event.startswith("event: citations"):
+                citations = json.loads(event.split("data: ", 1)[1]).get("citations")
+
+        self.assertEqual(answer, SMALLTALK_WELCOME)
+        self.assertEqual(citations, [])
+        self.assertNotIn("retrieval_start", event_names)
+        self.assertNotIn("retrieval_done", event_names)
+        self.assertFalse(service.model_service.stream_called)
+        self.assertTrue(db.retrieval_logs)
+        self.assertEqual(db.retrieval_logs[0].recall_results, [])
+        self.assertEqual(db.retrieval_logs[0].citations, [])
+
+
 class FakeMessage:
     def __init__(self, message_id: str, conversation_id: str, role: str, content: str) -> None:
         self.id = message_id
@@ -389,6 +449,17 @@ class FakeDirectQaRetrievalService:
 
     def citations_for_answer(self, query, answer, contexts):
         return self._citations(contexts)
+
+
+class FakeNoRetrievalService:
+    async def find_direct_qa_answer(self, *args, **kwargs):
+        raise AssertionError("smalltalk should skip direct QA")
+
+    async def search(self, *args, **kwargs):
+        raise AssertionError("smalltalk should skip retrieval")
+
+    def citations_for_answer(self, *args, **kwargs):
+        raise AssertionError("smalltalk should skip citations")
 
 
 class FakeChatStreamSession:

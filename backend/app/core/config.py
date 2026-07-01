@@ -106,6 +106,9 @@ class Settings(BaseSettings):
     rerank_threshold: float = 0.45
     retrieval_cache_enabled: bool = True
     retrieval_cache_ttl_seconds: int = 1800
+    retrieval_blacklist_keywords: str = (
+        "接口测试,API接口,API 接口,接口设计,测试文档,内部文档,内部资料,涉密,保密,AI底座,底座规划"
+    )
     answer_cache_enabled: bool = True
     answer_cache_ttl_seconds: int = 3600
 

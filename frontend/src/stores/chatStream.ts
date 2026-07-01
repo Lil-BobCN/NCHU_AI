@@ -10,6 +10,8 @@ export type Message = {
   content: string
   citations?: any[]
   suggested_questions?: any[]
+  feedback_status?: string
+  feedback_error_type?: string
   status?: string
   retrieval?: string
   error?: string
@@ -23,6 +25,8 @@ export type Conversation = {
   message_count?: number
   last_message_at?: string | null
   created_at?: string | null
+  open_feedback_count?: number
+  has_feedback?: boolean
 }
 
 type TypeState = {
@@ -45,9 +49,13 @@ type ActiveTurn = {
 
 const TYPEWRITER_DELAY_MS = 15
 const ACTIVE_CONVERSATION_STORAGE_KEY = 'rag_active_conversation_id'
+let conversationSearchRequestId = 0
 
 export const useChatStreamStore = defineStore('chatStream', () => {
   const conversations = ref<Conversation[]>([])
+  const conversationSearch = ref('')
+  const conversationFeedbackOnly = ref(false)
+  const searchingConversations = ref(false)
   const conversationId = ref<string | null>(null)
   const messages = ref<Message[]>([])
   const question = ref('')
@@ -64,6 +72,8 @@ export const useChatStreamStore = defineStore('chatStream', () => {
     const current = conversations.value.find((item) => item.id === conversationId.value)
     return current?.title || '智能对话'
   })
+  const hasConversationSearch = computed(() => Boolean(conversationSearch.value.trim()))
+  const hasConversationFeedbackFilter = computed(() => conversationFeedbackOnly.value)
 
   async function initialize() {
     await loadConversations()
@@ -75,9 +85,40 @@ export const useChatStreamStore = defineStore('chatStream', () => {
     void scrollToBottom()
   }
 
-  async function loadConversations() {
-    const data = unwrap<any>(await api.get('/conversations'))
-    conversations.value = data.items
+  async function loadConversations(search = conversationSearch.value) {
+    const keyword = search.trim()
+    const requestId = ++conversationSearchRequestId
+    searchingConversations.value = Boolean(keyword)
+    try {
+      const data = unwrap<any>(
+        await api.get('/conversations', {
+          params: {
+            q: keyword || undefined,
+            feedback_only: conversationFeedbackOnly.value || undefined,
+            page_size: keyword ? 50 : 20
+          }
+        })
+      )
+      if (requestId === conversationSearchRequestId) conversations.value = data.items
+    } finally {
+      if (requestId === conversationSearchRequestId) searchingConversations.value = false
+    }
+  }
+
+  async function searchConversations(keyword: string) {
+    conversationSearch.value = keyword
+    await loadConversations(keyword)
+  }
+
+  async function clearConversationSearch() {
+    if (!conversationSearch.value) return
+    conversationSearch.value = ''
+    await loadConversations('')
+  }
+
+  async function toggleFeedbackOnlyConversations() {
+    conversationFeedbackOnly.value = !conversationFeedbackOnly.value
+    await loadConversations()
   }
 
   async function restoreActiveConversation() {
@@ -99,6 +140,16 @@ export const useChatStreamStore = defineStore('chatStream', () => {
   }
 
   async function newConversation() {
+    if (activeTurn.value) {
+      activeTurn.value.aborted = true
+      activeTurn.value.restoreDraft = false
+      clearTypeQueue(activeTurn.value.assistantMessage)
+      activeAbortController.value?.abort()
+      activeTurn.value = null
+      activeAbortController.value = null
+    }
+    loading.value = false
+    stoppingGeneration.value = false
     const data = unwrap<any>(await api.post('/conversations', { title: '新的对话' }))
     conversationId.value = data.id
     localStorage.setItem(ACTIVE_CONVERSATION_STORAGE_KEY, data.id)
@@ -148,6 +199,28 @@ export const useChatStreamStore = defineStore('chatStream', () => {
     } finally {
       deletingConversationId.value = null
     }
+  }
+
+  async function submitAnswerFeedback(message: Message, errorType: string, description: string) {
+    if (!message.id || message.role !== 'assistant') throw new Error('无法定位要反馈的回答')
+    const data = unwrap<any>(
+      await api.post('/feedback/answers', {
+        assistant_message_id: message.id,
+        error_type: errorType,
+        description
+      })
+    )
+    message.feedback_status = data.status || 'open'
+    message.feedback_error_type = data.error_type || errorType
+    if (data.conversation_id) {
+      upsertConversation({
+        id: data.conversation_id,
+        open_feedback_count: data.conversation_feedback_count,
+        has_feedback: Number(data.conversation_feedback_count || 0) > 0
+      })
+    }
+    await loadConversations()
+    return data
   }
 
   async function ask(text: string) {
@@ -348,6 +421,11 @@ export const useChatStreamStore = defineStore('chatStream', () => {
     return Boolean(turn && loading.value && !stoppingGeneration.value && turn.userMessage === message)
   }
 
+  function isActiveAssistantMessage(message: Message) {
+    const turn = activeTurn.value
+    return Boolean(turn && loading.value && !stoppingGeneration.value && turn.assistantMessage === message)
+  }
+
   function ensureActiveTurnVisible(turn: ActiveTurn) {
     const containsUser = messages.value.some((message) => isSameMessage(message, turn.userMessage))
     const containsAssistant = messages.value.some((message) => isSameMessage(message, turn.assistantMessage))
@@ -376,7 +454,9 @@ export const useChatStreamStore = defineStore('chatStream', () => {
       context_state: patch.context_state,
       message_count: patch.message_count,
       last_message_at: patch.last_message_at || null,
-      created_at: patch.created_at || null
+      created_at: patch.created_at || null,
+      open_feedback_count: patch.open_feedback_count,
+      has_feedback: patch.has_feedback
     })
   }
 
@@ -443,6 +523,11 @@ export const useChatStreamStore = defineStore('chatStream', () => {
 
   return {
     conversations,
+    conversationSearch,
+    conversationFeedbackOnly,
+    searchingConversations,
+    hasConversationSearch,
+    hasConversationFeedbackFilter,
     conversationId,
     messages,
     question,
@@ -454,15 +539,20 @@ export const useChatStreamStore = defineStore('chatStream', () => {
     initialize,
     attachScrollTarget,
     loadConversations,
+    searchConversations,
+    clearConversationSearch,
+    toggleFeedbackOnlyConversations,
     restoreActiveConversation,
     newConversation,
     loadConversation,
     deleteConversation,
     renameConversation,
+    submitAnswerFeedback,
     ask,
     stopGeneration,
     retractActiveTurn,
     isActiveUserMessage,
+    isActiveAssistantMessage,
     scrollToBottom
   }
 })

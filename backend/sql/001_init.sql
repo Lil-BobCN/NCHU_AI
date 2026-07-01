@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS documents (
   file_hash varchar(128) NOT NULL,
   storage_bucket varchar(128) NOT NULL,
   storage_object_key varchar(512) NOT NULL,
+  knowledge_base varchar(64) NOT NULL DEFAULT 'default',
   source_url text NULL,
   preview_url text NULL,
   download_url text NULL,
@@ -211,6 +212,26 @@ CREATE TABLE IF NOT EXISTS retrieval_logs (
 );
 CREATE INDEX IF NOT EXISTS idx_retrieval_logs_created_at ON retrieval_logs(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_retrieval_logs_conversation_id ON retrieval_logs(conversation_id);
+
+CREATE TABLE IF NOT EXISTS answer_feedbacks (
+  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  conversation_id uuid NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
+  user_message_id uuid NULL REFERENCES conversation_messages(id) ON DELETE SET NULL,
+  assistant_message_id uuid NOT NULL REFERENCES conversation_messages(id) ON DELETE CASCADE,
+  retrieval_log_id uuid NULL REFERENCES retrieval_logs(id) ON DELETE SET NULL,
+  error_type varchar(32) NOT NULL,
+  description text NOT NULL DEFAULT '',
+  question_snapshot text NOT NULL DEFAULT '',
+  answer_snapshot text NOT NULL DEFAULT '',
+  citations_snapshot jsonb NOT NULL DEFAULT '[]',
+  status varchar(32) NOT NULL DEFAULT 'open',
+  created_by uuid NULL,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_answer_feedbacks_conversation_status ON answer_feedbacks(conversation_id, status);
+CREATE INDEX IF NOT EXISTS idx_answer_feedbacks_assistant_message ON answer_feedbacks(assistant_message_id);
+CREATE INDEX IF NOT EXISTS idx_answer_feedbacks_created_at ON answer_feedbacks(created_at DESC);
 
 CREATE TABLE IF NOT EXISTS evaluation_cases (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),

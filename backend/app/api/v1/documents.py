@@ -1,7 +1,11 @@
+import csv
+import io
+from datetime import datetime
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
-from sqlalchemy import func, select
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, Response, UploadFile
+from pydantic import BaseModel, Field, field_validator
+from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_admin
@@ -23,6 +27,40 @@ from app.services.document_upload_service import (
 
 
 router = APIRouter(prefix="/documents", tags=["documents"])
+
+
+class DocumentBatchPayload(BaseModel):
+    document_ids: list[str] = Field(min_length=1, max_length=200)
+
+    @field_validator("document_ids")
+    @classmethod
+    def normalize_document_ids(cls, value: list[str]) -> list[str]:
+        normalized: list[str] = []
+        seen: set[str] = set()
+        for item in value:
+            try:
+                document_id = str(UUID(str(item)))
+            except ValueError as exc:
+                raise ValueError("document_id 格式不正确") from exc
+            if document_id in seen:
+                continue
+            seen.add(document_id)
+            normalized.append(document_id)
+        if not normalized:
+            raise ValueError("document_ids 不能为空")
+        return normalized
+
+
+class DocumentBatchKnowledgeBasePayload(DocumentBatchPayload):
+    knowledge_base: str = Field(min_length=1, max_length=64)
+
+    @field_validator("knowledge_base")
+    @classmethod
+    def normalize_knowledge_base(cls, value: str) -> str:
+        normalized = normalize_knowledge_base(value)
+        if not normalized:
+            raise ValueError("knowledge_base 不能为空")
+        return normalized
 
 
 @router.post("/upload")
@@ -98,6 +136,7 @@ async def check_upload_duplicate(
 async def list_documents(
     keyword: str | None = None,
     status: str | None = None,
+    knowledge_base: str | None = None,
     page: int = 1,
     page_size: int = 20,
     db: AsyncSession = Depends(get_db),
@@ -112,6 +151,10 @@ async def list_documents(
     if status:
         query = query.where(Document.status == status)
         count_query = count_query.where(Document.status == status)
+    normalized_knowledge_base = normalize_knowledge_base(knowledge_base)
+    if normalized_knowledge_base:
+        query = query.where(Document.knowledge_base == normalized_knowledge_base)
+        count_query = count_query.where(Document.knowledge_base == normalized_knowledge_base)
     total = await db.scalar(count_query)
     rows = await db.execute(
         query.order_by(Document.created_at.desc()).offset((page - 1) * page_size).limit(page_size)
@@ -124,6 +167,136 @@ async def list_documents(
             "total": total or 0,
         }
     )
+
+
+@router.get("/export")
+async def export_documents(
+    keyword: str | None = None,
+    status: str | None = None,
+    knowledge_base: str | None = None,
+    db: AsyncSession = Depends(get_db),
+    _: Admin = Depends(get_current_admin),
+):
+    query = select(Document).where(Document.deleted_at.is_(None))
+    if keyword:
+        condition = Document.title.ilike(f"%{keyword}%") | Document.file_name.ilike(f"%{keyword}%")
+        query = query.where(condition)
+    if status:
+        query = query.where(Document.status == status)
+    normalized_knowledge_base = normalize_knowledge_base(knowledge_base)
+    if normalized_knowledge_base:
+        query = query.where(Document.knowledge_base == normalized_knowledge_base)
+    rows = await db.execute(query.order_by(Document.created_at.desc()))
+    buffer = io.StringIO(newline="")
+    writer = csv.writer(buffer)
+    writer.writerow(["名称", "文件名", "大小(B)", "上传时间", "所属知识库", "状态", "质量"])
+    for document in rows.scalars():
+        writer.writerow(
+            [
+                _display_document_title(document),
+                document.file_name,
+                document.file_size,
+                document.created_at.isoformat() if document.created_at else "",
+                document.knowledge_base or "default",
+                document.status,
+                float(document.parse_quality_score or 0),
+            ]
+        )
+    filename = f"documents-{datetime.now().strftime('%Y%m%d%H%M%S')}.csv"
+    return Response(
+        content="\ufeff" + buffer.getvalue(),
+        media_type="text/csv; charset=utf-8",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+@router.post("/batch/delete")
+async def batch_delete_documents(
+    payload: DocumentBatchPayload,
+    db: AsyncSession = Depends(get_db),
+    _: Admin = Depends(get_current_admin),
+):
+    documents = await _get_documents(db, payload.document_ids)
+    lifecycle = DocumentLifecycleService()
+    storage_refs = []
+    deleted_ids: list[str] = []
+    for document in documents:
+        storage_refs.extend(await lifecycle.soft_delete_document(db, document, reason="documents_batch_deleted"))
+        deleted_ids.append(str(document.id))
+    await db.commit()
+    lifecycle.remove_storage_objects(storage_refs)
+    return ok({"deleted": deleted_ids, "count": len(deleted_ids)})
+
+
+@router.post("/batch/knowledge-base")
+async def batch_update_knowledge_base(
+    payload: DocumentBatchKnowledgeBasePayload,
+    db: AsyncSession = Depends(get_db),
+    _: Admin = Depends(get_current_admin),
+):
+    documents = await _get_documents(db, payload.document_ids)
+    ids = [str(document.id) for document in documents]
+    await db.execute(
+        update(Document)
+        .where(Document.id.in_(ids), Document.deleted_at.is_(None))
+        .values(knowledge_base=payload.knowledge_base)
+    )
+    for document_id in ids:
+        await DocumentLifecycleService().mark_knowledge_base_changed(
+            db,
+            document_id=document_id,
+            reason="documents_batch_knowledge_base_changed",
+        )
+    await db.commit()
+    return ok({"updated": ids, "knowledge_base": payload.knowledge_base, "count": len(ids)})
+
+
+@router.post("/batch/reparse")
+async def batch_reparse_documents(
+    payload: DocumentBatchPayload,
+    db: AsyncSession = Depends(get_db),
+    _: Admin = Depends(get_current_admin),
+):
+    documents = await _get_documents(db, payload.document_ids)
+    jobs = []
+    for document in documents:
+        task = await _enqueue_document_task("document_full_pipeline", str(document.id))
+        jobs.append({"document_id": str(document.id), "status": "queued", "task_id": task["id"]})
+    return ok({"jobs": jobs, "count": len(jobs)})
+
+
+@router.post("/batch/rechunk")
+async def batch_rechunk_documents(
+    payload: DocumentBatchPayload,
+    db: AsyncSession = Depends(get_db),
+    _: Admin = Depends(get_current_admin),
+):
+    documents = await _get_documents(db, payload.document_ids)
+    jobs = []
+    skipped = []
+    for document in documents:
+        skip = await _indexing_skip_payload(db, document, "chunk")
+        if skip:
+            skipped.append(skip)
+            continue
+        task = await _enqueue_document_task("document_rechunk", str(document.id))
+        jobs.append({"document_id": str(document.id), "status": "queued", "task_id": task["id"]})
+    return ok({"jobs": jobs, "skipped": skipped, "count": len(jobs)})
+
+
+@router.post("/cleanup-deleted-artifacts")
+async def cleanup_deleted_document_artifacts(
+    document_id: str | None = Query(default=None),
+    db: AsyncSession = Depends(get_db),
+    _: Admin = Depends(get_current_admin),
+):
+    normalized_document_id = _normalize_document_id(document_id) if document_id else None
+    result = await DocumentLifecycleService().cleanup_deleted_document_artifacts(
+        db,
+        document_id=normalized_document_id,
+    )
+    await db.commit()
+    return ok(result.as_dict())
 
 
 @router.get("/{document_id}")
@@ -322,6 +495,19 @@ async def _get_document(db: AsyncSession, document_id: str) -> Document:
     return document
 
 
+async def _get_documents(db: AsyncSession, document_ids: list[str]) -> list[Document]:
+    normalized_ids = [_normalize_document_id(item) for item in document_ids]
+    rows = await db.execute(
+        select(Document).where(Document.id.in_(normalized_ids), Document.deleted_at.is_(None))
+    )
+    documents = list(rows.scalars())
+    found_ids = {str(document.id) for document in documents}
+    missing = [document_id for document_id in normalized_ids if document_id not in found_ids]
+    if missing:
+        raise HTTPException(status_code=404, detail=f"文档不存在：{', '.join(missing[:3])}")
+    return documents
+
+
 async def _indexing_skip_payload(db: AsyncSession, document: Document, job_type: str) -> dict | None:
     parse_result = await db.scalar(
         select(DocumentParseResult).where(DocumentParseResult.document_id == str(document.id))
@@ -355,6 +541,7 @@ def serialize_document(document: Document) -> dict:
         "file_name": document.file_name,
         "file_ext": document.file_ext,
         "file_size": document.file_size,
+        "knowledge_base": document.knowledge_base or "default",
         "status": document.status,
         "source_url": document.source_url,
         "preview_url": _document_access_url(document),
@@ -364,6 +551,10 @@ def serialize_document(document: Document) -> dict:
         "created_at": document.created_at.isoformat() if document.created_at else None,
         "updated_at": document.updated_at.isoformat() if document.updated_at else None,
     }
+
+
+def normalize_knowledge_base(value: str | None) -> str:
+    return " ".join(str(value or "").strip().split())[:64]
 
 
 def serialize_duplicate_check(duplicate_check, message: str | None = None) -> dict:

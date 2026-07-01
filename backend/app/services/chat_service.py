@@ -1,6 +1,7 @@
 import asyncio
 import hashlib
 import json
+import re
 import time
 from collections.abc import AsyncGenerator
 from datetime import datetime, timezone
@@ -26,6 +27,10 @@ RECENT_HISTORY_MESSAGE_LIMIT = RECENT_HISTORY_ROUNDS * 2
 HISTORY_ITEM_CHAR_LIMIT = 1800
 SUMMARY_MAX_CHARS = 2400
 SUMMARY_SEED_MESSAGE_LIMIT = 120
+SMALLTALK_WELCOME = (
+    "您好，我是学校 RAG 智能问答助手。您可以直接提问校内政策、办事流程、材料要求、联系方式等问题，"
+    "我会根据知识库资料为您查找并回答。"
+)
 
 
 class ChatService:
@@ -59,12 +64,17 @@ class ChatService:
             if not conversation_summary:
                 summary_seed = await self._load_summary_seed(db, str(conversation.id))
             history = await self._load_recent_history(db, str(conversation.id))
-            context_resolution = await self._resolve_context(
+            is_smalltalk = self._is_smalltalk_greeting(question)
+            context_resolution = (
+                self._smalltalk_context_resolution(question)
+                if is_smalltalk
+                else await self._resolve_context(
                 question,
                 history,
                 conversation_summary,
                 context_state,
                 enable_rewrite=enable_rewrite,
+                )
             )
             resolved_query = context_resolution["resolved_query"]
             retrieval_query = self._build_contextual_retrieval_query(
@@ -122,6 +132,66 @@ class ChatService:
                     "context_resolution": context_resolution,
                 },
             )
+
+            if is_smalltalk:
+                retrieval = self._empty_retrieval_trace(
+                    question,
+                    resolved_query,
+                    retrieval_query,
+                    retrieval_reinforced,
+                    retrieval_constraints,
+                    history,
+                    conversation_summary,
+                    context_resolution,
+                    context_state,
+                )
+                citations: list[dict] = []
+                suggested_questions: list[dict] = []
+                answer = self._sanitize_answer(SMALLTALK_WELCOME)
+                async for event in self._stream_delta_text(answer):
+                    yield event
+                yield self._sse("citations", {"citations": citations})
+                yield self._sse("suggested_questions", {"questions": suggested_questions})
+
+                latency_ms = int((time.perf_counter() - started) * 1000)
+                assistant_message.content = answer
+                assistant_message.retrieval_trace = to_jsonable(retrieval)
+                assistant_message.citations = to_jsonable(citations)
+                assistant_message.suggested_questions = to_jsonable(suggested_questions)
+                assistant_message.latency_ms = latency_ms
+                db.add(
+                    RetrievalLog(
+                        conversation_id=conversation.id,
+                        message_id=user_message.id,
+                        raw_query=question,
+                        rewritten_query=retrieval_query,
+                        recall_results=[],
+                        rerank_results=[],
+                        final_context=[],
+                        citations=[],
+                        suggested_questions=[],
+                        answer=answer,
+                        model_name=self.settings.chat_model,
+                        embedding_model=self.settings.embedding_model,
+                        rerank_model=self.settings.rerank_model,
+                        latency_ms=latency_ms,
+                    )
+                )
+                now = datetime.now(timezone.utc)
+                await db.execute(
+                    update(Conversation)
+                    .where(Conversation.id == conversation.id)
+                    .values(
+                        message_count=Conversation.message_count + 2,
+                        summary="",
+                        context_state={},
+                        last_message_at=now,
+                        updated_at=now,
+                    )
+                )
+                await db.commit()
+                yield self._sse("message_end", {"message_id": str(assistant_message.id), "latency_ms": latency_ms})
+                return
 
             yield self._sse(
                 "retrieval_start",
@@ -244,6 +314,7 @@ class ChatService:
                         yield event
 
             answer = "".join(answer_parts).strip()
+            answer = self._sanitize_answer(answer)
             if answer and not cached_answer and not used_fallback and not retrieval.get("direct_qa_hit"):
                 await self._set_cached_answer(question, retrieval, history, conversation_summary, answer)
             citations = to_jsonable(
@@ -537,6 +608,77 @@ class ChatService:
             "active_task": state.get("active_task") if isinstance(state.get("active_task"), dict) else {},
             "pending_action": state.get("pending_action") if isinstance(state.get("pending_action"), dict) else {},
             "last_resolution": state.get("last_resolution") if isinstance(state.get("last_resolution"), dict) else {},
+        }
+
+    def _is_smalltalk_greeting(self, question: str) -> bool:
+        compact = re.sub(r"[\s!！?？。,.，～~、]+", "", (question or "").strip().lower())
+        if not compact or len(compact) > 12:
+            return False
+        greetings = {
+            "你好",
+            "您好",
+            "你好吗",
+            "您好呀",
+            "你好呀",
+            "早",
+            "早上好",
+            "上午好",
+            "中午好",
+            "下午好",
+            "晚上好",
+            "嗨",
+            "哈喽",
+            "hello",
+            "hi",
+            "hey",
+        }
+        return compact in greetings
+
+    def _smalltalk_context_resolution(self, question: str) -> dict:
+        clean_question = question.strip()
+        return {
+            "intent": "smalltalk",
+            "resolved_query": clean_question,
+            "uses_history": False,
+            "uses_context_state": False,
+            "clear_pending": True,
+            "reason": "smalltalk greeting bypasses retrieval",
+        }
+
+    def _empty_retrieval_trace(
+        self,
+        question: str,
+        resolved_query: str,
+        retrieval_query: str,
+        retrieval_reinforced: bool,
+        retrieval_constraints: dict,
+        history: list[dict],
+        conversation_summary: str,
+        context_resolution: dict,
+        context_state: dict,
+    ) -> dict:
+        return {
+            "raw_query": retrieval_query,
+            "rewritten_query": resolved_query,
+            "original_query": question,
+            "resolved_query": resolved_query,
+            "retrieval_query": retrieval_query,
+            "retrieval_query_reinforced": retrieval_reinforced,
+            "recall_results": [],
+            "rerank_results": [],
+            "final_context": [],
+            "answer_context": [],
+            "citations": [],
+            "retrieval_options": {
+                "smalltalk_bypass": True,
+                "context_constraints": retrieval_constraints,
+            },
+            "direct_qa_hit": False,
+            "context_constraints": retrieval_constraints,
+            "history_count": len(history),
+            "conversation_summary": conversation_summary,
+            "context_resolution": context_resolution,
+            "context_state": context_state,
         }
 
     async def _resolve_context(
@@ -1341,6 +1483,19 @@ class ChatService:
             "请查看下方参考来源确认原文。"
         )
 
+    def _sanitize_answer(self, text: str) -> str:
+        if not text:
+            return ""
+        sanitized = re.sub(
+            r"[\U0001F000-\U0001FAFF\U00002700-\U000027BF\U00002600-\U000026FF]",
+            "",
+            text,
+        )
+        sanitized = sanitized.replace("\ufeff", "").replace("\u200b", "")
+        sanitized = re.sub(r"[ \t]+\n", "\n", sanitized)
+        sanitized = re.sub(r"\n{4,}", "\n\n\n", sanitized)
+        return sanitized.strip()
+
     def _clip(self, text: str, limit: int) -> str:
         if len(text) <= limit:
             return text
@@ -1437,10 +1592,11 @@ class ChatService:
             for item in contexts
         ]
         payload = {
-            "version": 3,
+            "version": 5,
             "chat_model": self.settings.chat_model,
             "question": question,
             "context": context_payload,
+            "corpus_version": retrieval.get("corpus_version"),
         }
         digest = hashlib.sha256(
             json.dumps(to_jsonable(payload), ensure_ascii=False, sort_keys=True).encode("utf-8")
@@ -1455,8 +1611,8 @@ class ChatService:
             return
         delay = max(0, self.settings.stream_char_delay_ms) / 1000
         if delay <= 0:
-            yield self._sse("delta", {"content": text})
+            yield self._sse("delta", {"content": self._sanitize_answer(text)})
             return
-        for char in text:
+        for char in self._sanitize_answer(text):
             yield self._sse("delta", {"content": char})
             await asyncio.sleep(delay)

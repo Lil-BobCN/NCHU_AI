@@ -20,6 +20,21 @@ class RetrievalService:
     MAX_CITATION_DOCS = 2
     MAX_CITATION_ITEMS = 3
     CITATION_EVIDENCE_CHARS = 240
+    LEGACY_URL_ENCODED_NAME_PATTERN = r"(^|[^%])%(8[0-9A-F]|9[0-9A-F]|A[0-9A-F]|B[0-9A-F])(%[0-9A-F]{2}){2,}|%EF%BF%BD"
+    LEGACY_URL_ENCODED_NAME_RE = re.compile(LEGACY_URL_ENCODED_NAME_PATTERN, re.IGNORECASE)
+    DEFAULT_BLACKLIST_KEYWORDS = (
+        "接口测试",
+        "API接口",
+        "API 接口",
+        "接口设计",
+        "测试文档",
+        "内部文档",
+        "内部资料",
+        "涉密",
+        "保密",
+        "AI底座",
+        "底座规划",
+    )
 
     def __init__(self) -> None:
         self.settings = get_settings()
@@ -28,6 +43,7 @@ class RetrievalService:
         self.redis_service = RedisService()
         self.rag_settings = RagSettingsService().get_effective()
         self.minio_service = MinioService()
+        self.blacklist_keywords = self._load_blacklist_keywords()
 
     async def search(
         self,
@@ -77,7 +93,14 @@ class RetrievalService:
         }
         query_domain = self._classify_query_business_domain(query, constraints)
         options["business_domain"] = query_domain
-        cached = await self._get_cached_retrieval(query, final_top_k, options)
+        corpus_version = await self._corpus_version(db)
+        options["corpus_version"] = corpus_version
+        cached = await self._get_cached_retrieval(
+            query,
+            final_top_k,
+            options,
+            corpus_version=corpus_version,
+        )
         if cached:
             return cached
 
@@ -86,17 +109,21 @@ class RetrievalService:
             if enable_vector_recall
             else []
         )
+        vector_results = self._filter_invalid_document_sources(vector_results, stage="vector")
         keyword_results = (
             await self._keyword_search(db, query, top_k=keyword_top_k, document_ids=document_ids)
             if enable_keyword_recall
             else []
         )
+        keyword_results = self._filter_invalid_document_sources(keyword_results, stage="keyword")
         qa_results = (
             await self._qa_search(db, query, top_k=qa_top_k, document_ids=document_ids)
             if enable_qa_recall
             else []
         )
+        qa_results = self._filter_invalid_document_sources(qa_results, stage="qa")
         fused = self._rrf([vector_results, keyword_results, qa_results])
+        fused = self._filter_invalid_document_sources(fused, stage="recall")
         fused, constraint_filter = self._apply_context_constraints(constraints, fused, stage="recall")
         fused, business_filter = self._filter_by_business_domain(query_domain, fused, stage="recall")
         rerank_candidates = fused[: self._rerank_candidate_count(final_top_k, len(fused))]
@@ -118,9 +145,11 @@ class RetrievalService:
                 query_domain,
                 policy_coverage,
             )
+        final_context = self._filter_invalid_document_sources(final_context, stage="context")
         answer_context = self.select_answer_context(query, final_context)
         answer_context, constraint_answer_filter = self._apply_context_constraints(constraints, answer_context, stage="answer_context")
         answer_context, answer_filter = self._filter_by_business_domain(query_domain, answer_context, stage="answer_context")
+        answer_context = self._filter_invalid_document_sources(answer_context, stage="answer_context")
         citations = self._citations(answer_context)
         result = to_jsonable({
             "raw_query": query,
@@ -145,8 +174,15 @@ class RetrievalService:
             "policy_coverage": policy_coverage,
             "retrieval_options": options,
             "effective_settings": self.rag_settings,
+            "corpus_version": corpus_version,
         })
-        await self._set_cached_retrieval(query, final_top_k, options, result)
+        await self._set_cached_retrieval(
+            query,
+            final_top_k,
+            options,
+            result,
+            corpus_version=corpus_version,
+        )
         return result
 
     async def find_direct_qa_answer(
@@ -162,9 +198,12 @@ class RetrievalService:
         constraints = self._normalize_context_constraints(context_constraints)
         query_domain = self._classify_query_business_domain(clean_query, constraints)
         exact_hit = await self._find_exact_qa_hit(db, clean_query, query_domain, document_ids)
-        if exact_hit:
+        if exact_hit and not self._is_invalid_document_source(exact_hit):
             return exact_hit
-        return await self._find_semantic_qa_hit(db, clean_query, query_domain, document_ids)
+        semantic_hit = await self._find_semantic_qa_hit(db, clean_query, query_domain, document_ids)
+        if semantic_hit and not self._is_invalid_document_source(semantic_hit):
+            return semantic_hit
+        return None
 
     async def _find_exact_qa_hit(
         self,
@@ -175,7 +214,7 @@ class RetrievalService:
     ) -> dict | None:
         rows = await db.execute(
             text(
-                """
+                f"""
                 SELECT q.id AS qa_pair_id, q.question AS qa_question, q.answer AS qa_answer,
                        q.source_document_id AS document_id,
                        d.title AS document_title, d.file_name AS document_name,
@@ -195,7 +234,14 @@ class RetrievalService:
                   AND q.answer IS NOT NULL
                   AND btrim(q.question) <> ''
                   AND btrim(q.answer) <> ''
-                  AND (q.source_document_id IS NULL OR d.deleted_at IS NULL)
+                  AND (
+                    q.source_document_id IS NULL
+                    OR (
+                      d.deleted_at IS NULL
+                      AND d.file_name !~* :legacy_url_encoded_name_pattern
+                      AND NOT ({self._document_blacklist_sql()})
+                    )
+                  )
                   AND (:document_ids_is_null OR q.source_document_id = ANY(CAST(:document_ids AS uuid[])))
                   AND (
                     q.question ILIKE :keyword
@@ -210,12 +256,16 @@ class RetrievalService:
                 "keyword": f"%{query}%",
                 "document_ids": document_ids,
                 "document_ids_is_null": document_ids is None,
+                "legacy_url_encoded_name_pattern": self.LEGACY_URL_ENCODED_NAME_PATTERN,
+                "blacklist_keywords": self._blacklist_sql_patterns(),
             },
         )
         normalized_query = self._normalize_direct_qa_text(query)
         best: dict | None = None
         for row in rows:
             item = self._normalize_qa_direct_row(dict(row._mapping), "exact")
+            if self._is_invalid_document_source(item):
+                continue
             if not self._qa_domain_allowed(query_domain, item):
                 continue
             normalized_question = self._normalize_direct_qa_text(str(item.get("qa_question") or ""))
@@ -245,7 +295,7 @@ class RetrievalService:
         vector_literal = "[" + ",".join(str(x) for x in embedding) + "]"
         rows = await db.execute(
             text(
-                """
+                f"""
                 SELECT q.id AS qa_pair_id, q.question AS qa_question, q.answer AS qa_answer,
                        q.source_document_id AS document_id,
                        d.title AS document_title, d.file_name AS document_name,
@@ -266,7 +316,14 @@ class RetrievalService:
                   AND q.answer IS NOT NULL
                   AND btrim(q.question) <> ''
                   AND btrim(q.answer) <> ''
-                  AND (q.source_document_id IS NULL OR d.deleted_at IS NULL)
+                  AND (
+                    q.source_document_id IS NULL
+                    OR (
+                      d.deleted_at IS NULL
+                      AND d.file_name !~* :legacy_url_encoded_name_pattern
+                      AND NOT ({self._document_blacklist_sql()})
+                    )
+                  )
                   AND (:document_ids_is_null OR q.source_document_id = ANY(CAST(:document_ids AS uuid[])))
                 ORDER BY qe.embedding <=> CAST(:embedding AS vector)
                 LIMIT 8
@@ -276,10 +333,14 @@ class RetrievalService:
                 "embedding": vector_literal,
                 "document_ids": document_ids,
                 "document_ids_is_null": document_ids is None,
+                "legacy_url_encoded_name_pattern": self.LEGACY_URL_ENCODED_NAME_PATTERN,
+                "blacklist_keywords": self._blacklist_sql_patterns(),
             },
         )
         for row in rows:
             item = self._normalize_qa_direct_row(dict(row._mapping), "semantic")
+            if self._is_invalid_document_source(item):
+                continue
             score = float(item.get("score") or 0)
             lexical_score = self._direct_qa_text_similarity(query, str(item.get("qa_question") or ""))
             if not self._qa_domain_allowed(query_domain, item):
@@ -343,7 +404,7 @@ class RetrievalService:
         vector_literal = "[" + ",".join(str(x) for x in embedding) + "]"
         rows = await db.execute(
             text(
-                """
+                f"""
                 SELECT c.id AS chunk_id, c.document_id, d.title AS document_title,
                        d.file_name AS document_name,
                        c.content, c.page_start, c.page_end, c.section_path,
@@ -357,6 +418,8 @@ class RetrievalService:
                 JOIN documents d ON d.id = c.document_id
                 WHERE c.is_active = true
                   AND d.deleted_at IS NULL
+                  AND d.file_name !~* :legacy_url_encoded_name_pattern
+                  AND NOT ({self._document_blacklist_sql()})
                   AND (:document_ids_is_null OR d.id = ANY(CAST(:document_ids AS uuid[])))
                 ORDER BY e.embedding <=> CAST(:embedding AS vector)
                 LIMIT :top_k
@@ -367,6 +430,8 @@ class RetrievalService:
                 "top_k": top_k,
                 "document_ids": document_ids,
                 "document_ids_is_null": document_ids is None,
+                "legacy_url_encoded_name_pattern": self.LEGACY_URL_ENCODED_NAME_PATTERN,
+                "blacklist_keywords": self._blacklist_sql_patterns(),
             },
         )
         return [self._normalize_result({**dict(row._mapping), "source": "vector"}) for row in rows]
@@ -386,6 +451,8 @@ class RetrievalService:
             "top_k": top_k,
             "document_ids": document_ids,
             "document_ids_is_null": document_ids is None,
+            "legacy_url_encoded_name_pattern": self.LEGACY_URL_ENCODED_NAME_PATTERN,
+            "blacklist_keywords": self._blacklist_sql_patterns(),
         }
         term_conditions = []
         term_scores = []
@@ -454,6 +521,8 @@ class RetrievalService:
                 JOIN documents d ON d.id = c.document_id
                 WHERE c.is_active = true
                   AND d.deleted_at IS NULL
+                  AND d.file_name !~* :legacy_url_encoded_name_pattern
+                  AND NOT ({self._document_blacklist_sql()})
                   AND (:document_ids_is_null OR d.id = ANY(CAST(:document_ids AS uuid[])))
                   AND (({lexical_condition}) OR similarity(c.content, :query) > 0.05)
                 ORDER BY score DESC
@@ -473,7 +542,7 @@ class RetrievalService:
             vector_literal = "[" + ",".join(str(x) for x in embedding) + "]"
             vector_rows = await db.execute(
                 text(
-                    """
+                    f"""
                     SELECT q.id AS qa_pair_id, q.question AS qa_question, q.answer AS qa_answer,
                            q.source_document_id AS document_id,
                            d.title AS document_title, d.file_name AS document_name,
@@ -491,7 +560,14 @@ class RetrievalService:
                     LEFT JOIN documents d ON d.id = q.source_document_id
                     WHERE q.status = 'enabled'
                       AND q.deleted_at IS NULL
-                      AND (q.source_document_id IS NULL OR d.deleted_at IS NULL)
+                      AND (
+                        q.source_document_id IS NULL
+                        OR (
+                          d.deleted_at IS NULL
+                          AND d.file_name !~* :legacy_url_encoded_name_pattern
+                          AND NOT ({self._document_blacklist_sql()})
+                        )
+                      )
                       AND (:document_ids_is_null OR q.source_document_id = ANY(CAST(:document_ids AS uuid[])))
                     ORDER BY qe.embedding <=> CAST(:embedding AS vector)
                     LIMIT :top_k
@@ -502,6 +578,8 @@ class RetrievalService:
                     "top_k": top_k,
                     "document_ids": document_ids,
                     "document_ids_is_null": document_ids is None,
+                    "legacy_url_encoded_name_pattern": self.LEGACY_URL_ENCODED_NAME_PATTERN,
+                    "blacklist_keywords": self._blacklist_sql_patterns(),
                 },
             )
             vector_results = [self._normalize_result({**dict(row._mapping), "source": "qa_vector"}) for row in vector_rows]
@@ -511,7 +589,7 @@ class RetrievalService:
         # 文本召回（关键词+相似度）
         text_rows = await db.execute(
             text(
-                """
+                f"""
                 SELECT q.id AS qa_pair_id, q.question AS qa_question, q.answer AS qa_answer,
                        q.source_document_id AS document_id,
                        d.title AS document_title, d.file_name AS document_name,
@@ -528,7 +606,14 @@ class RetrievalService:
                 LEFT JOIN documents d ON d.id = q.source_document_id
                 WHERE q.status = 'enabled'
                   AND q.deleted_at IS NULL
-                  AND (q.source_document_id IS NULL OR d.deleted_at IS NULL)
+                  AND (
+                    q.source_document_id IS NULL
+                    OR (
+                      d.deleted_at IS NULL
+                      AND d.file_name !~* :legacy_url_encoded_name_pattern
+                      AND NOT ({self._document_blacklist_sql()})
+                    )
+                  )
                   AND (:document_ids_is_null OR q.source_document_id = ANY(CAST(:document_ids AS uuid[])))
                   AND (q.question ILIKE :keyword OR similarity(q.question, :query) > 0.05)
                 ORDER BY score DESC
@@ -541,6 +626,8 @@ class RetrievalService:
                 "top_k": top_k,
                 "document_ids": document_ids,
                 "document_ids_is_null": document_ids is None,
+                "legacy_url_encoded_name_pattern": self.LEGACY_URL_ENCODED_NAME_PATTERN,
+                "blacklist_keywords": self._blacklist_sql_patterns(),
             },
         )
         text_results = [self._normalize_result({**dict(row._mapping), "source": "qa_text"}) for row in text_rows]
@@ -584,7 +671,7 @@ class RetrievalService:
 
         rows = await db.execute(
             text(
-                """
+                f"""
                 WITH anchors AS (
                   SELECT id, document_id, chunk_no
                   FROM document_chunks
@@ -608,10 +695,16 @@ class RetrievalService:
                 WHERE c.is_active = true
                   AND c.chunk_type != 'parent'
                   AND d.deleted_at IS NULL
+                  AND d.file_name !~* :legacy_url_encoded_name_pattern
+                  AND NOT ({self._document_blacklist_sql()})
                 ORDER BY a.chunk_no, c.chunk_no
                 """
             ),
-            {"chunk_ids": anchor_ids},
+            {
+                "chunk_ids": anchor_ids,
+                "legacy_url_encoded_name_pattern": self.LEGACY_URL_ENCODED_NAME_PATTERN,
+                "blacklist_keywords": self._blacklist_sql_patterns(),
+            },
         )
         neighbors_by_anchor: dict[str, list[dict]] = {}
         for row in rows:
@@ -2124,12 +2217,15 @@ class RetrievalService:
     def _citations(self, results: list[dict], query: str | None = None, answer: str | None = None) -> list[dict]:
         seen: dict[str, dict] = {}
         for item in results:
+            if self._is_invalid_document_source(item):
+                continue
             document_id = item.get("document_id")
             url = item.get("url")
             if not document_id:
                 continue
             citation_key = self._citation_key(item)
             if citation_key in seen:
+                self._merge_citation_location(seen[citation_key], item)
                 self._merge_citation_images(seen[citation_key], item)
                 continue
             seen[citation_key] = {
@@ -2141,19 +2237,144 @@ class RetrievalService:
                 "page_start": item.get("page_start"),
                 "page_end": item.get("page_end"),
                 "section_path": item.get("section_path"),
-                "evidence": self._citation_evidence(item, query=query, answer=answer),
+                "page_numbers": [],
+                "table_numbers": [],
+                "section_paths": [],
+                "location_label": "",
                 "url": url,
                 "images": [],
             }
+            self._merge_citation_location(seen[citation_key], item)
             self._merge_citation_images(seen[citation_key], item)
         return list(seen.values())[: self.MAX_CITATION_ITEMS]
 
+    def _filter_invalid_document_sources(self, results: list[dict], stage: str | None = None) -> list[dict]:
+        if not results:
+            return results
+        return [item for item in results if not self._is_invalid_document_source(item)]
+
+    def _is_invalid_document_source(self, item: dict) -> bool:
+        for key in ("document_name", "file_name", "document_title", "title"):
+            if self._has_legacy_url_encoded_name(item.get(key)):
+                return True
+            if self._has_blacklisted_document_name(item.get(key)):
+                return True
+        return False
+
+    def _load_blacklist_keywords(self) -> list[str]:
+        raw = str(getattr(self.settings, "retrieval_blacklist_keywords", "") or "")
+        configured = [item.strip() for item in re.split(r"[,，\n;；]+", raw) if item.strip()]
+        keywords = configured or list(self.DEFAULT_BLACKLIST_KEYWORDS)
+        deduped: list[str] = []
+        for keyword in keywords:
+            normalized = re.sub(r"\s+", "", keyword).lower()
+            if not normalized or normalized in deduped:
+                continue
+            deduped.append(normalized)
+        return deduped
+
+    def _blacklist_sql_patterns(self) -> list[str]:
+        return [f"%{keyword}%" for keyword in self.blacklist_keywords] or ["__rag_no_blacklist_match__"]
+
+    def _document_blacklist_sql(self) -> str:
+        haystack = (
+            "regexp_replace(lower(COALESCE(d.title, '') || ' ' || COALESCE(d.file_name, '') || ' ' "
+            "|| COALESCE(d.source_url, '') || ' ' || COALESCE(d.preview_url, '') || ' ' "
+            "|| COALESCE(d.download_url, '')), '\\s+', '', 'g')"
+        )
+        return f"{haystack} ILIKE ANY(CAST(:blacklist_keywords AS text[]))"
+
+    def _has_blacklisted_document_name(self, value) -> bool:
+        text = re.sub(r"\s+", "", str(value or "")).lower()
+        if not text:
+            return False
+        return any(keyword in text for keyword in self.blacklist_keywords)
+
+    def _has_legacy_url_encoded_name(self, value) -> bool:
+        text = str(value or "").strip()
+        if not text:
+            return False
+        file_name = re.split(r"[\\/]", text)[-1]
+        return bool(self.LEGACY_URL_ENCODED_NAME_RE.search(file_name))
+
     def _citation_key(self, item: dict) -> str:
-        for key in ("chunk_id", "qa_pair_id"):
-            value = item.get(key)
-            if value:
-                return f"{key}:{value}"
         return f"document:{item.get('document_id')}"
+
+    def _merge_citation_location(self, citation: dict, item: dict) -> None:
+        pages = citation.setdefault("page_numbers", [])
+        for page in self._citation_pages(item):
+            if page not in pages:
+                pages.append(page)
+        pages.sort()
+
+        table_numbers = citation.setdefault("table_numbers", [])
+        for table in self._citation_tables(item):
+            if table not in table_numbers:
+                table_numbers.append(table)
+
+        section_paths = citation.setdefault("section_paths", [])
+        section = str(item.get("section_path") or "").strip()
+        if section and section not in section_paths:
+            section_paths.append(section)
+
+        if pages:
+            citation["page_start"] = pages[0]
+            citation["page_end"] = pages[-1]
+        if table_numbers and not citation.get("section_path"):
+            citation["section_path"] = "、".join(table_numbers[:3])
+        citation["location_label"] = self._citation_location_label(citation)
+
+    def _citation_pages(self, item: dict) -> list[int]:
+        pages: list[int] = []
+        for key in ("page_start", "page_end"):
+            value = item.get(key)
+            if isinstance(value, int) and value > 0 and value not in pages:
+                pages.append(value)
+        if len(pages) == 2 and pages[1] > pages[0] + 1 and pages[1] - pages[0] <= 20:
+            return list(range(pages[0], pages[1] + 1))
+        return pages
+
+    def _citation_tables(self, item: dict) -> list[str]:
+        candidates = [
+            item.get("section_path"),
+            item.get("document_title"),
+            item.get("document_name"),
+            item.get("file_name"),
+            str((item.get("metadata") or {}).get("table_title") or ""),
+        ]
+        tables: list[str] = []
+        for value in candidates:
+            text = str(value or "")
+            for match in re.finditer(r"表格?\s*([0-9一二三四五六七八九十]+)", text):
+                label = f"表格 {match.group(1)}"
+                if label not in tables:
+                    tables.append(label)
+        return tables
+
+    def _citation_location_label(self, citation: dict) -> str:
+        parts: list[str] = []
+        pages = citation.get("page_numbers") or []
+        if pages:
+            parts.append(f"第 {self._format_number_ranges(pages)} 页")
+        tables = citation.get("table_numbers") or []
+        if tables:
+            parts.append("、".join(tables[:5]))
+        return "，".join(parts)
+
+    def _format_number_ranges(self, numbers: list[int]) -> str:
+        ordered = sorted({number for number in numbers if isinstance(number, int) and number > 0})
+        if not ordered:
+            return ""
+        ranges: list[str] = []
+        start = previous = ordered[0]
+        for number in ordered[1:]:
+            if number == previous + 1:
+                previous = number
+                continue
+            ranges.append(str(start) if start == previous else f"{start}-{previous}")
+            start = previous = number
+        ranges.append(str(start) if start == previous else f"{start}-{previous}")
+        return "、".join(ranges)
 
     def _citation_evidence(self, item: dict, query: str | None = None, answer: str | None = None) -> str:
         text = self._clean_citation_text(str(item.get("content") or item.get("qa_answer") or ""))
@@ -2278,63 +2499,99 @@ class RetrievalService:
     def _json_safe(self, item):
         return to_jsonable(item)
 
-    async def _get_cached_retrieval(self, query: str, top_k: int, options: dict) -> dict | None:
+    async def _get_cached_retrieval(
+        self,
+        query: str,
+        top_k: int,
+        options: dict,
+        *,
+        corpus_version: dict | None = None,
+    ) -> dict | None:
         if not self.settings.retrieval_cache_enabled:
             return None
         try:
-            cache_key = await self._retrieval_cache_key(query, top_k, options)
+            cache_key = await self._retrieval_cache_key(
+                query,
+                top_k,
+                options,
+                corpus_version=corpus_version,
+            )
             cached = await self.redis_service.get_json(cache_key)
             return cached if isinstance(cached, dict) else None
         except Exception:
             return None
 
-    async def _set_cached_retrieval(self, query: str, top_k: int, options: dict, result: dict) -> None:
+    async def _set_cached_retrieval(
+        self,
+        query: str,
+        top_k: int,
+        options: dict,
+        result: dict,
+        *,
+        corpus_version: dict | None = None,
+    ) -> None:
         if not self.settings.retrieval_cache_enabled:
             return
         ttl = max(1, self.settings.retrieval_cache_ttl_seconds)
         try:
-            cache_key = await self._retrieval_cache_key(query, top_k, options)
+            cache_key = await self._retrieval_cache_key(
+                query,
+                top_k,
+                options,
+                corpus_version=corpus_version,
+            )
             await self.redis_service.set_json(cache_key, result, ttl=ttl)
         except Exception:
             return
 
-    async def _retrieval_cache_key(self, query: str, top_k: int, options: dict) -> str:
+    async def _retrieval_cache_key(
+        self,
+        query: str,
+        top_k: int,
+        options: dict,
+        *,
+        corpus_version: dict | None = None,
+    ) -> str:
+        corpus_version = corpus_version if corpus_version is not None else await self._corpus_version()
         payload = to_jsonable(
             {
                 "embedding_model": self.settings.embedding_model,
                 "rerank_model": self.settings.rerank_model,
-                "retrieval_logic_version": 9,
+                "retrieval_logic_version": 13,
                 "top_k": top_k,
                 "query": query,
                 "options": options,
                 "rag_settings": self.rag_settings,
-                "corpus_version": await self._corpus_version(),
+                "corpus_version": corpus_version,
             }
         )
         raw = repr(payload)
         digest = hashlib.sha256(raw.encode("utf-8")).hexdigest()
         return f"retrieval:{digest}"
 
-    async def _corpus_version(self) -> dict:
-        async with AsyncSessionLocal() as db:
-            row = await db.execute(
-                text(
-                    """
-                    SELECT stats.document_count,
-                           stats.latest_document_update,
-                           COALESCE(k.version, 0) AS knowledge_base_version,
-                           COALESCE(k.changed_at, stats.latest_document_update) AS latest_knowledge_update
-                    FROM (
-                      SELECT count(*) AS document_count,
-                             COALESCE(max(updated_at), 'epoch'::timestamptz) AS latest_document_update
-                      FROM documents
-                      WHERE deleted_at IS NULL
-                    ) AS stats
-                    LEFT JOIN knowledge_base_versions k ON k.scope = 'default'
-                    """
-                )
-            )
+    async def _corpus_version(self, db: AsyncSession | None = None) -> dict:
+        sql = text(
+            """
+            SELECT stats.document_count,
+                   stats.latest_document_update,
+                   COALESCE(k.version, 0) AS knowledge_base_version,
+                   COALESCE(k.changed_at, stats.latest_document_update) AS latest_knowledge_update
+            FROM (
+              SELECT count(*) AS document_count,
+                     COALESCE(max(updated_at), 'epoch'::timestamptz) AS latest_document_update
+              FROM documents
+              WHERE deleted_at IS NULL
+            ) AS stats
+            LEFT JOIN knowledge_base_versions k ON k.scope = 'default'
+            """
+        )
+        if db is not None:
+            row = await db.execute(sql)
             data = row.one()._mapping
+        else:
+            async with AsyncSessionLocal() as local_db:
+                row = await local_db.execute(sql)
+                data = row.one()._mapping
         return {
             "document_count": int(data["document_count"] or 0),
             "latest_document_update": str(data["latest_document_update"]),
