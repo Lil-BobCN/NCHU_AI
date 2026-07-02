@@ -1,62 +1,26 @@
-# Environment secrets
 .env
 .env.*
-backend/.env
-backend/.env.*
-!backend/.env.example
-!frontend/.env.example
-
-# Python
+!.env.example
+.venv/
+.venv311/
+.cache/
 __pycache__/
-*.py[cod]
-*$py.class
-*.egg-info/
+*.pyc
+*.tsbuildinfo
+node_modules/
 dist/
-build/
-.venv/
-venv/
-
-# Logs
-/logs/
-*.log
-
-# IDE
-.vscode/
-.idea/
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Claude Code
-.claude/
-
-# Generated files
-*.md.backup
-graphify-out/
-
-# OMX durable docs/prototypes are versioned; runtime noise stays local
-.omx/state/
-.omx/team/
-.omx/tmp/
-.omx/metrics.json
-.omx/tmux-hook.json
-.omx/logs/*.jsonl
-.omx/logs/*.log
-
-# Local dev
-.venv/
-.vscode/
-/logs/
-output/logs/
-
-# Project workflow artifacts
-!AGENTS.md
-!.omx/logs/
-.omx/logs/*
-!.omx/logs/.gitkeep
-!.omx/logs/*.md
-
-# Docker
-postgres-data/
-redis-data/
+.vite/
+uploads/
+logs/
+.tmp_*
+sample_contract.pdf
+10个合同/
+学校文件/
+docs/session-log-*.md
+docs/当前会话记录*.md
+docs/部署的服务信息.md
+docs/服务器部署说明.md
+docs/ingest-*.json
+docs/retrieval-*.json
+docs/*.docx
+acl.txt

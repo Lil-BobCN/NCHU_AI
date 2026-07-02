@@ -1,57 +1,58 @@
-"""Authentication routes for the Phase 1 business API."""
-from __future__ import annotations
+from datetime import datetime, timezone
 
-from typing import Annotated
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
+from sqlalchemy import select, update
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from app.api.deps import get_current_admin
+from app.core.responses import ok
+from app.core.security import create_access_token, verify_password
+from app.db.models import Admin
+from app.db.session import get_db
 
-from app.api.v1.deps import current_user
-from app.schemas.business import LoginRequest, SSOCallbackRequest, TokenResponse, UserPublic
-from app.services.business import TokenSession, User, store
 
 router = APIRouter(prefix="/auth", tags=["auth"])
-SSO_DEFERRED_DETAIL = "Production SSO is deferred for this Demo phase; use local Demo login."
 
 
-@router.post("/login", response_model=TokenResponse)
-async def login(payload: LoginRequest) -> TokenResponse:
-    """Authenticate a local Phase 1 user."""
-    session = store.authenticate_local(payload.username, payload.password)
-    if session is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid username or password",
-        )
-    return _token_response(session)
+class LoginRequest(BaseModel):
+    username: str
+    password: str
 
 
-@router.post("/sso/callback", response_model=TokenResponse)
-async def sso_callback(payload: SSOCallbackRequest) -> TokenResponse:
-    """Expose the SSO adapter boundary without enabling SSO login."""
-    raise HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED, detail=SSO_DEFERRED_DETAIL)
+@router.post("/login")
+async def login(payload: LoginRequest, db: AsyncSession = Depends(get_db)):
+    admin = await db.scalar(
+        select(Admin).where(Admin.username == payload.username, Admin.is_active.is_(True))
+    )
+    if admin is None or not verify_password(payload.password, admin.password_hash):
+        raise HTTPException(status_code=401, detail="账号或密码错误")
+    await db.execute(
+        update(Admin)
+        .where(Admin.id == admin.id)
+        .values(last_login_at=datetime.now(timezone.utc))
+    )
+    await db.commit()
+    return ok(
+        {
+            "access_token": create_access_token(str(admin.id)),
+            "token_type": "bearer",
+            "expires_in": 86400,
+            "admin": {
+                "id": str(admin.id),
+                "username": admin.username,
+                "display_name": admin.display_name,
+            },
+        }
+    )
 
 
-@router.get("/sso/callback", response_model=TokenResponse)
-async def sso_callback_get(
-    code: Annotated[str, Query(min_length=1)],
-    provider: str = "campus-sso",
-    email: str | None = None,
-) -> TokenResponse:
-    """Expose the browser callback boundary without enabling SSO login."""
-    raise HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED, detail=SSO_DEFERRED_DETAIL)
-
-
-@router.get("/me", response_model=UserPublic)
-async def me(user: Annotated[User, Depends(current_user)]) -> User:
-    """Return the bearer-token user profile."""
-    return user
-
-
-def _token_response(session: TokenSession) -> TokenResponse:
-    user = store.users[session.user_id]
-    return TokenResponse(
-        access_token=session.token,
-        provider=session.provider,
-        issued_at=session.issued_at,
-        user=UserPublic.model_validate(user),
+@router.get("/me")
+async def me(admin: Admin = Depends(get_current_admin)):
+    return ok(
+        {
+            "id": str(admin.id),
+            "username": admin.username,
+            "display_name": admin.display_name,
+        }
     )

@@ -1,37 +1,32 @@
-# ==========================================
-# NCHU AI Counselor - FastAPI Application
-# ==========================================
-
 FROM python:3.11-slim
 
-# Set working directory
 WORKDIR /app
+ENV PYTHONPATH=/app
+ENV XDG_CACHE_HOME=/app/.cache
+ENV PADDLE_PDX_CACHE_HOME=/app/.cache/paddlex
+ENV PADDLE_HOME=/app/.cache/paddle
+ENV HF_HOME=/app/.cache/huggingface
+ENV MODELSCOPE_CACHE=/app/.cache/modelscope
+ENV PADDLE_PDX_DISABLE_MODEL_SOURCE_CHECK=True
+ENV WEB_CONCURRENCY=4
 
-# Use Tsinghua Debian mirror
-RUN sed -i 's|http://deb.debian.org|https://mirrors.tuna.tsinghua.edu.cn|g' /etc/apt/sources.list.d/debian.sources 2>/dev/null || \
-    sed -i 's|http://deb.debian.org|https://mirrors.tuna.tsinghua.edu.cn|g' /etc/apt/sources.list 2>/dev/null || true
-
-# Install system dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    gcc \
-    curl \
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        libreoffice-calc \
+        libreoffice-writer \
+        libgl1 \
+        fonts-noto-cjk \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Python dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt \
-    -i https://pypi.tuna.tsinghua.edu.cn/simple \
-    --trusted-host pypi.tuna.tsinghua.edu.cn
+COPY requirements.txt /app/requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application code
-COPY . .
+COPY app /app/app
+COPY sql /app/sql
+COPY alembic /app/alembic
+COPY alembic.ini /app/alembic.ini
 
-# Expose port
-EXPOSE 8000
+RUN mkdir -p /app/.cache/paddlex /app/.cache/paddle /app/.cache/huggingface /app/.cache/modelscope \
+    && python -c "from app.services.ocr_service import PaddleOcrService; PaddleOcrService(lang='ch', use_gpu=False)._get_engine()"
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8000/api/v1/health || exit 1
-
-# Phase 1 local/private baseline: uvicorn factory entrypoint
-CMD ["uvicorn", "app.main:create_app", "--factory", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers ${WEB_CONCURRENCY:-4}"]

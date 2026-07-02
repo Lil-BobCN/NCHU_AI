@@ -1,74 +1,22 @@
-"""SQLAlchemy async database engine and session factory."""
-from __future__ import annotations
-
+from collections.abc import AsyncGenerator
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-# Module-level engine and session factory (initialized at startup)
-_engine = None
-_session_factory = None
+from app.core.config import get_settings
 
 
-def get_engine(database_url: str, echo: bool = False) -> object:
-    """Get or create the async SQLAlchemy engine.
+settings = get_settings()
 
-    Args:
-        database_url: PostgreSQL connection string with asyncpg dialect.
-        echo: Enable SQL echo logging.
-
-    Returns:
-        AsyncEngine instance.
-    """
-    global _engine
-    if _engine is None:
-        _engine = create_async_engine(
-            database_url,
-            echo=echo,
-            pool_pre_ping=True,
-            pool_size=10,
-            max_overflow=20,
-        )
-    return _engine
+engine = create_async_engine(
+    settings.database_url,
+    pool_pre_ping=True,
+    pool_size=max(1, settings.database_pool_size),
+    max_overflow=max(0, settings.database_max_overflow),
+    pool_timeout=max(1, settings.database_pool_timeout_seconds),
+    pool_recycle=max(60, settings.database_pool_recycle_seconds),
+)
+AsyncSessionLocal = async_sessionmaker(engine, expire_on_commit=False)
 
 
-def get_session_factory(database_url: str, echo: bool = False) -> async_sessionmaker[AsyncSession]:
-    """Get or create the async session factory.
-
-    Args:
-        database_url: PostgreSQL connection string with asyncpg dialect.
-        echo: Enable SQL echo logging.
-
-    Returns:
-        Async session maker instance.
-    """
-    global _session_factory
-    if _session_factory is None:
-        engine = get_engine(database_url, echo)
-        _session_factory = async_sessionmaker(
-            engine,
-            class_=AsyncSession,
-            expire_on_commit=False,
-        )
-    return _session_factory
-
-
-async def init_db(database_url: str, echo: bool = False) -> None:
-    """Initialize the database engine and verify PostgreSQL connectivity.
-
-    Args:
-        database_url: PostgreSQL connection string with asyncpg dialect.
-        echo: Enable SQL echo logging.
-    """
-    from sqlalchemy import text
-
-    engine = get_engine(database_url, echo)
-    async with engine.connect() as conn:
-        await conn.execute(text("SELECT 1"))
-
-
-async def close_db() -> None:
-    """Dispose of the database engine and close all connections."""
-    global _engine, _session_factory
-    if _engine is not None:
-        await _engine.dispose()
-        _engine = None
-        _session_factory = None
+async def get_db() -> AsyncGenerator[AsyncSession, None]:
+    async with AsyncSessionLocal() as session:
+        yield session
