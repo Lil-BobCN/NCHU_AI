@@ -34,6 +34,10 @@ type TypeState = {
   timer?: number
 }
 
+type ScrollToBottomOptions = {
+  force?: boolean
+}
+
 type ActiveTurn = {
   conversationId: string | null
   userMessage: Message
@@ -48,6 +52,7 @@ type ActiveTurn = {
 }
 
 const TYPEWRITER_DELAY_MS = 15
+const SCROLL_BOTTOM_EPSILON_PX = 1
 // 与后端 settings.chat_max_question_chars 保持一致，先在前端拦截超长输入，避免用户看到泛化的请求失败。
 export const CHAT_MAX_QUESTION_CHARS = 2000
 const ACTIVE_CONVERSATION_STORAGE_KEY = 'rag_active_conversation_id'
@@ -68,7 +73,9 @@ export const useChatStreamStore = defineStore('chatStream', () => {
   const activeAbortController = ref<AbortController | null>(null)
   const activeTurn = ref<ActiveTurn | null>(null)
   const scrollTarget = ref<HTMLElement | null>(null)
+  const autoFollowOutput = ref(true)
   const typeStates = new WeakMap<Message, TypeState>()
+  let lastMessagesScrollTop = 0
 
   const activeConversationTitle = computed(() => {
     const current = conversations.value.find((item) => item.id === conversationId.value)
@@ -83,8 +90,12 @@ export const useChatStreamStore = defineStore('chatStream', () => {
   }
 
   function attachScrollTarget(target: HTMLElement | null) {
+    scrollTarget.value?.removeEventListener('scroll', handleMessagesScroll)
     scrollTarget.value = target
-    void scrollToBottom()
+    autoFollowOutput.value = true
+    lastMessagesScrollTop = target?.scrollTop || 0
+    scrollTarget.value?.addEventListener('scroll', handleMessagesScroll, { passive: true })
+    void scrollToBottom({ force: true })
   }
 
   async function loadConversations(search = conversationSearch.value) {
@@ -129,7 +140,7 @@ export const useChatStreamStore = defineStore('chatStream', () => {
     if (active?.conversationId) {
       conversationId.value = active.conversationId
       localStorage.setItem(ACTIVE_CONVERSATION_STORAGE_KEY, active.conversationId)
-      await scrollToBottom()
+      await scrollToBottom({ force: true })
       return
     }
     const storedId = localStorage.getItem(ACTIVE_CONVERSATION_STORAGE_KEY)
@@ -178,11 +189,11 @@ export const useChatStreamStore = defineStore('chatStream', () => {
     const active = activeTurn.value
     if (active && active.conversationId === id) {
       ensureActiveTurnVisible(active)
-      await scrollToBottom()
+      await scrollToBottom({ force: true })
       return
     }
     messages.value = unwrap<any>(await api.get(`/conversations/${id}/messages`))
-    await scrollToBottom()
+    await scrollToBottom({ force: true })
   }
 
   async function deleteConversation(item: any) {
@@ -252,7 +263,7 @@ export const useChatStreamStore = defineStore('chatStream', () => {
     })
     messages.value.push(userMessage)
     messages.value.push(assistant)
-    await scrollToBottom()
+    await scrollToBottom({ force: true })
 
     const controller = new AbortController()
     const turn: ActiveTurn = {
@@ -523,11 +534,34 @@ export const useChatStreamStore = defineStore('chatStream', () => {
     }
   }
 
-  async function scrollToBottom() {
-    await nextTick()
-    if (scrollTarget.value) {
-      scrollTarget.value.scrollTop = scrollTarget.value.scrollHeight
+  function handleMessagesScroll() {
+    const target = scrollTarget.value
+    if (!target) return
+    const isAtBottom = isScrollAtBottom()
+    const isScrollingUp = target.scrollTop < lastMessagesScrollTop
+    // AI 输出期间用户只要向上滚动查看历史内容，就暂停自动跟随，避免后续 delta 抢回滚动条。
+    if (loading.value && isScrollingUp && !isAtBottom) {
+      autoFollowOutput.value = false
+    } else if (isAtBottom) {
+      autoFollowOutput.value = true
     }
+    lastMessagesScrollTop = target.scrollTop
+  }
+
+  function isScrollAtBottom() {
+    const target = scrollTarget.value
+    if (!target) return true
+    const distanceToBottom = target.scrollHeight - target.scrollTop - target.clientHeight
+    return distanceToBottom <= SCROLL_BOTTOM_EPSILON_PX
+  }
+
+  async function scrollToBottom(options: ScrollToBottomOptions = {}) {
+    await nextTick()
+    const target = scrollTarget.value
+    if (!target || (!options.force && !autoFollowOutput.value)) return
+    target.scrollTop = target.scrollHeight
+    lastMessagesScrollTop = target.scrollTop
+    autoFollowOutput.value = true
   }
 
   return {
