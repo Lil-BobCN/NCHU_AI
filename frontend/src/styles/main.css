@@ -1172,10 +1172,35 @@ textarea:focus {
   align-items: end;
 }
 
+.composer-field {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
 .composer textarea {
   min-height: 52px;
   max-height: 180px;
   resize: vertical;
+}
+
+.composer textarea.limit-reached {
+  border-color: #ef4444;
+  background: #fff7f7;
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.08);
+}
+
+.composer-limit-tip {
+  min-height: 18px;
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.composer-limit-tip.warning {
+  color: #dc2626;
+  font-weight: 700;
 }
 
 .send-button {

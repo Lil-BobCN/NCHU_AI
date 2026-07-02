@@ -233,12 +233,27 @@
         </div>
 
         <form class="composer" @submit.prevent="chatStore.ask(question)">
-          <textarea
-            v-model="question"
-            rows="2"
-            placeholder="输入问题，支持连续追问"
-            @keydown.enter="handleComposerEnter"
-          />
+          <div class="composer-field">
+            <textarea
+              v-model="question"
+              rows="2"
+              :maxlength="CHAT_MAX_QUESTION_CHARS"
+              :class="{ 'limit-reached': isComposerLimitReached }"
+              :aria-invalid="isComposerOverLimit"
+              aria-describedby="composer-limit-tip"
+              placeholder="输入问题，支持连续追问"
+              @keydown.enter="handleComposerEnter"
+            />
+            <p
+              id="composer-limit-tip"
+              class="composer-limit-tip"
+              :class="{ warning: isComposerLimitReached }"
+              aria-live="polite"
+            >
+              <span v-if="isComposerLimitReached">输出达到上限</span>
+              <span v-else>{{ composerCharCount }}/{{ CHAT_MAX_QUESTION_CHARS }}</span>
+            </p>
+          </div>
           <button
             v-if="loading"
             type="button"
@@ -252,7 +267,7 @@
             <Square v-else :size="18" />
             <span>{{ stoppingGeneration ? '停止中' : '停止生成' }}</span>
           </button>
-          <button v-else class="primary send-button" :disabled="!question.trim()" title="发送" aria-label="发送">
+          <button v-else class="primary send-button" :disabled="!question.trim() || isComposerOverLimit" title="发送" aria-label="发送">
             <SendHorizontal :size="18" />
             <span>发送</span>
           </button>
@@ -313,7 +328,7 @@ import { storeToRefs } from 'pinia'
 import AppShell from '../components/AppShell.vue'
 import { Check, CircleAlert, LoaderCircle, MessageSquareText, Pencil, Plus, Search, SendHorizontal, Square, Trash2, Undo2, X } from 'lucide-vue-next'
 import { apiErrorMessage } from '../api/client'
-import { useChatStreamStore, type Conversation, type Message } from '../stores/chatStream'
+import { CHAT_MAX_QUESTION_CHARS, useChatStreamStore, type Conversation, type Message } from '../stores/chatStream'
 
 const chatStore = useChatStreamStore()
 const {
@@ -352,6 +367,9 @@ const feedbackTypeOptions = [
   { value: 'incomplete', label: '回答不完整' },
   { value: 'other', label: '其他问题' }
 ]
+const composerCharCount = computed(() => Array.from(question.value.trim()).length)
+const isComposerLimitReached = computed(() => composerCharCount.value >= CHAT_MAX_QUESTION_CHARS)
+const isComposerOverLimit = computed(() => composerCharCount.value > CHAT_MAX_QUESTION_CHARS)
 const conversationListSummary = computed(() => {
   const countText = hasConversationSearch.value || hasConversationFeedbackFilter.value
     ? `匹配 ${conversations.value.length} 条`

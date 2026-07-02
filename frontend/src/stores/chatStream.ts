@@ -48,6 +48,8 @@ type ActiveTurn = {
 }
 
 const TYPEWRITER_DELAY_MS = 15
+// 与后端 settings.chat_max_question_chars 保持一致，先在前端拦截超长输入，避免用户看到泛化的请求失败。
+export const CHAT_MAX_QUESTION_CHARS = 2000
 const ACTIVE_CONVERSATION_STORAGE_KEY = 'rag_active_conversation_id'
 let conversationSearchRequestId = 0
 
@@ -232,6 +234,7 @@ export const useChatStreamStore = defineStore('chatStream', () => {
   async function ask(text: string) {
     const content = text.trim()
     if (!content || loading.value) return
+    if (Array.from(content).length > CHAT_MAX_QUESTION_CHARS) return
     question.value = ''
 
     const userMessage = reactive<Message>({
