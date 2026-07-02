@@ -278,44 +278,46 @@
           </div>
         </div>
 
-        <div ref="parsePreviewEl" class="panel parse-preview">
-          <header class="panel-header">
-            <h2>解析预览</h2>
-          </header>
-          <pre v-if="parseResult" class="parse-content" v-html="highlightedParsePreview"></pre>
-          <p v-else class="empty-state">暂无解析结果</p>
-        </div>
-
-        <div ref="chunkPanelEl" class="panel chunk-panel">
-          <header class="panel-header">
-            <div>
-              <h2>切片预览</h2>
-              <p>{{ chunkTotal }} 个切片</p>
-            </div>
-            <form class="chunk-search" @submit.prevent="loadChunks(selectedDocument.id)">
-              <input v-model="chunkKeyword" placeholder="搜索切片内容" />
-              <button>搜索</button>
-            </form>
-          </header>
-
-          <article v-for="chunk in chunks" :key="chunk.id" class="chunk">
-            <header class="chunk-head">
-              <strong>
-                #{{ chunk.chunk_no }}
-                <span v-if="chunk.page_start">第 {{ chunk.page_start }} 页</span>
-                <span v-if="chunk.section_path"> · {{ chunk.section_path }}</span>
-              </strong>
-              <button class="linklike" @click="locateChunkInParsedContent(chunk)">定位原文</button>
+        <div class="document-detail-main">
+          <div ref="parsePreviewEl" class="panel parse-preview">
+            <header class="panel-header">
+              <h2>解析预览</h2>
             </header>
-            <div class="chunk-meta">
-              <span>{{ chunk.chunk_type }}</span>
-              <span>{{ chunk.char_count || chunk.content.length }} 字符</span>
-              <span>{{ chunk.is_active ? '已启用' : '未启用' }}</span>
-            </div>
-            <p>{{ chunk.content }}</p>
-          </article>
+            <pre v-if="parseResult" class="parse-content" v-html="highlightedParsePreview"></pre>
+            <p v-else class="empty-state">暂无解析结果</p>
+          </div>
 
-          <p v-if="!chunks.length" class="empty-state">暂无切片</p>
+          <div ref="chunkPanelEl" class="panel chunk-panel">
+            <header class="panel-header">
+              <div>
+                <h2>切片预览</h2>
+                <p>{{ chunkTotal }} 个切片</p>
+              </div>
+              <form class="chunk-search" @submit.prevent="loadChunks(selectedDocument.id)">
+                <input v-model="chunkKeyword" placeholder="搜索切片内容" />
+                <button>搜索</button>
+              </form>
+            </header>
+
+            <article v-for="chunk in chunks" :key="chunk.id" class="chunk">
+              <header class="chunk-head">
+                <strong>
+                  #{{ chunk.chunk_no }}
+                  <span v-if="chunk.page_start">第 {{ chunk.page_start }} 页</span>
+                  <span v-if="chunk.section_path"> · {{ chunk.section_path }}</span>
+                </strong>
+                <button class="linklike" @click="locateChunkInParsedContent(chunk)">定位原文</button>
+              </header>
+              <div class="chunk-meta">
+                <span>{{ chunk.chunk_type }}</span>
+                <span>{{ chunk.char_count || chunk.content.length }} 字符</span>
+                <span>{{ chunk.is_active ? '已启用' : '未启用' }}</span>
+              </div>
+              <p>{{ chunk.content }}</p>
+            </article>
+
+            <p v-if="!chunks.length" class="empty-state">暂无切片</p>
+          </div>
         </div>
       </section>
     </div>

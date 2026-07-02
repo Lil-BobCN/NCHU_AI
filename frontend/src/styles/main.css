@@ -1598,6 +1598,19 @@ button.danger:hover {
   top: 18px;
 }
 
+.document-detail-main {
+  /* 左侧任务列表可能很高，右侧详情独立纵向排列，避免外层 Grid 行高撑出大空白。 */
+  display: grid;
+  align-content: start;
+  gap: 18px;
+  min-width: 0;
+  margin-top: 18px;
+}
+
+.document-detail-main .panel {
+  margin-top: 0;
+}
+
 .job-list {
   display: grid;
   gap: 10px;
@@ -1867,10 +1880,6 @@ button.danger:hover {
   border-radius: 4px;
   background: #fff3b0;
   box-shadow: 0 0 0 2px #fde68a;
-}
-
-.chunk-panel {
-  grid-column: 2;
 }
 
 .chunk-search {
