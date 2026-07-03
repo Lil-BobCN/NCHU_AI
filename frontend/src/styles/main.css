@@ -397,7 +397,7 @@ textarea:focus {
   border-radius: 8px;
   padding: 14px;
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-rows: auto auto minmax(0, 1fr);
   align-content: start;
   gap: 12px;
   min-height: 0;
@@ -464,9 +464,15 @@ textarea:focus {
 }
 
 .conversation-filter-row {
+  /* 筛选按钮参与会话列表滚动，但吸顶位置限制在搜索框下方，避免遮挡搜索输入框。 */
+  position: sticky;
+  top: 0;
+  z-index: 2;
   display: flex;
   align-items: center;
   gap: 8px;
+  padding-bottom: 4px;
+  background: rgba(255, 255, 255, 0.96);
 }
 
 .conversation-filter-button {

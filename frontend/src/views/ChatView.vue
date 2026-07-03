@@ -33,20 +33,20 @@
           <LoaderCircle v-else-if="searchingConversations" :size="15" class="spin search-loading" />
         </label>
 
-        <div class="conversation-filter-row" aria-label="历史对话筛选">
-          <button
-            type="button"
-            class="conversation-filter-button"
-            :class="{ active: conversationFeedbackOnly }"
-            :aria-pressed="conversationFeedbackOnly"
-            @click="void chatStore.toggleFeedbackOnlyConversations()"
-          >
-            <CircleAlert :size="15" />
-            <span>只看异常</span>
-          </button>
-        </div>
-
         <div class="conversation-scroll">
+          <div class="conversation-filter-row" aria-label="历史对话筛选">
+            <button
+              type="button"
+              class="conversation-filter-button"
+              :class="{ active: conversationFeedbackOnly }"
+              :aria-pressed="conversationFeedbackOnly"
+              @click="void chatStore.toggleFeedbackOnlyConversations()"
+            >
+              <CircleAlert :size="15" />
+              <span>只看异常</span>
+            </button>
+          </div>
+
           <div
             v-for="item in conversations"
             :key="item.id"
