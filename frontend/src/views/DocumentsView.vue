@@ -1,130 +1,132 @@
 <template>
   <AppShell>
     <div class="page">
-      <header class="page-header">
-        <h1>文档管理</h1>
-        <div class="page-header-actions">
-          <button @click="exportDocuments">导出清单</button>
-          <label class="upload">
-            上传文件
-            <input type="file" @change="upload" />
-          </label>
-        </div>
-      </header>
-
       <p v-if="pageError" class="error">{{ pageError }}</p>
       <p v-if="actionMessage" class="document-state-note">{{ actionMessage }}</p>
 
-      <section v-if="visibleUploads.length" class="upload-queue">
-        <article v-for="item in visibleUploads" :key="item.id" class="upload-item">
-          <div>
-            <strong>{{ item.fileName }}</strong>
-            <span>{{ item.status }}</span>
+      <template v-if="!selectedDocument">
+        <header class="page-header">
+          <h1>文档管理</h1>
+          <div class="page-header-actions">
+            <button @click="exportDocuments">导出清单</button>
+            <label class="upload">
+              上传文件
+              <input type="file" @change="upload" />
+            </label>
           </div>
-          <div class="progress-line">
-            <span :style="{ width: `${item.progress}%` }"></span>
-          </div>
-          <small>{{ item.progress }}%</small>
-        </article>
-      </section>
+        </header>
 
-      <form class="document-toolbar" @submit.prevent="loadDocuments">
-        <input v-model="documentFilters.keyword" placeholder="搜索文档名称" />
-        <select v-model="documentFilters.status" aria-label="按状态筛选">
-          <option value="">全部状态</option>
-          <option v-for="option in documentStatusOptions" :key="option.value" :value="option.value">
-            {{ option.label }}
-          </option>
-        </select>
-        <input v-model="documentFilters.knowledgeBase" placeholder="所属知识库" list="knowledge-base-options" />
-        <datalist id="knowledge-base-options">
-          <option v-for="item in knowledgeBaseOptions" :key="item" :value="item" />
-        </datalist>
-        <button type="submit">筛选</button>
-        <button type="button" @click="resetDocumentFilters">重置</button>
-      </form>
+        <section v-if="visibleUploads.length" class="upload-queue">
+          <article v-for="item in visibleUploads" :key="item.id" class="upload-item">
+            <div>
+              <strong>{{ item.fileName }}</strong>
+              <span>{{ item.status }}</span>
+            </div>
+            <div class="progress-line">
+              <span :style="{ width: `${item.progress}%` }"></span>
+            </div>
+            <small>{{ item.progress }}%</small>
+          </article>
+        </section>
 
-      <section class="document-batch-toolbar">
-        <label class="checkbox-line">
-          <input type="checkbox" :checked="allVisibleDocumentsSelected" @change="toggleAllVisibleDocuments" />
-          本页全选
-        </label>
-        <span>已选 {{ selectedDocumentIds.size }} 项</span>
-        <input v-model="batchKnowledgeBase" placeholder="批量归类到知识库" list="knowledge-base-options" />
-        <button :disabled="!hasSelectedDocuments || Boolean(batchBusy)" @click="batchUpdateKnowledgeBase">
-          批量归类
-        </button>
-        <button :disabled="!hasSelectedDocuments || Boolean(batchBusy)" @click="batchReparseDocuments">
-          批量重解析
-        </button>
-        <button :disabled="!hasSelectedDocuments || Boolean(batchBusy)" @click="batchRechunkDocuments">
-          批量重切片
-        </button>
-        <button class="danger" :disabled="!hasSelectedDocuments || Boolean(batchBusy)" @click="batchDeleteDocuments">
-          批量删除
-        </button>
-        <button type="button" :disabled="!hasSelectedDocuments || Boolean(batchBusy)" @click="clearDocumentSelection">
-          清空选择
-        </button>
-        <small v-if="batchBusy">{{ batchBusy }}...</small>
-      </section>
+        <form class="document-toolbar" @submit.prevent="loadDocuments">
+          <input v-model="documentFilters.keyword" placeholder="搜索文档名称" />
+          <select v-model="documentFilters.status" aria-label="按状态筛选">
+            <option value="">全部状态</option>
+            <option v-for="option in documentStatusOptions" :key="option.value" :value="option.value">
+              {{ option.label }}
+            </option>
+          </select>
+          <input v-model="documentFilters.knowledgeBase" placeholder="所属知识库" list="knowledge-base-options" />
+          <datalist id="knowledge-base-options">
+            <option v-for="item in knowledgeBaseOptions" :key="item" :value="item" />
+          </datalist>
+          <button type="submit">筛选</button>
+          <button type="button" @click="resetDocumentFilters">重置</button>
+        </form>
 
-      <div class="table-scroll">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th class="select-cell">
-                <input type="checkbox" :checked="allVisibleDocumentsSelected" @change="toggleAllVisibleDocuments" />
-              </th>
-              <th>文档</th>
-              <th>大小</th>
-              <th>所属知识库</th>
-              <th>状态</th>
-              <th>处理进度</th>
-              <th>质量</th>
-              <th>来源</th>
-              <th>操作</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="doc in documents" :key="doc.id">
-              <td class="select-cell">
-                <input
-                  type="checkbox"
-                  :checked="isDocumentSelected(doc.id)"
-                  :aria-label="`选择 ${doc.title || doc.file_name}`"
-                  @click.stop
-                  @change="toggleDocumentSelection(doc.id)"
-                />
-              </td>
-              <td class="document-name-cell" :title="doc.title || doc.file_name">{{ doc.title || doc.file_name }}</td>
-              <td>{{ formatSize(doc.file_size) }}</td>
-              <td><span class="knowledge-badge">{{ formatKnowledgeBase(doc) }}</span></td>
-              <td><span class="status">{{ formatDocumentStatus(doc) }}</span></td>
-              <td>
-                <div class="table-progress">
-                  <div class="progress-line">
-                    <span :style="{ width: `${documentProgress(doc).progress}%` }"></span>
+        <section class="document-batch-toolbar">
+          <label class="checkbox-line">
+            <input type="checkbox" :checked="allVisibleDocumentsSelected" @change="toggleAllVisibleDocuments" />
+            本页全选
+          </label>
+          <span>已选 {{ selectedDocumentIds.size }} 项</span>
+          <input v-model="batchKnowledgeBase" placeholder="批量归类到知识库" list="knowledge-base-options" />
+          <button :disabled="!hasSelectedDocuments || Boolean(batchBusy)" @click="batchUpdateKnowledgeBase">
+            批量归类
+          </button>
+          <button :disabled="!hasSelectedDocuments || Boolean(batchBusy)" @click="batchReparseDocuments">
+            批量重解析
+          </button>
+          <button :disabled="!hasSelectedDocuments || Boolean(batchBusy)" @click="batchRechunkDocuments">
+            批量重切片
+          </button>
+          <button class="danger" :disabled="!hasSelectedDocuments || Boolean(batchBusy)" @click="batchDeleteDocuments">
+            批量删除
+          </button>
+          <button type="button" :disabled="!hasSelectedDocuments || Boolean(batchBusy)" @click="clearDocumentSelection">
+            清空选择
+          </button>
+          <small v-if="batchBusy">{{ batchBusy }}...</small>
+        </section>
+
+        <div class="table-scroll">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th class="select-cell">
+                  <input type="checkbox" :checked="allVisibleDocumentsSelected" @change="toggleAllVisibleDocuments" />
+                </th>
+                <th>文档</th>
+                <th>大小</th>
+                <th>所属知识库</th>
+                <th>状态</th>
+                <th>处理进度</th>
+                <th>质量</th>
+                <th>来源</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="doc in documents" :key="doc.id">
+                <td class="select-cell">
+                  <input
+                    type="checkbox"
+                    :checked="isDocumentSelected(doc.id)"
+                    :aria-label="`选择 ${doc.title || doc.file_name}`"
+                    @click.stop
+                    @change="toggleDocumentSelection(doc.id)"
+                  />
+                </td>
+                <td class="document-name-cell" :title="doc.title || doc.file_name">{{ doc.title || doc.file_name }}</td>
+                <td>{{ formatSize(doc.file_size) }}</td>
+                <td><span class="knowledge-badge">{{ formatKnowledgeBase(doc) }}</span></td>
+                <td><span class="status">{{ formatDocumentStatus(doc) }}</span></td>
+                <td>
+                  <div class="table-progress">
+                    <div class="progress-line">
+                      <span :style="{ width: `${documentProgress(doc).progress}%` }"></span>
+                    </div>
+                    <small :title="documentProgress(doc).message">{{ documentProgress(doc).message }}</small>
                   </div>
-                  <small :title="documentProgress(doc).message">{{ documentProgress(doc).message }}</small>
-                </div>
-              </td>
-              <td>{{ doc.parse_quality_score || '-' }}</td>
-              <td class="source-actions">
-                <button class="linklike" :disabled="!doc.preview_url && !doc.download_url" @click="openPreview(doc)">
-                  预览
-                </button>
-                <button class="linklike" @click="jumpToParsedContent(doc)">解析文本</button>
-                <button class="linklike" @click="jumpToChunks(doc)">切片</button>
-              </td>
-              <td class="actions">
-                <button @click="inspectDocument(doc)">解析/切片</button>
-                <button @click="remove(doc.id)">删除</button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+                </td>
+                <td>{{ doc.parse_quality_score || '-' }}</td>
+                <td class="source-actions">
+                  <button class="linklike" :disabled="!doc.preview_url && !doc.download_url" @click="openPreview(doc)">
+                    预览
+                  </button>
+                  <button class="linklike" @click="jumpToParsedContent(doc)">解析文本</button>
+                  <button class="linklike" @click="jumpToChunks(doc)">切片</button>
+                </td>
+                <td class="actions">
+                  <button @click="inspectDocument(doc)">解析/切片</button>
+                  <button @click="remove(doc.id)">删除</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </template>
 
       <div v-if="previewDocument" class="document-preview-modal" role="dialog" aria-modal="true">
         <div class="document-preview-dialog">
@@ -193,15 +195,20 @@
         </div>
       </div>
 
-      <section v-if="selectedDocument" class="document-workspace">
-        <div class="panel document-summary">
-          <header class="panel-header">
-            <div>
-              <h2>{{ selectedDocument.title || selectedDocument.file_name }}</h2>
-              <p>{{ formatDocumentStatus(selectedDocument) }} · {{ formatSize(selectedDocument.file_size) }}</p>
-            </div>
-            <button @click="inspectDocument(selectedDocument)">刷新</button>
-          </header>
+      <section v-if="selectedDocument" class="document-detail-view">
+        <header class="document-detail-head">
+          <button type="button" @click="closeDocumentDetail">返回文档列表</button>
+        </header>
+
+        <div class="document-workspace">
+          <div class="panel document-summary">
+            <header class="panel-header">
+              <div>
+                <h2>{{ selectedDocument.title || selectedDocument.file_name }}</h2>
+                <p>{{ formatDocumentStatus(selectedDocument) }} · {{ formatSize(selectedDocument.file_size) }}</p>
+              </div>
+              <button @click="inspectDocument(selectedDocument)">刷新</button>
+            </header>
 
           <div class="document-actions">
             <p v-if="selectedDocumentNotice" class="document-state-note">{{ selectedDocumentNotice }}</p>
@@ -278,45 +285,46 @@
           </div>
         </div>
 
-        <div class="document-detail-main">
-          <div ref="parsePreviewEl" class="panel parse-preview">
-            <header class="panel-header">
-              <h2>解析预览</h2>
-            </header>
-            <pre v-if="parseResult" class="parse-content" v-html="highlightedParsePreview"></pre>
-            <p v-else class="empty-state">暂无解析结果</p>
-          </div>
-
-          <div ref="chunkPanelEl" class="panel chunk-panel">
-            <header class="panel-header">
-              <div>
-                <h2>切片预览</h2>
-                <p>{{ chunkTotal }} 个切片</p>
-              </div>
-              <form class="chunk-search" @submit.prevent="loadChunks(selectedDocument.id)">
-                <input v-model="chunkKeyword" placeholder="搜索切片内容" />
-                <button>搜索</button>
-              </form>
-            </header>
-
-            <article v-for="chunk in chunks" :key="chunk.id" class="chunk">
-              <header class="chunk-head">
-                <strong>
-                  #{{ chunk.chunk_no }}
-                  <span v-if="chunk.page_start">第 {{ chunk.page_start }} 页</span>
-                  <span v-if="chunk.section_path"> · {{ chunk.section_path }}</span>
-                </strong>
-                <button class="linklike" @click="locateChunkInParsedContent(chunk)">定位原文</button>
+          <div class="document-detail-main">
+            <div ref="parsePreviewEl" class="panel parse-preview">
+              <header class="panel-header">
+                <h2>解析预览</h2>
               </header>
-              <div class="chunk-meta">
-                <span>{{ chunk.chunk_type }}</span>
-                <span>{{ chunk.char_count || chunk.content.length }} 字符</span>
-                <span>{{ chunk.is_active ? '已启用' : '未启用' }}</span>
-              </div>
-              <p>{{ chunk.content }}</p>
-            </article>
+              <pre v-if="parseResult" class="parse-content" v-html="highlightedParsePreview"></pre>
+              <p v-else class="empty-state">暂无解析结果</p>
+            </div>
 
-            <p v-if="!chunks.length" class="empty-state">暂无切片</p>
+            <div ref="chunkPanelEl" class="panel chunk-panel">
+              <header class="panel-header">
+                <div>
+                  <h2>切片预览</h2>
+                  <p>{{ chunkTotal }} 个切片</p>
+                </div>
+                <form class="chunk-search" @submit.prevent="loadChunks(selectedDocument.id)">
+                  <input v-model="chunkKeyword" placeholder="搜索切片内容" />
+                  <button>搜索</button>
+                </form>
+              </header>
+
+              <article v-for="chunk in chunks" :key="chunk.id" class="chunk">
+                <header class="chunk-head">
+                  <strong>
+                    #{{ chunk.chunk_no }}
+                    <span v-if="chunk.page_start">第 {{ chunk.page_start }} 页</span>
+                    <span v-if="chunk.section_path"> · {{ chunk.section_path }}</span>
+                  </strong>
+                  <button class="linklike" @click="locateChunkInParsedContent(chunk)">定位原文</button>
+                </header>
+                <div class="chunk-meta">
+                  <span>{{ chunk.chunk_type }}</span>
+                  <span>{{ chunk.char_count || chunk.content.length }} 字符</span>
+                  <span>{{ chunk.is_active ? '已启用' : '未启用' }}</span>
+                </div>
+                <p>{{ chunk.content }}</p>
+              </article>
+
+              <p v-if="!chunks.length" class="empty-state">暂无切片</p>
+            </div>
           </div>
         </div>
       </section>
@@ -798,6 +806,15 @@ function openPreview(doc: any) {
 
 function closePreview() {
   previewDocument.value = null
+}
+
+function closeDocumentDetail() {
+  selectedDocument.value = null
+  parseResult.value = null
+  chunks.value = []
+  chunkTotal.value = 0
+  selectedJobs.value = []
+  highlightedChunkText.value = ''
 }
 
 async function jumpToParsedContent(doc: any) {

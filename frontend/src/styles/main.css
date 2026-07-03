@@ -1586,6 +1586,18 @@ button.danger:hover {
   padding: 12px;
 }
 
+.document-detail-view {
+  min-width: 0;
+}
+
+.document-detail-head {
+  /* 进入解析详情后隐藏列表工具区，用独立操作条承接返回动作，避免详情继续堆在列表下方。 */
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 10px;
+}
+
 .document-workspace {
   display: grid;
   grid-template-columns: minmax(260px, 340px) 1fr;
