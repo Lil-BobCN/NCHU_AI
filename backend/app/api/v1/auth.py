@@ -49,6 +49,16 @@ async def login(payload: LoginRequest, db: AsyncSession = Depends(get_db)):
 
 @router.get("/me")
 async def me(admin: Admin = Depends(get_current_admin)):
+    if not hasattr(admin, "username"):
+        return ok(
+            {
+                "id": str(admin.id),
+                "username": getattr(admin, "login_id", str(admin.id)),
+                "display_name": getattr(admin, "user_id", str(admin.id)),
+                "user_id": getattr(admin, "user_id", str(admin.id)),
+                "login_id": getattr(admin, "login_id", str(admin.id)),
+            }
+        )
     return ok(
         {
             "id": str(admin.id),

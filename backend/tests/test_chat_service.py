@@ -16,6 +16,13 @@ from app.services.chat_service import ChatService, SMALLTALK_WELCOME  # noqa: E4
 
 
 class ChatServiceFollowupTests(unittest.TestCase):
+    def test_normalize_conversation_id_keeps_valid_uuid_for_session_mapping(self) -> None:
+        service = ChatService()
+        conversation_id = "9a66f24f-4700-42b5-888c-5e0752d7bff1"
+
+        self.assertEqual(service._normalize_conversation_id(conversation_id), conversation_id)
+        self.assertIsNone(service._normalize_conversation_id("java-session-text"))
+
     def test_answer_cache_key_changes_with_corpus_version(self) -> None:
         service = ChatService()
         retrieval = {
@@ -302,6 +309,38 @@ class ChatServiceFollowupTests(unittest.TestCase):
         self.assertEqual(db.retrieval_logs[0].recall_results, [])
         self.assertEqual(db.retrieval_logs[0].citations, [])
 
+    def test_empty_answer_context_uses_fallback_without_model_generation(self) -> None:
+        service = ChatService()
+        service.retrieval_service = FakeEmptyContextRetrievalService()
+        service.model_service = FakeNoModelService()
+        db = FakeChatStreamSession()
+
+        async def consume() -> list[str]:
+            events = []
+            async for event in service.stream_chat(
+                db,
+                "unmatched question",
+                None,
+                enable_suggested_questions=False,
+            ):
+                events.append(event)
+            return events
+
+        events = asyncio.run(consume())
+        answer = ""
+        citations = None
+        for event in events:
+            if event.startswith("event: delta"):
+                answer += json.loads(event.split("data: ", 1)[1]).get("content", "")
+            if event.startswith("event: citations"):
+                citations = json.loads(event.split("data: ", 1)[1]).get("citations")
+
+        self.assertEqual(answer, "资料中未找到明确依据，暂时无法回答这个问题。")
+        self.assertEqual(citations, [])
+        self.assertFalse(service.model_service.stream_called)
+        self.assertTrue(db.retrieval_logs)
+        self.assertEqual(db.retrieval_logs[0].final_context, [])
+
 
 class FakeMessage:
     def __init__(self, message_id: str, conversation_id: str, role: str, content: str) -> None:
@@ -449,6 +488,26 @@ class FakeDirectQaRetrievalService:
 
     def citations_for_answer(self, query, answer, contexts):
         return self._citations(contexts)
+
+
+class FakeEmptyContextRetrievalService:
+    async def find_direct_qa_answer(self, *args, **kwargs):
+        return None
+
+    async def search(self, *args, **kwargs):
+        return {
+            "raw_query": "unmatched question",
+            "rewritten_query": "unmatched question",
+            "recall_results": [],
+            "rerank_results": [],
+            "final_context": [],
+            "answer_context": [],
+            "citations": [],
+            "retrieval_options": {},
+        }
+
+    def citations_for_answer(self, query, answer, contexts):
+        return []
 
 
 class FakeNoRetrievalService:

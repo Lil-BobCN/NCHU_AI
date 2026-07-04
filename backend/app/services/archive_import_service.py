@@ -43,21 +43,22 @@ class ArchiveImportService:
         try:
             with zipfile.ZipFile(BytesIO(data)) as archive:
                 for info in archive.infolist():
+                    name = self._decode_zip_name(info)
                     if len(entries) >= self.MAX_FILES:
-                        skipped.append({"name": info.filename, "reason": "超过单次导入文件数量限制"})
+                        skipped.append({"name": name, "reason": "超过单次导入文件数量限制"})
                         continue
                     if info.is_dir():
                         continue
-                    reason = self._skip_reason(info.filename, info.file_size, total_size)
+                    reason = self._skip_reason(name, info.file_size, total_size)
                     if reason:
-                        skipped.append({"name": info.filename, "reason": reason})
+                        skipped.append({"name": name, "reason": reason})
                         continue
                     file_data = archive.read(info)
                     total_size += len(file_data)
                     entries.append(
                         ArchiveEntry(
-                            name=info.filename,
-                            file_name=self._safe_file_name(info.filename),
+                            name=name,
+                            file_name=self._safe_file_name(name),
                             data=file_data,
                             size=len(file_data),
                         )
@@ -127,6 +128,31 @@ class ArchiveImportService:
 
     def _safe_file_name(self, name: str) -> str:
         return PurePosixPath(name.replace("\\", "/")).name
+
+    def _decode_zip_name(self, info: zipfile.ZipInfo) -> str:
+        name = info.filename
+        if info.flag_bits & 0x800:
+            return name
+        try:
+            raw = name.encode("cp437")
+        except UnicodeEncodeError:
+            return name
+        for encoding in ("utf-8", "gbk", "gb2312", "big5"):
+            try:
+                decoded = raw.decode(encoding)
+            except UnicodeDecodeError:
+                continue
+            if decoded == name:
+                return decoded
+            if self._contains_cjk(decoded) or self._looks_mojibake(name):
+                return decoded
+        return name
+
+    def _contains_cjk(self, value: str) -> bool:
+        return any("\u4e00" <= char <= "\u9fff" for char in value)
+
+    def _looks_mojibake(self, value: str) -> bool:
+        return any(char in value for char in ("�", "╬", "─", "╓", "╨", "▒", "▓", "│"))
 
     def _supported_inner_file(self, name: str) -> bool:
         return Path(name).suffix.lower() in {

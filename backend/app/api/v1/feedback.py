@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field, field_validator
@@ -49,7 +50,7 @@ async def submit_answer_feedback(
 ):
     assistant_message = await db.scalar(
         select(ConversationMessage).where(
-            ConversationMessage.id == payload.assistant_message_id,
+            cast(ConversationMessage.id, String) == payload.assistant_message_id,
             ConversationMessage.role == "assistant",
         )
     )
@@ -59,25 +60,29 @@ async def submit_answer_feedback(
     user_message = await db.scalar(
         select(ConversationMessage)
         .where(
-            ConversationMessage.conversation_id == assistant_message.conversation_id,
+            cast(ConversationMessage.conversation_id, String) == str(assistant_message.conversation_id),
             ConversationMessage.role == "user",
             ConversationMessage.created_at <= assistant_message.created_at,
         )
         .order_by(ConversationMessage.created_at.desc())
         .limit(1)
     )
+    retrieval_filters = [
+        cast(RetrievalLog.conversation_id, String) == str(assistant_message.conversation_id),
+    ]
+    if user_message is not None:
+        retrieval_filters.append(cast(RetrievalLog.message_id, String) == str(user_message.id))
+    else:
+        retrieval_filters.append(RetrievalLog.message_id.is_(None))
     retrieval_log = await db.scalar(
         select(RetrievalLog)
-        .where(
-            RetrievalLog.conversation_id == assistant_message.conversation_id,
-            RetrievalLog.message_id == (user_message.id if user_message else None),
-        )
+        .where(*retrieval_filters)
         .order_by(RetrievalLog.created_at.desc())
         .limit(1)
     )
     existing = await db.scalar(
         select(AnswerFeedback).where(
-            AnswerFeedback.assistant_message_id == assistant_message.id,
+            _feedback_assistant_message_id_filter(assistant_message.id),
             AnswerFeedback.status == "open",
         )
     )
@@ -99,13 +104,13 @@ async def submit_answer_feedback(
     if existing:
         await db.execute(
             update(AnswerFeedback)
-            .where(AnswerFeedback.id == existing.id)
+            .where(_feedback_id_filter(existing.id))
             .values(**values)
         )
         feedback_id = existing.id
         created_at = existing.created_at
     else:
-        feedback = AnswerFeedback(**values)
+        feedback = AnswerFeedback(id=str(uuid4()), **values)
         db.add(feedback)
         await db.flush()
         feedback_id = feedback.id
@@ -122,9 +127,9 @@ async def submit_answer_feedback(
         }
         await db.execute(
             update(RetrievalLog)
-            .where(RetrievalLog.id == retrieval_log.id)
+            .where(_retrieval_log_id_filter(retrieval_log.id))
             .values(answer_quality=quality)
-        )
+    )
 
     await db.commit()
     open_count = await db.scalar(
@@ -149,3 +154,77 @@ async def submit_answer_feedback(
             "conversation_feedback_count": int(open_count or 0),
         }
     )
+
+
+@router.post("/answers/{feedback_id}/cancel")
+async def cancel_answer_feedback(
+    feedback_id: str,
+    db: AsyncSession = Depends(get_db),
+    admin: Admin = Depends(get_current_admin),
+):
+    feedback = await db.scalar(
+        select(AnswerFeedback).where(
+            _feedback_id_filter(feedback_id),
+            AnswerFeedback.status == "open",
+        )
+    )
+    if feedback is None:
+        raise HTTPException(status_code=404, detail="open feedback not found")
+
+    now = datetime.now(timezone.utc)
+    await db.execute(
+        update(AnswerFeedback)
+        .where(_feedback_id_filter(feedback.id))
+        .values(status="canceled", updated_at=now)
+    )
+    if feedback.retrieval_log_id:
+        retrieval_log = await db.scalar(select(RetrievalLog).where(_retrieval_log_id_filter(feedback.retrieval_log_id)))
+        if retrieval_log is not None:
+            quality = dict(retrieval_log.answer_quality or {})
+            existing_feedback = dict(quality.get("feedback") or {})
+            existing_feedback.update(
+                {
+                    "has_error": False,
+                    "status": "canceled",
+                    "feedback_id": str(feedback.id),
+                    "canceled_at": now.isoformat(),
+                    "canceled_by": str(admin.id),
+                }
+            )
+            quality["feedback"] = existing_feedback
+            await db.execute(
+                update(RetrievalLog)
+                .where(_retrieval_log_id_filter(retrieval_log.id))
+                .values(answer_quality=quality)
+            )
+
+    await db.commit()
+    open_count = await db.scalar(
+        select(func.count())
+        .select_from(AnswerFeedback)
+        .where(
+            cast(AnswerFeedback.conversation_id, String) == str(feedback.conversation_id),
+            AnswerFeedback.status == "open",
+        )
+    )
+    return ok(
+        {
+            "id": str(feedback.id),
+            "conversation_id": str(feedback.conversation_id),
+            "assistant_message_id": str(feedback.assistant_message_id),
+            "status": "canceled",
+            "conversation_feedback_count": int(open_count or 0),
+        }
+    )
+
+
+def _feedback_id_filter(feedback_id: str):
+    return cast(AnswerFeedback.id, String) == str(feedback_id)
+
+
+def _feedback_assistant_message_id_filter(assistant_message_id: str):
+    return cast(AnswerFeedback.assistant_message_id, String) == str(assistant_message_id)
+
+
+def _retrieval_log_id_filter(retrieval_log_id: str):
+    return cast(RetrievalLog.id, String) == str(retrieval_log_id)

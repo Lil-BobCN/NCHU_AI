@@ -5,6 +5,7 @@ import re
 import time
 from collections.abc import AsyncGenerator
 from datetime import datetime, timezone
+from uuid import UUID
 
 from sqlalchemy import delete, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -292,6 +293,12 @@ class ChatService:
                     )
                     async for event in self._stream_delta_text(answer):
                         yield event
+            elif not answer_context:
+                used_fallback = True
+                fallback = self._fallback_answer(answer_context)
+                answer_parts.append(fallback)
+                async for event in self._stream_delta_text(fallback):
+                    yield event
             else:
                 messages = self._build_messages_with_memory(
                     question,
@@ -541,11 +548,23 @@ class ChatService:
             if conversation:
                 return conversation
         title = auto_title_from_question(question)
-        conversation = Conversation(title=title)
+        conversation_values = {"title": title}
+        normalized_conversation_id = self._normalize_conversation_id(conversation_id)
+        if normalized_conversation_id:
+            conversation_values["id"] = normalized_conversation_id
+        conversation = Conversation(**conversation_values)
         db.add(conversation)
         await db.commit()
         await db.refresh(conversation)
         return conversation
+
+    def _normalize_conversation_id(self, conversation_id: str | None) -> str | None:
+        if not conversation_id:
+            return None
+        try:
+            return str(UUID(str(conversation_id)))
+        except ValueError:
+            return None
 
     async def _auto_title_conversation_if_needed(
         self, db: AsyncSession, conversation: Conversation, question: str

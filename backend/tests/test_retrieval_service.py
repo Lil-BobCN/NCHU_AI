@@ -95,6 +95,43 @@ class RetrievalServiceParameterTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result["retrieval_options"]["effective_final_top_k"], 2)
         self.assertFalse(result["retrieval_options"]["enable_qa_recall"])
 
+    async def test_low_confidence_candidates_do_not_become_answer_context(self) -> None:
+        service = RetrievalService()
+        service.rag_settings = {
+            "vector_top_k": 30,
+            "keyword_top_k": 30,
+            "qa_top_k": 10,
+            "rerank_top_k": 5,
+            "rerank_max_candidates": 10,
+            "rerank_enabled": False,
+            "similarity_threshold": 0.35,
+            "rerank_threshold": 0.45,
+        }
+        service._get_cached_retrieval = AsyncMock(return_value=None)
+        service._set_cached_retrieval = AsyncMock()
+        service._corpus_version = AsyncMock(return_value=_corpus_version())
+
+        async def vector_search(db, query, top_k, document_ids=None):
+            return [{**_item("vector", 1), "score": 0.05}]
+
+        async def empty_search(db, query, top_k, document_ids=None):
+            return []
+
+        async def rerank(query, candidates):
+            return candidates
+
+        service._vector_search = vector_search
+        service._keyword_search = empty_search
+        service._qa_search = empty_search
+        service._rerank = rerank
+
+        result = await service.search(db=None, query="unmatched question", rerank_top_k=5)
+
+        self.assertEqual(result["rerank_results"], [])
+        self.assertEqual(result["final_context"], [])
+        self.assertEqual(result["answer_context"], [])
+        self.assertEqual(result["citations"], [])
+
     async def test_school_query_terms_extract_activity_and_requirement_terms(self) -> None:
         service = RetrievalService()
 

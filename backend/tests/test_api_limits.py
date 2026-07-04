@@ -12,6 +12,7 @@ if str(BACKEND_ROOT) not in sys.path:
 from pydantic import ValidationError  # noqa: E402
 
 from app.api.v1.chat import ChatRequest  # noqa: E402
+from app.api.v1.internal import AccessScope, InternalChatRequest, UserContext  # noqa: E402
 from app.api.v1.retrieval import SearchRequest  # noqa: E402
 from app.core.config import get_settings  # noqa: E402
 
@@ -27,6 +28,16 @@ class ApiLimitTests(unittest.TestCase):
         payload = ChatRequest(question="  测试问题  ")
 
         self.assertEqual(payload.question, "测试问题")
+
+    def test_internal_chat_request_rejects_oversized_question(self) -> None:
+        settings = get_settings()
+
+        with self.assertRaises(ValidationError):
+            InternalChatRequest(
+                question="x" * (settings.chat_max_question_chars + 1),
+                user_context=UserContext(user_id="1001"),
+                access_scope=AccessScope(scope_mode="all_public"),
+            )
 
     def test_retrieval_request_rejects_oversized_rerank_top_k(self) -> None:
         settings = get_settings()

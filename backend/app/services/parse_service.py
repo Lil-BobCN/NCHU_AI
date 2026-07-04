@@ -807,7 +807,7 @@ class ParseService:
             try:
                 with zipfile.ZipFile(self._bytes_io(data)) as archive:
                     for info in archive.infolist()[:200]:
-                        entry_name = info.filename
+                        entry_name = self._decode_zip_name(info)
                         if self._unsafe_archive_name(entry_name):
                             unsafe_entries.append(entry_name)
                         entries.append(
@@ -1324,6 +1324,31 @@ class ParseService:
     def _unsafe_archive_name(self, name: str) -> bool:
         normalized = name.replace("\\", "/")
         return normalized.startswith("/") or ".." in normalized.split("/")
+
+    def _decode_zip_name(self, info: zipfile.ZipInfo) -> str:
+        name = info.filename
+        if info.flag_bits & 0x800:
+            return name
+        try:
+            raw = name.encode("cp437")
+        except UnicodeEncodeError:
+            return name
+        for encoding in ("utf-8", "gbk", "gb2312", "big5"):
+            try:
+                decoded = raw.decode(encoding)
+            except UnicodeDecodeError:
+                continue
+            if decoded == name:
+                return decoded
+            if self._contains_cjk(decoded) or self._looks_mojibake(name):
+                return decoded
+        return name
+
+    def _contains_cjk(self, value: str) -> bool:
+        return any("\u4e00" <= char <= "\u9fff" for char in value)
+
+    def _looks_mojibake(self, value: str) -> bool:
+        return any(char in value for char in ("�", "╬", "─", "╓", "╨", "▒", "▓", "│"))
 
     def _bytes_io(self, data: bytes):
         from io import BytesIO

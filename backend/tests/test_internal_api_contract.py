@@ -9,7 +9,12 @@ BACKEND_ROOT = Path(__file__).resolve().parents[1]
 if str(BACKEND_ROOT) not in sys.path:
     sys.path.insert(0, str(BACKEND_ROOT))
 
-from app.api.v1.internal import _serialize_job, _serialize_message  # noqa: E402
+from app.api.v1.internal import (  # noqa: E402
+    InternalChatRetractRequest,
+    _java_session_to_uuid,
+    _serialize_job,
+    _serialize_message,
+)
 from app.db.models import AnswerFeedback, ConversationMessage, DocumentJob  # noqa: E402
 
 
@@ -51,6 +56,19 @@ class InternalApiContractTests(unittest.TestCase):
         self.assertEqual(data["feedback"]["id"], "fb-1")
         self.assertEqual(data["feedback"]["error_type"], "answer_wrong")
         self.assertEqual(data["feedback"]["status"], "open")
+
+    def test_internal_retract_request_supports_java_session_mapping(self) -> None:
+        payload = InternalChatRetractRequest(
+            session_id="java-session-1",
+            user_message_id="user-message-1",
+            assistant_message_id="assistant-message-1",
+        )
+
+        self.assertEqual(payload.session_id, "java-session-1")
+        self.assertEqual(
+            _java_session_to_uuid("java-session-1"),
+            _java_session_to_uuid("java-session-1"),
+        )
 
 
 if __name__ == "__main__":

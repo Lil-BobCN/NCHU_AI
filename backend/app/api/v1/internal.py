@@ -118,6 +118,22 @@ class InternalChatRequest(BaseModel):
     access_scope: AccessScope
     options: ChatOptions = Field(default_factory=ChatOptions)
 
+    @field_validator("question")
+    @classmethod
+    def validate_question(cls, value: str) -> str:
+        settings = get_settings()
+        value = value.strip()
+        if len(value) > settings.chat_max_question_chars:
+            raise ValueError(f"问题长度不能超过 {settings.chat_max_question_chars} 字符")
+        return value
+
+
+class InternalChatRetractRequest(BaseModel):
+    session_id: str | None = None
+    conversation_id: str | None = None
+    user_message_id: str = Field(min_length=1)
+    assistant_message_id: str = Field(min_length=1)
+
 
 @router.get("/health")
 async def health() -> dict:
@@ -335,6 +351,21 @@ async def chat(payload: InternalChatRequest, db: AsyncSession = Depends(get_db))
         payload.options.rerank_top_k,
         document_ids,
         payload.options.enable_rewrite,
+    )
+    return ok(result)
+
+
+@router.post("/chat/retract")
+async def retract_chat_turn(payload: InternalChatRetractRequest, db: AsyncSession = Depends(get_db)) -> dict:
+    conversation_id = payload.conversation_id or _java_session_to_uuid(payload.session_id)
+    if not conversation_id:
+        raise HTTPException(status_code=422, detail="conversation_id 或 session_id 不能为空")
+    conversation_id = _normalize_uuid(conversation_id, "conversation_id")
+    result = await ChatService().retract_turn(
+        db,
+        conversation_id,
+        payload.user_message_id,
+        payload.assistant_message_id,
     )
     return ok(result)
 

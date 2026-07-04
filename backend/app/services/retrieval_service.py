@@ -1410,7 +1410,7 @@ class RetrievalService:
                 item for item in candidates
                 if self._threshold_score(item) >= similarity_threshold
             ]
-            filtered = fallback or candidates[:1]
+            filtered = fallback
         return filtered
 
     def _policy_coverage_plan(self, query: str, contexts: list[dict]) -> dict:

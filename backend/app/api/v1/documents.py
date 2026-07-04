@@ -210,6 +210,34 @@ async def export_documents(
     )
 
 
+@router.get("/knowledge-bases")
+async def list_knowledge_bases(
+    db: AsyncSession = Depends(get_db),
+    _: Admin = Depends(get_current_admin),
+):
+    rows = await db.execute(
+        select(Document.knowledge_base)
+        .where(Document.deleted_at.is_(None))
+        .distinct()
+        .order_by(Document.knowledge_base.asc())
+    )
+    return ok(serialize_knowledge_bases(list(rows.scalars())))
+
+
+def serialize_knowledge_bases(values: list[str | None]) -> dict:
+    items: list[str] = []
+    seen: set[str] = set()
+    for item in values:
+        normalized = normalize_knowledge_base(item) or "default"
+        if normalized in seen:
+            continue
+        seen.add(normalized)
+        items.append(normalized)
+    if "default" not in items:
+        items.insert(0, "default")
+    return {"items": items, "default": "default"}
+
+
 @router.post("/batch/delete")
 async def batch_delete_documents(
     payload: DocumentBatchPayload,
