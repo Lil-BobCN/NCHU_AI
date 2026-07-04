@@ -54,7 +54,8 @@ Python RAG 内部接口前缀：
 | 部署目录 | `/app/rag-java-internal` |
 | Java 同服务器调用地址 | `http://127.0.0.1:18020/internal/rag` |
 | 外部机器调用地址 | `http://47.100.216.222:18020/internal/rag` |
-| 服务 Token | 读取服务器 `/app/rag-java-internal/.env` 中的 `RAG_SERVICE_TOKEN` |
+| 鉴权方式 | `Authorization: Bearer <Java Sa-Token JWT>` |
+| JWT 验签配置 | Python 服务器 `.env` 中的 `SA_TOKEN_JWT_SECRET`，需与 Java 一致 |
 | 部署形态 | 轻量版，`OCR_ENABLED=false` |
 
 如果 Java 服务和 Python RAG 在同一台服务器，推荐使用：
@@ -72,7 +73,7 @@ RAG_BASE_URL=http://47.100.216.222:18020/internal/rag
 所有内部接口都必须带：
 
 ```http
-X-RAG-Service-Token: <双方约定的服务 Token>
+Authorization: Bearer <Java Sa-Token JWT>
 X-Request-Id: <链路追踪 ID，建议传>
 ```
 
@@ -82,16 +83,14 @@ X-Request-Id: <链路追踪 ID，建议传>
 POST http://127.0.0.1:18020/internal/rag/chat/stream
 Content-Type: application/json
 Accept: text/event-stream
-X-RAG-Service-Token: xxxxxx
+Authorization: Bearer <Java Sa-Token JWT>
 X-Request-Id: 20260701150000001
 ```
 
 Java 注意：
 
-- 不要把 `X-RAG-Service-Token` 返回给前端。
 - 不要让前端直接访问 Python。
-- 生产环境 Token 必须从配置中心、环境变量或 Secret 读取。
-- 当前远程 Token 不写入本文档；Java 后端从服务器 `.env` 或配置中心读取。
+- Python 验签密钥 `SA_TOKEN_JWT_SECRET` 必须和 Java 端保持一致，不写入本文档和 Git。
 - 当前部署为轻量版，不启用扫描件/图片 OCR；需要 OCR 时需后续部署完整镜像。
 
 ## 3. Java 和 Python 的职责边界
@@ -274,7 +273,7 @@ Java 启动时、定时巡检时、联调前确认 Python RAG 服务可用。
 
 ```http
 GET /internal/rag/health
-X-RAG-Service-Token: <token>
+Authorization: Bearer <Java Sa-Token JWT>
 ```
 
 ### 6.3 响应
@@ -292,9 +291,9 @@ X-RAG-Service-Token: <token>
 
 ### 6.4 Java 处理
 
-- 成功：说明服务和 Token 正常。
-- 401：Token 错误。
-- 503：Python 没配置 `RAG_SERVICE_TOKEN`。
+- 成功：说明服务和 Sa-Token JWT 验签正常。
+- 401：缺少 `Authorization`、JWT 无效或已过期。
+- 503：Python 没配置 `SA_TOKEN_JWT_SECRET`。
 
 当前远程可用验证：
 
@@ -323,31 +322,16 @@ curl http://127.0.0.1:18020/api/v1/readiness
 7. Java 轮询任务状态，更新业务表 RAG 状态。
 ```
 
-当前部署注意：
-
-```text
-当前 /documents/process 返回的 jobs[0].job_id 是 Redis 队列任务 ID。
-当前 /internal/rag/jobs/{job_id} 查询的是数据库 document_jobs.id。
-两者暂未打通，Java 直接用返回的 job_id 轮询可能得到 404。
-```
-
-建议 Java 联调前先让 Python 侧修复任务 ID 契约：
-
-```text
-1. /documents/process 入队前创建数据库 document_jobs。
-2. 接口返回 document_jobs.id。
-3. Redis task payload 携带同一个 job_id。
-4. worker 更新同一条 document_jobs。
-```
-
-在修复前，可以先验证健康检查、文档元数据创建、权限字段同步和问答接口；文档进度轮询暂不作为最小闭环阻塞项。
+当前实现已在入队前创建数据库 `document_jobs` 记录，接口返回的 `job_id`
+就是 `/internal/rag/jobs/{job_id}` 可轮询的数据库任务 ID。Redis task payload
+也会携带同一个 `job_id`，worker 更新同一条任务记录。
 
 ### 7.3 请求示例
 
 ```http
 POST /internal/rag/documents/process
 Content-Type: application/json
-X-RAG-Service-Token: <token>
+Authorization: Bearer <Java Sa-Token JWT>
 ```
 
 ```json
@@ -600,7 +584,7 @@ Java 删除文档、禁用文档、撤回发布时调用。
 ```http
 DELETE /internal/rag/documents/{attach_id}
 Content-Type: application/json
-X-RAG-Service-Token: <token>
+Authorization: Bearer <Java Sa-Token JWT>
 ```
 
 ```json
@@ -673,7 +657,7 @@ POST /internal/rag/documents/{attach_id}/rechunk
 
 ```http
 GET /internal/rag/jobs/{job_id}
-X-RAG-Service-Token: <token>
+Authorization: Bearer <Java Sa-Token JWT>
 ```
 
 ### 14.2 响应
@@ -713,9 +697,8 @@ Java 可以：
 
 当前实现特别注意：
 
-- `/internal/rag/jobs/{job_id}` 只认数据库 `document_jobs.id`。
-- `/documents/process`、`/reparse`、`/rechunk` 当前返回的是 Redis task id。
-- 该契约需要在 Java 正式文档处理联调前修复，否则 Java 轮询会不稳定。
+- `/documents/process`、`/reparse`、`/rechunk` 返回的 `job_id` 均为数据库 `document_jobs.id`。
+- Java 可直接使用该 `job_id` 轮询 `/internal/rag/jobs/{job_id}`。
 
 ## 15. 调用流程十：普通用户发起问答
 
@@ -739,7 +722,7 @@ Java 可以：
 POST /internal/rag/chat/stream
 Content-Type: application/json
 Accept: text/event-stream
-X-RAG-Service-Token: <token>
+Authorization: Bearer <Java Sa-Token JWT>
 ```
 
 ```json
@@ -1129,19 +1112,20 @@ Java `chat_message` 建议保存：
 
 | HTTP 状态 | 场景 | Java 处理 |
 | --- | --- | --- |
-| 401 | Token 错误 | 告警，检查服务配置 |
+| 401 | Sa-Token JWT 缺失、无效或已过期 | 告警，检查登录态转发和验签配置 |
 | 403 | 当前用户无可检索资料 | 返回“当前暂无可检索资料” |
 | 404 | 文档或任务不存在 | 检查 Java attach_id/job_id 是否正确 |
 | 415 | 不支持文件类型 | 上传时提示用户 |
 | 422 | 参数错误 | Java 打日志并修请求体 |
-| 503 | Python Token 未配置 | 运维处理 |
+| 503 | Python `SA_TOKEN_JWT_SECRET` 未配置 | 运维处理 |
 | 500 | Python 内部错误 | Java 记录失败，提示稍后重试 |
 
 ## 24. 联调检查清单
 
 Java 联调前逐项确认：
 
-- `X-RAG-Service-Token` 配置一致。
+- Java 请求 Python 时透传 `Authorization: Bearer <Java Sa-Token JWT>`。
+- Python `.env` 中的 `SA_TOKEN_JWT_SECRET` 与 Java 端一致。
 - Java 如果和 Python 在同服务器，优先使用 `http://127.0.0.1:18020/internal/rag`。
 - Java 如果在外部服务器，确认阿里云安全组已放行 TCP `18020`。
 - Java 上传文件后，Python 容器能访问相同 MinIO bucket/object key。
@@ -1154,7 +1138,7 @@ Java 联调前逐项确认：
 - 文件内容变更时，传 `auto_process=true`。
 - 删除/禁用文档时，调用 `DELETE /internal/rag/documents/{attach_id}` 或 `visible_in_chat=false`。
 - 当前远程部署 `OCR_ENABLED=false`，不要用扫描件 PDF 或纯图片文档做第一轮联调样例。
-- 文档处理任务轮询前，先修复 `job_id` 契约，或临时绕过任务进度轮询。
+- 文档处理接口返回的 `job_id` 可直接用于 `/internal/rag/jobs/{job_id}` 轮询。
 
 ## 25. 最小 Java 调用顺序
 

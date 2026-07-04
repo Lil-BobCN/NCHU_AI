@@ -73,7 +73,8 @@ Java 不应该直接调用原系统的管理接口。当前对 Java 稳定开放
 | Worker 容器 | `rag_java2_worker` |
 | Java 同服务器调用地址 | `http://127.0.0.1:18020/internal/rag` |
 | 外部机器调用地址 | `http://47.100.216.222:18020/internal/rag` |
-| 服务 Token 存放位置 | `/app/rag-java-internal/.env` 的 `RAG_SERVICE_TOKEN` |
+| 鉴权方式 | `Authorization: Bearer <Java Sa-Token JWT>` |
+| JWT 验签配置 | `/app/rag-java-internal/.env` 的 `SA_TOKEN_JWT_SECRET`，需与 Java 一致 |
 | 部署说明 | [部署运维文档.md](部署运维文档.md) |
 
 注意：
@@ -84,33 +85,34 @@ Java 不应该直接调用原系统的管理接口。当前对 Java 稳定开放
 
 ## 2. 服务鉴权
 
-所有 `/internal/rag/*` 接口都必须带内部服务 Token：
+所有 `/internal/rag/*` 接口都必须带 Java 登录后的 Sa-Token JWT：
 
 ```http
-X-RAG-Service-Token: <RAG_SERVICE_TOKEN>
+Authorization: Bearer <Java Sa-Token JWT>
 X-Request-Id: <trace id，可选但建议传>
 ```
 
 Python 配置项：
 
 ```env
-RAG_SERVICE_TOKEN=双方约定的强随机字符串
+SA_TOKEN_JWT_SECRET=与 Java sa-token.jwt-secret-key 保持一致
+SA_TOKEN_JWT_ALGORITHM=HS256
 ```
 
-如果未配置或仍为默认值 `change-me`，Python 会返回：
+如果未配置 `SA_TOKEN_JWT_SECRET` 或仍为默认值 `change-me`，Python 会返回：
 
 ```json
 {
-  "detail": "RAG 服务 Token 未配置"
+  "detail": "Sa-Token JWT 密钥未配置"
 }
 ```
 
 建议：
 
-- 该 Token 只在 Java 后端和 Python RAG 服务之间使用。
-- 不允许暴露到浏览器、前端代码、接口文档截图。
-- 生产环境通过环境变量或容器 secret 注入。
-- 当前远程部署的 Token 请从 `/app/rag-java-internal/.env` 读取，不要写死在前端或提交到代码仓库。
+- Java 后端先完成登录态校验，再把当前请求的 Sa-Token JWT 转发给 Python。
+- 不允许把 `SA_TOKEN_JWT_SECRET` 暴露到浏览器、前端代码、接口文档截图或 Git。
+- 生产环境通过环境变量、配置中心或容器 secret 注入。
+- 旧 `X-RAG-Service-Token` 属于历史方案，当前 `/internal/rag/*` 路由不再使用。
 
 ## 3. 通用响应格式
 
@@ -128,16 +130,16 @@ RAG_SERVICE_TOKEN=双方约定的强随机字符串
 
 | HTTP 状态 | 场景 |
 | --- | --- |
-| 401 | `X-RAG-Service-Token` 缺失或错误 |
+| 401 | `Authorization` 缺失、JWT 无效或已过期 |
 | 403 | 权限范围为空、当前用户无可检索资料 |
 | 404 | 文档或任务不存在 |
 | 415 | 不支持的文档类型 |
 | 422 | 请求参数格式错误 |
-| 503 | Python 未配置 `RAG_SERVICE_TOKEN` |
+| 503 | Python 未配置 `SA_TOKEN_JWT_SECRET` |
 
 ## 4. 权限模型
 
-Python 不解析 Java 的 Sa-Token，也不判断用户属于哪个部门。
+Python 只对 Java Sa-Token JWT 做验签和有效期校验，不在 Python 侧重新计算部门权限。
 
 正确流程是：
 
@@ -262,7 +264,7 @@ session_id = Java chat_session.id
 
 ```http
 GET /internal/rag/health
-X-RAG-Service-Token: <token>
+Authorization: Bearer <Java Sa-Token JWT>
 ```
 
 响应：
@@ -314,7 +316,7 @@ Java 在完成文件上传和附件业务记录保存后调用。
 ```http
 POST /internal/rag/documents/process
 Content-Type: application/json
-X-RAG-Service-Token: <token>
+Authorization: Bearer <Java Sa-Token JWT>
 ```
 
 请求体：
@@ -534,7 +536,7 @@ GET /internal/rag/jobs/{job_id}
 POST /internal/rag/chat/stream
 Content-Type: application/json
 Accept: text/event-stream
-X-RAG-Service-Token: <token>
+Authorization: Bearer <Java Sa-Token JWT>
 ```
 
 请求体：
@@ -689,7 +691,7 @@ Java 保存 AI 消息、引用来源、retrieval trace
 
 ### 已实现
 
-- 内部服务 Token 鉴权。
+- Java Sa-Token JWT 鉴权。
 - Java 附件 ID 和 Python RAG 文档绑定。
 - 文档处理、重新解析、重新切片、删除索引。
 - 按部门、知识库、文档 ID 过滤可召回文档。
@@ -701,7 +703,6 @@ Java 保存 AI 消息、引用来源、retrieval trace
 
 | 项目 | 说明 | 建议 |
 | --- | --- | --- |
-| `job_id` 契约 | 当前接口返回 Redis task id，但 `/jobs/{job_id}` 查询数据库 job id | Java 文档处理联调前优先修复 |
 | Java 权限字段 | 已支持 `publish_scope`、`allowed_dept_ids`、`allowed_user_ids` | Java 上传/发布文档时必须正确传值 |
 | `force` 字段 | 文档处理接口保留字段，当前未实际控制覆盖逻辑 | 如 Java 有强制重建需求，补充实现 |
 | `chunk_config` 字段 | 重新切片接口保留字段，当前未覆盖环境配置 | 如需按文档自定义切片，补充实现 |
@@ -715,7 +716,7 @@ Java 保存 AI 消息、引用来源、retrieval trace
 ```bash
 curl -X POST "http://127.0.0.1:18020/internal/rag/chat" \
   -H "Content-Type: application/json" \
-  -H "X-RAG-Service-Token: ${RAG_SERVICE_TOKEN}" \
+  -H "Authorization: Bearer ${JAVA_SA_TOKEN_JWT}" \
   -d '{
     "session_id": "chat-10001",
     "question": "票据管理与报销类归口哪个部门？",
