@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field, field_validator
-from sqlalchemy import func, select, update
+from sqlalchemy import String, cast, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_admin
@@ -131,7 +131,7 @@ async def submit_answer_feedback(
         select(func.count())
         .select_from(AnswerFeedback)
         .where(
-            AnswerFeedback.conversation_id == assistant_message.conversation_id,
+            cast(AnswerFeedback.conversation_id, String) == str(assistant_message.conversation_id),
             AnswerFeedback.status == "open",
         )
     )

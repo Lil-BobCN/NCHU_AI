@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
-from sqlalchemy import exists, func, or_, select, update
+from sqlalchemy import String, cast, exists, func, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_admin
@@ -85,7 +85,7 @@ async def list_messages(
             AnswerFeedback.error_type,
             AnswerFeedback.status,
         ).where(
-            AnswerFeedback.conversation_id == conversation_id,
+            feedback_conversation_id() == str(conversation_id),
             AnswerFeedback.status == "open",
         )
     )
@@ -172,7 +172,7 @@ async def open_feedback_counts(db: AsyncSession, conversation_ids: list[str]) ->
     rows = await db.execute(
         select(AnswerFeedback.conversation_id, func.count().label("count"))
         .where(
-            AnswerFeedback.conversation_id.in_(conversation_ids),
+            feedback_conversation_id().in_([str(item) for item in conversation_ids]),
             AnswerFeedback.status == "open",
         )
         .group_by(AnswerFeedback.conversation_id)
@@ -186,7 +186,7 @@ def conversation_list_filters(search: str | None = None, feedback_only: bool = F
         filters.append(
             exists(
                 select(AnswerFeedback.id).where(
-                    AnswerFeedback.conversation_id == Conversation.id,
+                    feedback_conversation_id() == cast(Conversation.id, String),
                     AnswerFeedback.status == "open",
                 )
             )
@@ -212,6 +212,10 @@ def conversation_list_filters(search: str | None = None, feedback_only: bool = F
 
 def normalize_conversation_search_query(value: str | None) -> str:
     return " ".join(str(value or "").strip().split())[:100]
+
+
+def feedback_conversation_id():
+    return cast(AnswerFeedback.conversation_id, String)
 
 
 async def backfill_default_conversation_titles(db: AsyncSession, conversations: list[Conversation]) -> None:

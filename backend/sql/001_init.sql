@@ -140,6 +140,7 @@ CREATE TABLE IF NOT EXISTS chunk_embeddings (
 );
 CREATE INDEX IF NOT EXISTS idx_chunk_embeddings_document_id ON chunk_embeddings(document_id);
 CREATE INDEX IF NOT EXISTS idx_chunk_embeddings_content_hash ON chunk_embeddings(content_hash);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_chunk_embeddings_chunk_id_unique ON chunk_embeddings(chunk_id);
 CREATE INDEX IF NOT EXISTS idx_chunk_embeddings_vector_hnsw
 ON chunk_embeddings USING hnsw (embedding vector_cosine_ops);
 
@@ -174,6 +175,7 @@ CREATE TABLE IF NOT EXISTS qa_pair_embeddings (
 );
 CREATE INDEX IF NOT EXISTS idx_qa_pair_embeddings_vector_hnsw
 ON qa_pair_embeddings USING hnsw (embedding vector_cosine_ops);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_qa_pair_embeddings_qa_pair_id_unique ON qa_pair_embeddings(qa_pair_id);
 
 CREATE TABLE IF NOT EXISTS conversations (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),

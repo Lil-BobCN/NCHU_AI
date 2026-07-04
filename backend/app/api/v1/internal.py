@@ -6,7 +6,7 @@ from uuid import NAMESPACE_URL, UUID, uuid5
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field, field_validator
-from sqlalchemy import and_, false, func, or_, select, update
+from sqlalchemy import String, and_, cast, false, func, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user_from_sa_token
@@ -253,7 +253,7 @@ async def list_conversation_messages(conversation_id: str, db: AsyncSession = De
     await _get_conversation(db, conversation_id)
     feedback_rows = await db.execute(
         select(AnswerFeedback).where(
-            AnswerFeedback.conversation_id == conversation_id,
+            _feedback_conversation_id() == str(conversation_id),
             AnswerFeedback.status == "open",
         )
     )
@@ -492,7 +492,10 @@ def _conversation_filters(search: str | None = None, feedback_only: bool = False
     if feedback_only:
         filters.append(
             select(AnswerFeedback.id)
-            .where(AnswerFeedback.conversation_id == Conversation.id, AnswerFeedback.status == "open")
+            .where(
+                _feedback_conversation_id() == cast(Conversation.id, String),
+                AnswerFeedback.status == "open",
+            )
             .exists()
         )
     keyword = " ".join(str(search or "").strip().split())[:100]
@@ -515,10 +518,14 @@ async def _open_feedback_counts(db: AsyncSession, conversation_ids: list[str]) -
         return {}
     rows = await db.execute(
         select(AnswerFeedback.conversation_id, func.count().label("count"))
-        .where(AnswerFeedback.conversation_id.in_(conversation_ids), AnswerFeedback.status == "open")
+        .where(_feedback_conversation_id().in_([str(item) for item in conversation_ids]), AnswerFeedback.status == "open")
         .group_by(AnswerFeedback.conversation_id)
     )
     return {str(row.conversation_id): int(row.count or 0) for row in rows}
+
+
+def _feedback_conversation_id():
+    return cast(AnswerFeedback.conversation_id, String)
 
 
 def _serialize_conversation(item: Conversation, open_feedback_count: int = 0) -> dict:
