@@ -57,6 +57,19 @@
         @cancel="cancelRemove"
         @confirm="confirmRemove"
       />
+
+      <ConfirmDialog
+        v-if="requiredDialog"
+        title="请完善必填内容"
+        :message="requiredDialog.message"
+        :subject-label="requiredDialog.subject"
+        detail="标签字段可以为空，补充必填内容后即可保存问答对。"
+        prompt="以下字段不能为空"
+        cancel-text="知道了"
+        confirm-text="去填写"
+        @cancel="closeRequiredDialog"
+        @confirm="closeRequiredDialog"
+      />
     </div>
   </AppShell>
 </template>
@@ -72,6 +85,7 @@ const tagText = ref('')
 const form = reactive({ id: '', question: '', answer: '', status: 'enabled' })
 const error = ref('')
 const deleteTarget = ref<any | null>(null)
+const requiredDialog = ref<{ message: string; subject: string } | null>(null)
 
 onMounted(load)
 
@@ -94,9 +108,22 @@ function edit(item: any) {
 
 async function save() {
   error.value = ''
+  const question = form.question.trim()
+  const answer = form.answer.trim()
+  if (!question || !answer) {
+    const missing = [
+      !question ? '问题' : '',
+      !answer ? '答案' : ''
+    ].filter(Boolean)
+    requiredDialog.value = {
+      message: `请填写${missing.join('、')}后再保存。`,
+      subject: missing.join('、')
+    }
+    return
+  }
   const payload = {
-    question: form.question,
-    answer: form.answer,
+    question,
+    answer,
     status: form.status,
     tags: tagText.value.split(',').map((x) => x.trim()).filter(Boolean)
   }
@@ -129,6 +156,10 @@ function requestRemove(item: any) {
 
 function cancelRemove() {
   deleteTarget.value = null
+}
+
+function closeRequiredDialog() {
+  requiredDialog.value = null
 }
 
 async function confirmRemove() {

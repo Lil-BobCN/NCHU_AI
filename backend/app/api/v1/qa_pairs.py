@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -23,12 +23,32 @@ class QaPairCreate(BaseModel):
     source_chunk_ids: list[str] | None = None
     tags: list[str] | None = None
 
+    @field_validator("question", "answer")
+    @classmethod
+    def validate_required_text(cls, value: str, info):
+        value = value.strip()
+        if not value:
+            label = "问题" if info.field_name == "question" else "答案"
+            raise ValueError(f"{label}不能为空")
+        return value
+
 
 class QaPairUpdate(BaseModel):
     question: str | None = None
     answer: str | None = None
     status: str | None = None
     tags: list[str] | None = None
+
+    @field_validator("question", "answer")
+    @classmethod
+    def validate_optional_required_text(cls, value: str | None, info):
+        if value is None:
+            return value
+        value = value.strip()
+        if not value:
+            label = "问题" if info.field_name == "question" else "答案"
+            raise ValueError(f"{label}不能为空")
+        return value
 
 
 class QaStatusUpdate(BaseModel):
