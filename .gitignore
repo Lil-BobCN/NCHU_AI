@@ -3,6 +3,7 @@
 !.env.example
 .venv/
 .venv311/
+backend/.venv/
 .cache/
 __pycache__/
 *.pyc
@@ -14,11 +15,14 @@ uploads/
 logs/
 .tmp_*
 sample_contract.pdf
+rag_java_deploy.tgz
 10个合同/
 学校文件/
 docs/session-log-*.md
+docs/当前会话记录*.md
 docs/部署的服务信息.md
 docs/服务器部署说明.md
+docs/JAVA的一些服务器上的配置及git.md
 docs/ingest-*.json
 docs/retrieval-*.json
 docs/*.docx

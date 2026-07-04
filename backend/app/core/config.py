@@ -22,6 +22,9 @@ class Settings(BaseSettings):
     api_v1_prefix: str = "/api/v1"
     internal_api_prefix: str = "/internal/rag"
     rag_service_token: str = "change-me"
+    sa_token_jwt_secret: str = "change-me"
+    sa_token_jwt_algorithm: str = "HS256"
+    sa_token_clock_skew_seconds: int = 60
     app_public_base_url: str | None = None
     cors_origins: list[str] = Field(
         default_factory=lambda: ["http://localhost:5173", "http://127.0.0.1:5173"]

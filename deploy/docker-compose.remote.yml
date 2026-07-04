@@ -1,35 +1,9 @@
 services:
-  postgres:
-    image: docker.1ms.run/pgvector/pgvector:pg15
-    container_name: rag_java2_postgres
-    environment:
-      POSTGRES_DB: rag
-      POSTGRES_USER: rag
-      POSTGRES_PASSWORD: rag
-    ports:
-      - "127.0.0.1:15434:5432"
-    volumes:
-      - rag_java2_postgres_data:/var/lib/postgresql/data
-      - ../backend/sql/001_init.sql:/docker-entrypoint-initdb.d/001_init.sql:ro
-
   redis:
     image: redis:7-alpine
     container_name: rag_java2_redis
     ports:
       - "127.0.0.1:16381:6379"
-
-  minio:
-    image: minio/minio:latest
-    container_name: rag_java2_minio
-    command: server /data --console-address ":9001"
-    environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin
-    ports:
-      - "19004:9000"
-      - "19005:9001"
-    volumes:
-      - rag_java2_minio_data:/data
 
   backend:
     image: rag-java-internal-backend:reuse
@@ -40,15 +14,13 @@ services:
     env_file:
       - ../.env
     environment:
-      DATABASE_URL: postgresql+asyncpg://rag:rag@postgres:5432/rag
       REDIS_URL: redis://redis:6379/0
-      MINIO_ENDPOINT: minio:9000
       OCR_ENABLED: "false"
       WEB_CONCURRENCY: 2
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
-      - postgres
       - redis
-      - minio
     ports:
       - "0.0.0.0:18020:8000"
 
@@ -61,18 +33,12 @@ services:
     env_file:
       - ../.env
     environment:
-      DATABASE_URL: postgresql+asyncpg://rag:rag@postgres:5432/rag
       REDIS_URL: redis://redis:6379/0
-      MINIO_ENDPOINT: minio:9000
       OCR_ENABLED: "false"
       BACKGROUND_WORKER_CONCURRENCY: 1
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
-      - postgres
       - redis
-      - minio
     command: ["python", "-m", "app.workers.document_worker"]
     restart: unless-stopped
-
-volumes:
-  rag_java2_postgres_data:
-  rag_java2_minio_data:

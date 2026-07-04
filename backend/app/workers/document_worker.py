@@ -30,13 +30,25 @@ async def dispatch_task(task: dict) -> None:
 
     async with AsyncSessionLocal() as db:
         if task_type == "document_full_pipeline":
-            await DocumentPipeline().run_full_pipeline_from_storage(db, str(payload["document_id"]))
+            await DocumentPipeline().run_full_pipeline_from_storage(
+                db,
+                str(payload["document_id"]),
+                job_id=str(payload["job_id"]) if payload.get("job_id") else None,
+            )
             return
         if task_type == "document_rechunk":
-            await DocumentPipeline().run_chunk_and_embed(db, str(payload["document_id"]))
+            await DocumentPipeline().run_chunk_and_embed(
+                db,
+                str(payload["document_id"]),
+                job_id=str(payload["job_id"]) if payload.get("job_id") else None,
+            )
             return
         if task_type == "document_reembed":
-            await DocumentPipeline().run_embed_only(db, str(payload["document_id"]))
+            await DocumentPipeline().run_embed_only(
+                db,
+                str(payload["document_id"]),
+                job_id=str(payload["job_id"]) if payload.get("job_id") else None,
+            )
             return
         if task_type == "document_convert_office":
             await DocumentPipeline().run_convert_office(db, str(payload["document_id"]))

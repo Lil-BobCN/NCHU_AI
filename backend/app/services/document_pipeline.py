@@ -35,7 +35,9 @@ class DocumentPipeline:
         self.archive_import_service = ArchiveImportService()
         self.lifecycle_service = DocumentLifecycleService()
 
-    async def run_full_pipeline_from_storage(self, db: AsyncSession, document_id: str) -> None:
+    async def run_full_pipeline_from_storage(
+        self, db: AsyncSession, document_id: str, job_id: str | None = None
+    ) -> None:
         document = await db.scalar(select(Document).where(Document.id == document_id))
         if document is None:
             raise ValueError("文档不存在")
@@ -44,11 +46,17 @@ class DocumentPipeline:
             document.storage_bucket,
             document.storage_object_key,
         )
-        await self.run_full_pipeline(db, document_id, file_bytes)
+        await self.run_full_pipeline(db, document_id, file_bytes, job_id=job_id)
 
-    async def run_full_pipeline(self, db: AsyncSession, document_id: str, file_bytes: bytes) -> None:
-        parse_job = await self._create_job(db, document_id, "parse")
-        parse_job_id = str(parse_job.id)
+    async def run_full_pipeline(
+        self, db: AsyncSession, document_id: str, file_bytes: bytes, job_id: str | None = None
+    ) -> None:
+        use_tracking_job = job_id is not None
+        if use_tracking_job:
+            parse_job_id = str(job_id)
+        else:
+            parse_job = await self._create_job(db, document_id, "parse")
+            parse_job_id = str(parse_job.id)
         try:
             await self._set_job(db, parse_job_id, "running", 5, "开始解析")
             document = await db.scalar(select(Document).where(Document.id == document_id))
@@ -89,15 +97,21 @@ class DocumentPipeline:
                     parse_terminal_message(parsed.meta),
                 )
                 return
-            await self._set_job(db, parse_job_id, "succeeded", 100, "解析完成")
+            if use_tracking_job:
+                await self._set_job(db, parse_job_id, "running", 35, "解析完成，开始切片")
+            else:
+                await self._set_job(db, parse_job_id, "succeeded", 100, "解析完成")
         except Exception as exc:
             await self._fail(db, document_id, parse_job_id, exc)
             return
 
-        chunk_job = await self._create_job(db, document_id, "chunk")
-        chunk_job_id = str(chunk_job.id)
+        if use_tracking_job:
+            chunk_job_id = str(job_id)
+        else:
+            chunk_job = await self._create_job(db, document_id, "chunk")
+            chunk_job_id = str(chunk_job.id)
         try:
-            await self._set_job(db, chunk_job_id, "running", 5, "开始切片")
+            await self._set_job(db, chunk_job_id, "running", 40 if use_tracking_job else 5, "开始切片")
             chunk_count = await self._chunk_document(db, document_id)
             if chunk_count <= 0:
                 raise ValueError("切片结果为空，未生成可向量化内容")
@@ -110,16 +124,27 @@ class DocumentPipeline:
                 db, document_id=document_id, reason="document_chunked"
             )
             await db.commit()
-            await self._set_job(db, chunk_job_id, "succeeded", 100, "切片完成")
+            if use_tracking_job:
+                await self._set_job(db, chunk_job_id, "running", 65, "切片完成，开始向量化")
+            else:
+                await self._set_job(db, chunk_job_id, "succeeded", 100, "切片完成")
         except Exception as exc:
             await self._fail(db, document_id, chunk_job_id, exc)
             return
 
-        embed_job = await self._create_job(db, document_id, "embed")
-        embed_job_id = str(embed_job.id)
+        if use_tracking_job:
+            embed_job_id = str(job_id)
+        else:
+            embed_job = await self._create_job(db, document_id, "embed")
+            embed_job_id = str(embed_job.id)
         try:
-            await self._set_job(db, embed_job_id, "running", 5, "开始向量化")
-            embedded_count = await self._embed_document(db, document_id, embed_job_id)
+            await self._set_job(db, embed_job_id, "running", 70 if use_tracking_job else 5, "开始向量化")
+            embedded_count = await self._embed_document(
+                db,
+                document_id,
+                embed_job_id,
+                progress_start=70 if use_tracking_job else 0,
+            )
             if embedded_count <= 0:
                 raise ValueError("没有可向量化的切片")
             await db.execute(
@@ -135,9 +160,13 @@ class DocumentPipeline:
         except Exception as exc:
             await self._fail(db, document_id, embed_job_id, exc)
 
-    async def run_chunk_and_embed(self, db: AsyncSession, document_id: str) -> None:
-        chunk_job = await self._create_job(db, document_id, "chunk")
-        chunk_job_id = str(chunk_job.id)
+    async def run_chunk_and_embed(self, db: AsyncSession, document_id: str, job_id: str | None = None) -> None:
+        use_tracking_job = job_id is not None
+        if use_tracking_job:
+            chunk_job_id = str(job_id)
+        else:
+            chunk_job = await self._create_job(db, document_id, "chunk")
+            chunk_job_id = str(chunk_job.id)
         try:
             await self._set_job(db, chunk_job_id, "running", 5, "开始重新切片")
             blocker = await self._indexing_blocker(db, document_id)
@@ -156,18 +185,24 @@ class DocumentPipeline:
                 db, document_id=document_id, reason="document_rechunked"
             )
             await db.commit()
-            await self._set_job(db, chunk_job_id, "succeeded", 100, "重新切片完成")
+            if use_tracking_job:
+                await self._set_job(db, chunk_job_id, "running", 50, "重新切片完成，开始重新向量化")
+            else:
+                await self._set_job(db, chunk_job_id, "succeeded", 100, "重新切片完成")
         except Exception as exc:
             await self._fail(db, document_id, chunk_job_id, exc)
             return
 
-        await self.run_embed_only(db, document_id)
+        await self.run_embed_only(db, document_id, job_id=job_id)
 
-    async def run_embed_only(self, db: AsyncSession, document_id: str) -> None:
-        embed_job = await self._create_job(db, document_id, "embed")
-        embed_job_id = str(embed_job.id)
+    async def run_embed_only(self, db: AsyncSession, document_id: str, job_id: str | None = None) -> None:
+        if job_id is not None:
+            embed_job_id = str(job_id)
+        else:
+            embed_job = await self._create_job(db, document_id, "embed")
+            embed_job_id = str(embed_job.id)
         try:
-            await self._set_job(db, embed_job_id, "running", 5, "开始重新向量化")
+            await self._set_job(db, embed_job_id, "running", 55 if job_id is not None else 5, "开始重新向量化")
             blocker = await self._indexing_blocker(db, document_id)
             if blocker:
                 await self._set_job(db, embed_job_id, "skipped", 100, blocker)
@@ -182,7 +217,12 @@ class DocumentPipeline:
                 reason="document_reembed_started",
             )
             await db.commit()
-            embedded_count = await self._embed_document(db, document_id, embed_job_id)
+            embedded_count = await self._embed_document(
+                db,
+                document_id,
+                embed_job_id,
+                progress_start=55 if job_id is not None else 0,
+            )
             if embedded_count <= 0:
                 raise ValueError("没有可向量化的切片")
             await db.execute(
@@ -509,7 +549,14 @@ class DocumentPipeline:
                 )
         await db.flush()
 
-    async def _embed_document(self, db: AsyncSession, document_id: str, job_id: str) -> int:
+    async def _embed_document(
+        self,
+        db: AsyncSession,
+        document_id: str,
+        job_id: str,
+        progress_start: int = 0,
+        progress_end: int = 95,
+    ) -> int:
         rows = await db.execute(
             text(
                 """
@@ -555,7 +602,11 @@ class DocumentPipeline:
                     },
                 )
                 embedded_count += 1
-            progress = min(95, int(((start + len(batch)) / len(chunks)) * 95))
+            progress_range = max(1, progress_end - progress_start)
+            progress = min(
+                progress_end,
+                progress_start + int(((start + len(batch)) / len(chunks)) * progress_range),
+            )
             await db.commit()
             await self._set_job(db, job_id, "running", progress, f"已向量化 {start + len(batch)}/{len(chunks)}")
         return embedded_count

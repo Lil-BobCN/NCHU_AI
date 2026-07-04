@@ -4,6 +4,19 @@
 日期：2026-07-02  
 适用对象：Java 后端开发、Python RAG 开发、联调测试
 
+## 0. 2026-07-04 联调更新
+
+- Python `/internal/rag/*` 鉴权已统一为 Java Sa-Token JWT：
+
+```http
+Authorization: Bearer <Java Sa-Token JWT>
+```
+
+- 旧 `X-RAG-Service-Token` 示例属于历史方案，当前联调不用再传。
+- Python 远程部署使用 Java 现有 PostgreSQL，`DATABASE_URL` 指向同一个数据库实例。
+- 文档处理接口返回的 `job_id` 已修复为 `document_jobs.id`，Java 可直接轮询 `/internal/rag/jobs/{job_id}`。
+- 已补齐 Java 需要的文档状态和会话管理接口：`GET /documents/{attach_id}`、`POST/GET/PATCH/DELETE /conversations`、`GET /conversations/{id}/messages`。
+
 ## 1. 先看结论
 
 Java 只需要记住一条主线：

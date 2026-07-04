@@ -14,7 +14,7 @@
 
 Java 负责登录鉴权、部门权限、文档业务记录、会话消息保存，并在调用 Python 时传入 `access_scope`。
 
-Python 负责根据 Java 传来的范围过滤召回。
+Python 负责验证 Java Sa-Token JWT，并根据 Java 传来的范围过滤召回。
 
 ## 文档阅读顺序
 
@@ -27,10 +27,10 @@ Java 联调建议按这个顺序看：
 
 ## 内部接口
 
-所有接口需要请求头：
+所有 `/internal/rag/*` 接口需要请求头：
 
 ```http
-X-RAG-Service-Token: <RAG_SERVICE_TOKEN>
+Authorization: Bearer <Java Sa-Token JWT>
 X-Request-Id: <trace id>
 ```
 
@@ -40,14 +40,28 @@ X-Request-Id: <trace id>
 
 ```text
 GET    /internal/rag/health
+GET    /internal/rag/documents/{attach_id}
 POST   /internal/rag/documents/process
 POST   /internal/rag/documents/{attach_id}/reparse
 POST   /internal/rag/documents/{attach_id}/rechunk
 DELETE /internal/rag/documents/{attach_id}
 GET    /internal/rag/jobs/{job_id}
+POST   /internal/rag/conversations
+GET    /internal/rag/conversations
+GET    /internal/rag/conversations/{conversation_id}/messages
+PATCH  /internal/rag/conversations/{conversation_id}
+DELETE /internal/rag/conversations/{conversation_id}
 POST   /internal/rag/chat/stream
 POST   /internal/rag/chat
 ```
+
+## 部署数据库
+
+远程部署不再启动独立 PostgreSQL。`deploy/docker-compose.remote.yml` 会从 `.env` 读取
+`DATABASE_URL`，该地址应指向 Java 服务器现有 PostgreSQL 数据库。
+
+Sa-Token JWT 验签密钥通过 `.env` 的 `SA_TOKEN_JWT_SECRET` 配置，必须与 Java 端
+`sa-token.jwt-secret-key` 保持一致。
 
 ## 文档权限
 

@@ -1,10 +1,36 @@
 # Java 后端调用 Python RAG 接口文档
 
-版本：V1.1  
-日期：2026-07-02  
+版本：V1.2  
+日期：2026-07-04  
 适用项目：`rag_java`
 
 > 如果 Java 需要按业务场景照着接，优先看 [Java对接调用流程详版.md](Java对接调用流程详版.md)。本文主要作为接口字段契约速查。
+
+## 0. 2026-07-04 联调更新
+
+本次按 Java 提供的《Python RAG 服务接口鉴权统一方案》完成以下调整：
+
+- `/internal/rag/*` 鉴权统一改为 Java Sa-Token JWT：
+
+```http
+Authorization: Bearer <Java Sa-Token JWT>
+```
+
+- Python 不再要求 Java 传 `X-RAG-Service-Token`。旧 Service Token 函数保留在代码中，但 internal 路由已不再使用。
+- Python 远程部署不再启动独立 PostgreSQL，`DATABASE_URL` 必须指向 Java 服务器现有 PostgreSQL。
+- `POST /documents/process`、`/reparse`、`/rechunk` 返回的 `job_id` 已改为 `document_jobs.id`，Java 可以直接轮询 `/jobs/{job_id}`。
+- 已补齐 Java 当前调用需要的文档状态与会话接口：
+
+```text
+GET    /internal/rag/documents/{attach_id}
+POST   /internal/rag/conversations
+GET    /internal/rag/conversations
+GET    /internal/rag/conversations/{conversation_id}/messages
+PATCH  /internal/rag/conversations/{conversation_id}
+DELETE /internal/rag/conversations/{conversation_id}
+```
+
+下方历史章节中如仍出现 `X-RAG-Service-Token` 示例，以本节为准。
 
 ## 1. 总体说明
 

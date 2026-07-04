@@ -1,30 +1,35 @@
-﻿from collections.abc import AsyncGenerator
+from collections.abc import AsyncGenerator
+from datetime import datetime, timezone
 from pathlib import Path
 from uuid import NAMESPACE_URL, UUID, uuid5
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field, field_validator
-from sqlalchemy import and_, false, or_, select, update
+from sqlalchemy import and_, false, func, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import require_internal_service
+from app.api.deps import get_current_user_from_sa_token
 from app.core.config import get_settings
 from app.core.responses import ok
-from app.db.models import Document, DocumentJob
+from app.db.models import AnswerFeedback, Conversation, ConversationMessage, Document, DocumentJob
 from app.db.session import get_db
 from app.services.chat_service import ChatService
+from app.services.conversation_title import normalize_conversation_title, validate_manual_conversation_title
 from app.services.document_lifecycle_service import DocumentLifecycleService
 from app.services.document_pipeline import supported_file
 from app.services.task_queue_service import TaskQueueService
 
-router = APIRouter(tags=["internal-rag"], dependencies=[Depends(require_internal_service)])
+
+router = APIRouter(tags=["internal-rag"], dependencies=[Depends(get_current_user_from_sa_token)])
+
 
 class UserContext(BaseModel):
     user_id: str = Field(min_length=1)
     dept_id: str | None = None
     role_codes: list[str] = Field(default_factory=list)
     data_scope: str | None = None
+
 
 class AccessScope(BaseModel):
     scope_mode: str = Field(default="dept")
@@ -41,6 +46,7 @@ class AccessScope(BaseModel):
         if value not in allowed:
             raise ValueError(f"scope_mode 只能是 {', '.join(sorted(allowed))}")
         return value
+
 
 class DocumentProcessRequest(BaseModel):
     attach_id: int = Field(gt=0)
@@ -72,23 +78,37 @@ class DocumentProcessRequest(BaseModel):
             raise ValueError(f"publish_scope 只能是 {', '.join(sorted(allowed))}")
         return value
 
+
 class ReprocessRequest(BaseModel):
     operator_id: str | None = Field(default=None, max_length=128)
     force: bool = True
+
 
 class RechunkRequest(BaseModel):
     operator_id: str | None = Field(default=None, max_length=128)
     chunk_config: dict | None = None
 
+
 class DeleteDocumentRequest(BaseModel):
     operator_id: str | None = Field(default=None, max_length=128)
     reason: str = Field(default="document_deleted", max_length=128)
+
+
+class ConversationCreateRequest(BaseModel):
+    title: str | None = Field(default=None, max_length=255)
+    created_by: str | None = Field(default=None, max_length=128)
+
+
+class ConversationUpdateRequest(BaseModel):
+    title: str = Field(min_length=1, max_length=255)
+
 
 class ChatOptions(BaseModel):
     top_k: int = Field(default=8, ge=1, le=50)
     rerank_top_k: int = Field(default=5, ge=1, le=20)
     enable_rewrite: bool = True
     enable_suggested_questions: bool = True
+
 
 class InternalChatRequest(BaseModel):
     session_id: str | None = None
@@ -98,10 +118,28 @@ class InternalChatRequest(BaseModel):
     access_scope: AccessScope
     options: ChatOptions = Field(default_factory=ChatOptions)
 
+
 @router.get("/health")
 async def health() -> dict:
     settings = get_settings()
     return ok({"status": "ok", "name": settings.app_name})
+
+
+@router.get("/documents/{attach_id}")
+async def get_document_status(attach_id: int, db: AsyncSession = Depends(get_db)) -> dict:
+    document = await _get_document_by_attach_id(db, attach_id)
+    return ok(
+        {
+            "attach_id": attach_id,
+            "rag_doc_id": str(document.id),
+            "status": document.status,
+            "file_name": document.file_name,
+            "knowledge_base": document.knowledge_base,
+            "error_message": document.error_message,
+            "updated_at": document.updated_at.isoformat() if document.updated_at else None,
+        }
+    )
+
 
 @router.post("/documents/process")
 async def process_document(payload: DocumentProcessRequest, db: AsyncSession = Depends(get_db)) -> dict:
@@ -110,21 +148,39 @@ async def process_document(payload: DocumentProcessRequest, db: AsyncSession = D
     document = await _upsert_java_document(db, payload)
     jobs = []
     if payload.auto_process:
-        task = await TaskQueueService().enqueue("document_full_pipeline", {"document_id": str(document.id), "attach_id": payload.attach_id})
-        jobs.append({"job_id": task["id"], "status": "queued"})
+        job = await _enqueue_document_job(
+            db,
+            document,
+            "document_full_pipeline",
+            {"document_id": str(document.id), "attach_id": payload.attach_id},
+        )
+        jobs.append({"job_id": str(job.id), "status": job.status})
     return ok({"attach_id": payload.attach_id, "rag_doc_id": str(document.id), "status": document.status, "jobs": jobs})
+
 
 @router.post("/documents/{attach_id}/reparse")
 async def reparse_document(attach_id: int, _: ReprocessRequest, db: AsyncSession = Depends(get_db)) -> dict:
     document = await _get_document_by_attach_id(db, attach_id)
-    task = await TaskQueueService().enqueue("document_full_pipeline", {"document_id": str(document.id), "attach_id": attach_id})
-    return ok({"attach_id": attach_id, "rag_doc_id": str(document.id), "job_id": task["id"], "status": "queued"})
+    job = await _enqueue_document_job(
+        db,
+        document,
+        "document_full_pipeline",
+        {"document_id": str(document.id), "attach_id": attach_id},
+    )
+    return ok({"attach_id": attach_id, "rag_doc_id": str(document.id), "job_id": str(job.id), "status": job.status})
+
 
 @router.post("/documents/{attach_id}/rechunk")
 async def rechunk_document(attach_id: int, _: RechunkRequest, db: AsyncSession = Depends(get_db)) -> dict:
     document = await _get_document_by_attach_id(db, attach_id)
-    task = await TaskQueueService().enqueue("document_rechunk", {"document_id": str(document.id), "attach_id": attach_id})
-    return ok({"attach_id": attach_id, "rag_doc_id": str(document.id), "job_id": task["id"], "status": "queued"})
+    job = await _enqueue_document_job(
+        db,
+        document,
+        "document_rechunk",
+        {"document_id": str(document.id), "attach_id": attach_id},
+    )
+    return ok({"attach_id": attach_id, "rag_doc_id": str(document.id), "job_id": str(job.id), "status": job.status})
+
 
 @router.delete("/documents/{attach_id}")
 async def delete_document_index(attach_id: int, payload: DeleteDocumentRequest, db: AsyncSession = Depends(get_db)) -> dict:
@@ -133,31 +189,160 @@ async def delete_document_index(attach_id: int, payload: DeleteDocumentRequest, 
     await db.commit()
     return ok({"attach_id": attach_id, "rag_doc_id": str(document.id), "status": "deleted"})
 
+
 @router.get("/jobs/{job_id}")
 async def get_job(job_id: str, db: AsyncSession = Depends(get_db)) -> dict:
     job_id = _normalize_uuid(job_id, "job_id")
     job = await db.scalar(select(DocumentJob).where(DocumentJob.id == job_id))
     if job is None:
         raise HTTPException(status_code=404, detail="任务不存在")
-    return ok({"job_id": str(job.id), "rag_doc_id": str(job.document_id), "job_type": job.job_type, "status": job.status, "progress": job.progress, "message": job.message, "error_message": job.error_message, "result": job.result})
+    return ok(_serialize_job(job))
+
+
+@router.post("/conversations")
+async def create_conversation(payload: ConversationCreateRequest, db: AsyncSession = Depends(get_db)) -> dict:
+    conversation = Conversation(
+        title=normalize_conversation_title(payload.title),
+        created_by=None,
+        context_state={"created_by": payload.created_by or "java"},
+        message_count=0,
+    )
+    db.add(conversation)
+    await db.commit()
+    await db.refresh(conversation)
+    return ok(_serialize_conversation(conversation))
+
+
+@router.get("/conversations")
+async def list_conversations(
+    page: int = 1,
+    page_size: int = 20,
+    q: str | None = None,
+    feedback_only: bool = False,
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    page = max(1, int(page or 1))
+    page_size = min(100, max(1, int(page_size or 20)))
+    filters = _conversation_filters(q, feedback_only)
+    total = await db.scalar(select(func.count()).select_from(Conversation).where(*filters))
+    rows = await db.execute(
+        select(Conversation)
+        .where(*filters)
+        .order_by(Conversation.updated_at.desc())
+        .offset((page - 1) * page_size)
+        .limit(page_size)
+    )
+    conversations = list(rows.scalars())
+    feedback_counts = await _open_feedback_counts(db, [str(item.id) for item in conversations])
+    return ok(
+        {
+            "total": int(total or 0),
+            "page": page,
+            "page_size": page_size,
+            "items": [
+                _serialize_conversation(item, feedback_counts.get(str(item.id), 0))
+                for item in conversations
+            ],
+        }
+    )
+
+
+@router.get("/conversations/{conversation_id}/messages")
+async def list_conversation_messages(conversation_id: str, db: AsyncSession = Depends(get_db)) -> dict:
+    conversation_id = _normalize_uuid(conversation_id, "conversation_id")
+    await _get_conversation(db, conversation_id)
+    feedback_rows = await db.execute(
+        select(AnswerFeedback).where(
+            AnswerFeedback.conversation_id == conversation_id,
+            AnswerFeedback.status == "open",
+        )
+    )
+    feedback_by_message = {str(item.assistant_message_id): item for item in feedback_rows.scalars()}
+    rows = await db.execute(
+        select(ConversationMessage)
+        .where(ConversationMessage.conversation_id == conversation_id)
+        .order_by(ConversationMessage.created_at.asc())
+    )
+    return ok([_serialize_message(item, feedback_by_message.get(str(item.id))) for item in rows.scalars()])
+
+
+@router.patch("/conversations/{conversation_id}")
+async def update_conversation(
+    conversation_id: str,
+    payload: ConversationUpdateRequest,
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    conversation_id = _normalize_uuid(conversation_id, "conversation_id")
+    try:
+        title = validate_manual_conversation_title(payload.title)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    conversation = await _get_conversation(db, conversation_id)
+    now = datetime.now(timezone.utc)
+    await db.execute(update(Conversation).where(Conversation.id == conversation_id).values(title=title, updated_at=now))
+    await db.commit()
+    conversation.title = title
+    conversation.updated_at = now
+    return ok({"id": str(conversation.id), "title": conversation.title, "updated_at": now.isoformat()})
+
+
+@router.delete("/conversations/{conversation_id}")
+async def delete_conversation(conversation_id: str, db: AsyncSession = Depends(get_db)) -> dict:
+    conversation_id = _normalize_uuid(conversation_id, "conversation_id")
+    await _get_conversation(db, conversation_id)
+    await db.execute(
+        update(Conversation)
+        .where(Conversation.id == conversation_id)
+        .values(deleted_at=datetime.now(timezone.utc), updated_at=datetime.now(timezone.utc))
+    )
+    await db.commit()
+    return ok({"id": conversation_id, "status": "deleted"})
+
 
 @router.post("/chat/stream")
 async def stream_chat(payload: InternalChatRequest, db: AsyncSession = Depends(get_db)) -> StreamingResponse:
     document_ids = await _allowed_document_ids(db, payload.access_scope, payload.user_context)
     conversation_id = _java_session_to_uuid(payload.session_id)
     service = ChatService()
-    return StreamingResponse(_stream_with_java_boundary(service.stream_chat(db, payload.question, conversation_id, payload.options.enable_suggested_questions, payload.options.top_k, payload.options.rerank_top_k, document_ids, payload.options.enable_rewrite)), media_type="text/event-stream", headers={"Cache-Control": "no-cache, no-transform", "Connection": "keep-alive", "X-Accel-Buffering": "no"})
+    return StreamingResponse(
+        _stream_with_java_boundary(
+            service.stream_chat(
+                db,
+                payload.question,
+                conversation_id,
+                payload.options.enable_suggested_questions,
+                payload.options.top_k,
+                payload.options.rerank_top_k,
+                document_ids,
+                payload.options.enable_rewrite,
+            )
+        ),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache, no-transform", "Connection": "keep-alive", "X-Accel-Buffering": "no"},
+    )
+
 
 @router.post("/chat")
 async def chat(payload: InternalChatRequest, db: AsyncSession = Depends(get_db)) -> dict:
     document_ids = await _allowed_document_ids(db, payload.access_scope, payload.user_context)
     conversation_id = _java_session_to_uuid(payload.session_id)
-    result = await ChatService().chat_once(db, payload.question, conversation_id, payload.options.enable_suggested_questions, payload.options.top_k, payload.options.rerank_top_k, document_ids, payload.options.enable_rewrite)
+    result = await ChatService().chat_once(
+        db,
+        payload.question,
+        conversation_id,
+        payload.options.enable_suggested_questions,
+        payload.options.top_k,
+        payload.options.rerank_top_k,
+        document_ids,
+        payload.options.enable_rewrite,
+    )
     return ok(result)
+
 
 async def _stream_with_java_boundary(generator: AsyncGenerator[str, None]) -> AsyncGenerator[str, None]:
     async for chunk in generator:
         yield chunk
+
 
 async def _upsert_java_document(db: AsyncSession, payload: DocumentProcessRequest) -> Document:
     existing = await db.scalar(select(Document).where(Document.java_attach_id == payload.attach_id))
@@ -174,7 +359,28 @@ async def _upsert_java_document(db: AsyncSession, payload: DocumentProcessReques
             ]
         )
         status = "uploaded" if content_changed else existing.status
-    values = {"java_attach_id": payload.attach_id, "java_doc_id": payload.doc_id, "publish_dept_id": payload.publish_dept_id, "owner_user_id": payload.owner_user_id or payload.operator_id, "visible_in_chat": payload.visible_in_chat, "publish_scope": payload.publish_scope, "allowed_dept_ids": _clean_list(payload.allowed_dept_ids), "allowed_user_ids": _clean_list(payload.allowed_user_ids), "title": payload.file_name, "file_name": payload.file_name, "file_ext": ext, "mime_type": payload.mime_type, "file_size": payload.file_size, "file_hash": payload.file_hash, "storage_bucket": payload.bucket, "storage_object_key": payload.object_key, "knowledge_base": payload.knowledge_id, "status": status, "created_by": None, "deleted_at": None}
+    values = {
+        "java_attach_id": payload.attach_id,
+        "java_doc_id": payload.doc_id,
+        "publish_dept_id": payload.publish_dept_id,
+        "owner_user_id": payload.owner_user_id or payload.operator_id,
+        "visible_in_chat": payload.visible_in_chat,
+        "publish_scope": payload.publish_scope,
+        "allowed_dept_ids": _clean_list(payload.allowed_dept_ids),
+        "allowed_user_ids": _clean_list(payload.allowed_user_ids),
+        "title": payload.file_name,
+        "file_name": payload.file_name,
+        "file_ext": ext,
+        "mime_type": payload.mime_type,
+        "file_size": payload.file_size,
+        "file_hash": payload.file_hash,
+        "storage_bucket": payload.bucket,
+        "storage_object_key": payload.object_key,
+        "knowledge_base": payload.knowledge_id,
+        "status": status,
+        "created_by": None,
+        "deleted_at": None,
+    }
     if existing:
         await db.execute(update(Document).where(Document.id == existing.id).values(**values))
         await db.commit()
@@ -188,11 +394,38 @@ async def _upsert_java_document(db: AsyncSession, payload: DocumentProcessReques
     await db.refresh(document)
     return document
 
+
+async def _enqueue_document_job(db: AsyncSession, document: Document, job_type: str, payload: dict) -> DocumentJob:
+    job = DocumentJob(
+        document_id=str(document.id),
+        job_type=job_type,
+        status="pending",
+        progress=0,
+        message="已加入处理队列",
+        params={"source": "java_internal", **payload},
+    )
+    db.add(job)
+    await db.commit()
+    await db.refresh(job)
+    await TaskQueueService().enqueue(job_type, {**payload, "job_id": str(job.id)})
+    return job
+
+
 async def _get_document_by_attach_id(db: AsyncSession, attach_id: int) -> Document:
     document = await db.scalar(select(Document).where(Document.java_attach_id == attach_id, Document.deleted_at.is_(None)))
     if document is None:
         raise HTTPException(status_code=404, detail="RAG 文档不存在")
     return document
+
+
+async def _get_conversation(db: AsyncSession, conversation_id: str) -> Conversation:
+    conversation = await db.scalar(
+        select(Conversation).where(Conversation.id == conversation_id, Conversation.deleted_at.is_(None))
+    )
+    if conversation is None:
+        raise HTTPException(status_code=404, detail="会话不存在")
+    return conversation
+
 
 async def _allowed_document_ids(db: AsyncSession, scope: AccessScope, user: UserContext) -> list[str]:
     query = select(Document.id).where(Document.deleted_at.is_(None), Document.visible_in_chat.is_(True), Document.status == "indexed")
@@ -219,6 +452,7 @@ async def _allowed_document_ids(db: AsyncSession, scope: AccessScope, user: User
     if not ids:
         raise HTTPException(status_code=403, detail="当前用户没有可检索的知识库资料")
     return ids
+
 
 def _document_access_condition(user: UserContext, scope: AccessScope, allow_explicit_attach: bool):
     user_id = str(user.user_id)
@@ -252,6 +486,95 @@ def _document_access_condition(user: UserContext, scope: AccessScope, allow_expl
         ),
     )
 
+
+def _conversation_filters(search: str | None = None, feedback_only: bool = False) -> list:
+    filters = [Conversation.deleted_at.is_(None)]
+    if feedback_only:
+        filters.append(
+            select(AnswerFeedback.id)
+            .where(AnswerFeedback.conversation_id == Conversation.id, AnswerFeedback.status == "open")
+            .exists()
+        )
+    keyword = " ".join(str(search or "").strip().split())[:100]
+    if keyword:
+        pattern = f"%{keyword}%"
+        filters.append(
+            or_(
+                Conversation.title.ilike(pattern),
+                Conversation.summary.ilike(pattern),
+                select(ConversationMessage.id)
+                .where(ConversationMessage.conversation_id == Conversation.id, ConversationMessage.content.ilike(pattern))
+                .exists(),
+            )
+        )
+    return filters
+
+
+async def _open_feedback_counts(db: AsyncSession, conversation_ids: list[str]) -> dict[str, int]:
+    if not conversation_ids:
+        return {}
+    rows = await db.execute(
+        select(AnswerFeedback.conversation_id, func.count().label("count"))
+        .where(AnswerFeedback.conversation_id.in_(conversation_ids), AnswerFeedback.status == "open")
+        .group_by(AnswerFeedback.conversation_id)
+    )
+    return {str(row.conversation_id): int(row.count or 0) for row in rows}
+
+
+def _serialize_conversation(item: Conversation, open_feedback_count: int = 0) -> dict:
+    return {
+        "id": str(item.id),
+        "title": item.title,
+        "created_at": item.created_at.isoformat() if item.created_at else None,
+        "updated_at": item.updated_at.isoformat() if item.updated_at else None,
+        "message_count": item.message_count,
+        "last_message_at": item.last_message_at.isoformat() if item.last_message_at else None,
+        "has_feedback": open_feedback_count > 0,
+        "open_feedback_count": open_feedback_count,
+    }
+
+
+def _serialize_message(item: ConversationMessage, feedback: AnswerFeedback | None = None) -> dict:
+    return {
+        "id": str(item.id),
+        "conversation_id": str(item.conversation_id),
+        "role": item.role,
+        "content": item.content,
+        "rewritten_query": item.rewritten_query,
+        "retrieval_trace": item.retrieval_trace,
+        "citations": item.citations,
+        "suggested_questions": item.suggested_questions,
+        "created_at": item.created_at.isoformat() if item.created_at else None,
+        "feedback": _serialize_feedback(feedback) if item.role == "assistant" and feedback else None,
+    }
+
+
+def _serialize_feedback(item: AnswerFeedback | None) -> dict | None:
+    if item is None:
+        return None
+    return {
+        "id": str(item.id),
+        "error_type": item.error_type,
+        "description": item.description,
+        "status": item.status,
+    }
+
+
+def _serialize_job(job: DocumentJob) -> dict:
+    return {
+        "job_id": str(job.id),
+        "rag_doc_id": str(job.document_id),
+        "job_type": job.job_type,
+        "status": job.status,
+        "progress": job.progress,
+        "message": job.message,
+        "error_message": job.error_message,
+        "result": job.result,
+        "created_at": job.created_at.isoformat() if job.created_at else None,
+        "updated_at": job.updated_at.isoformat() if job.updated_at else None,
+    }
+
+
 def _clean_list(values: list[str] | None) -> list[str]:
     cleaned: list[str] = []
     seen: set[str] = set()
@@ -262,11 +585,13 @@ def _clean_list(values: list[str] | None) -> list[str]:
             seen.add(item)
     return cleaned
 
+
 def _normalize_uuid(value: str, field_name: str) -> str:
     try:
         return str(UUID(value))
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=f"{field_name} 格式不正确") from exc
+
 
 def _java_session_to_uuid(session_id: str | None) -> str | None:
     if not session_id:

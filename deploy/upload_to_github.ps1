@@ -147,7 +147,8 @@ $excludeFiles = @(
     "*.tsbuildinfo",
     "rag_java_deploy.tgz",
     "sample_contract.pdf",
-    "acl.txt"
+    "acl.txt",
+    "JAVA的一些服务器上的配置及git.md"
 )
 
 $robocopyArgs = @(
