@@ -6,6 +6,8 @@
 
 > 2026-07-01 更新说明：文档权限字段已升级，当前代码已支持 `publish_scope`、`allowed_dept_ids`、`allowed_user_ids`。具体接口字段和数据库字段以 [Java后端调用接口文档.md](Java后端调用接口文档.md) 与 [数据库表结构文档.md](数据库表结构文档.md) 为准。
 
+> 2026-07-04 更新说明：本文件是早期总体设计方案，鉴权部分曾使用 `X-RAG-Service-Token`。当前已按 Java 统一鉴权方案改为 `Authorization: Bearer <Java Sa-Token JWT>`，实际联调请以 [Java后端调用接口文档.md](Java后端调用接口文档.md) 和 [Java对接调用流程详版.md](Java对接调用流程详版.md) 为准。
+
 ## 1. 方案结论
 
 系统采用“Java 业务后台 + Python RAG 内核”的架构。
@@ -223,24 +225,25 @@ Java 负责：
 
 ### 4.2 Java 到 Python 的鉴权
 
-Java 调 Python 使用内部服务鉴权。
+当前 Java 调 Python 使用 Java Sa-Token JWT 统一鉴权。
 
 请求头：
 
 ```http
-X-RAG-Service-Token: <内部服务密钥>
+Authorization: Bearer <Java Sa-Token JWT>
 X-Request-Id: <链路追踪 ID>
 Content-Type: application/json
 ```
 
 Python 负责：
 
-- 校验 `X-RAG-Service-Token`。
+- 使用与 Java 一致的 `SA_TOKEN_JWT_SECRET` 验签。
+- 校验 Sa-Token JWT 中的 `loginId`、`userId` 和有效期。
 - 校验请求来源，建议配合 Nginx IP 白名单。
 - 记录 `X-Request-Id`。
 - 不接受浏览器直接调用。
 
-不建议 Java 用 Python 管理员 JWT 模拟登录。短期可以兼容，长期应迁移为服务间 Token。
+旧 `X-RAG-Service-Token` 属于历史方案，当前 `/internal/rag/*` 路由不再要求 Java 传该请求头。
 
 ### 4.3 权限范围数据结构
 
@@ -495,7 +498,7 @@ Python 提供内部接口，统一前缀：
 所有接口必须带：
 
 ```http
-X-RAG-Service-Token: <内部服务密钥>
+Authorization: Bearer <Java Sa-Token JWT>
 X-Request-Id: <链路追踪 ID>
 ```
 
@@ -772,7 +775,7 @@ Java 处理要求：
 
 Python 处理要求：
 
-1. 校验服务 Token。
+1. 校验 Java Sa-Token JWT。
 2. 校验 `access_scope`。
 3. 闲聊类问题直接返回固定引导话术，可跳过检索。
 4. 业务问题只在权限范围内召回。
@@ -1085,7 +1088,7 @@ Cache-Control: no-cache
 4. Java 计算 access_scope
 5. Java 保存用户消息
 6. Java 调 Python /internal/rag/chat/stream
-7. Python 校验服务 Token
+7. Python 校验 Java Sa-Token JWT
 8. Python 校验 access_scope
 9. Python 判断是否闲聊
 10. 如果是业务问题，Python 在权限范围内召回
@@ -1109,19 +1112,18 @@ Cache-Control: no-cache
 
 ## 9. Python 改造清单
 
-Python 侧需要做：
+Python 侧当前状态：
 
-1. 新增 `/internal/rag/*` 路由。
-2. 新增服务间鉴权依赖，校验 `X-RAG-Service-Token`。
-3. 文档模型增加 Java 映射字段：`attach_id`、`knowledge_id`、`doc_id`、`oss_id`。
-4. 文档处理接口支持从 Java 提供的 MinIO bucket/object_key 读取文件。
-5. 文档处理完成后回写 `knowledge_attach`。
-6. 文档处理完成后写入 `knowledge_fragment`。
-7. 问答接口支持 `user_context` 和 `access_scope`。
-8. 所有召回方法强制加权限过滤。
-9. 没有权限范围时拒绝检索。
-10. 支持 SSE 给 Java 转发。
-11. 保留现有 RAG 能力，逐步下线 Python 前端和本地管理员鉴权。
+1. 已新增 `/internal/rag/*` 路由。
+2. 已统一为 Java Sa-Token JWT 鉴权。
+3. 文档模型已增加 Java 映射字段：`java_attach_id`、`knowledge_base`、`java_doc_id` 等。
+4. 文档处理接口已支持从 Java 提供的 MinIO bucket/object_key 读取文件。
+5. 文档处理、任务轮询、重解析、重切片、删除索引已打通。
+6. 问答接口已支持 `user_context` 和 `access_scope`。
+7. 召回前已按权限范围过滤。
+8. 没有权限范围或无可检索资料时拒绝检索。
+9. 已支持 SSE 给 Java 转发。
+10. 原 RAG 召回、rerank、问答、多轮改写能力保留。
 
 当前工程中需要重点改造的位置：
 
@@ -1138,7 +1140,7 @@ Java 侧需要做：
 
 1. 前端所有 RAG 相关页面都走 Java 接口。
 2. `RagApiClient` 改为调用 `/internal/rag/*`。
-3. Java 调 Python 时改用 `X-RAG-Service-Token`。
+3. Java 调 Python 时透传 `Authorization: Bearer <Java Sa-Token JWT>`。
 4. 文档上传后传 MinIO 信息给 Python。
 5. Java 保存 `rag_doc_id`、`job_id`、处理状态。
 6. Java 实现权限范围计算，生成 `access_scope`。
@@ -1151,10 +1153,10 @@ Java 侧需要做：
 
 1. Python internal 接口不能暴露给公网浏览器。
 2. Nginx 建议限制 `/internal/rag/*` 只允许 Java 服务访问。
-3. Java 到 Python 必须带服务 Token。
-4. 服务 Token 需要可轮换。
+3. Java 到 Python 必须带 Sa-Token JWT。
+4. `SA_TOKEN_JWT_SECRET` 只能放在后端配置或 Secret 中，不能进前端、截图或 Git。
 5. 所有请求带 `X-Request-Id`。
-6. Python 日志不能打印完整 Token。
+6. Python 日志不能打印完整 JWT 或验签密钥。
 7. Python 返回引用来源时不返回无权限文档内容。
 8. Python 不允许在缺少权限范围时默认查全库。
 
@@ -1275,8 +1277,8 @@ Python 只需要记住以下规则：
 
 1. 只提供内部 RAG 接口给 Java。
 2. 不处理浏览器登录态。
-3. 不解析 Java Sa-Token。
-4. 所有 internal 接口校验服务 Token。
+3. 只验签 Java Sa-Token JWT，不在 Python 侧重新计算部门权限。
+4. 所有 internal 接口校验 `Authorization: Bearer <Java Sa-Token JWT>`。
 5. 文档处理从 MinIO 读取文件。
 6. 所有召回都必须带权限过滤。
 7. 没有权限范围就拒绝检索。
