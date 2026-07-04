@@ -71,6 +71,10 @@ function Remove-SensitiveFiles {
         Where-Object {
             $_.Name -eq ".env" -or
             ($_.Name -like ".env.*" -and $_.Name -ne ".env.example") -or
+            $_.Name -eq "JAVA的一些服务器上的配置及git.md" -or
+            $_.Name -like "JAVA*git.md" -or
+            $_.Name -eq "会话交接记录.md" -or
+            $_.Name -like "当前会话记录*.md" -or
             $_.Extension -eq ".pyc" -or
             $_.Name -like "*.tsbuildinfo"
         } |
@@ -148,7 +152,10 @@ $excludeFiles = @(
     "rag_java_deploy.tgz",
     "sample_contract.pdf",
     "acl.txt",
-    "JAVA的一些服务器上的配置及git.md"
+    "JAVA的一些服务器上的配置及git.md",
+    "JAVA*git.md",
+    "会话交接记录.md",
+    "当前会话记录*.md"
 )
 
 $robocopyArgs = @(
@@ -169,6 +176,10 @@ $badFiles = Get-ChildItem -LiteralPath $CloneDir -Recurse -Force -File |
     Where-Object {
         $_.Name -eq ".env" -or
         ($_.Name -like ".env.*" -and $_.Name -ne ".env.example") -or
+        $_.Name -eq "JAVA的一些服务器上的配置及git.md" -or
+        $_.Name -like "JAVA*git.md" -or
+        $_.Name -eq "会话交接记录.md" -or
+        $_.Name -like "当前会话记录*.md" -or
         $_.Extension -eq ".pyc"
     }
 
