@@ -1,5 +1,5 @@
 <template>
-  <div class="document-preview-modal" role="dialog" aria-modal="true">
+  <div class="document-preview-modal confirm-dialog-modal" role="dialog" aria-modal="true">
     <div class="duplicate-upload-dialog">
       <header class="duplicate-upload-head">
         <div>

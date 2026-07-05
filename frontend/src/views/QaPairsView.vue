@@ -25,7 +25,18 @@
             <div class="tag-preview" aria-label="标签预览">
               <span class="tag-preview-title">标签预览</span>
               <div v-if="tagPreview.length" class="tag-list">
-                <span v-for="tag in tagPreview" :key="tag" class="tag-chip">{{ tag }}</span>
+                <span v-for="tag in tagPreview" :key="tag.key" class="tag-chip tag-preview-chip">
+                  <span class="tag-preview-label">{{ tag.value }}</span>
+                  <button
+                    type="button"
+                    class="tag-remove-button"
+                    :aria-label="`删除标签 ${tag.value}`"
+                    :title="`删除标签 ${tag.value}`"
+                    @click.prevent="requestTagDelete('create', tag)"
+                  >
+                    ×
+                  </button>
+                </span>
               </div>
               <span v-else class="tag-preview-empty">暂无标签</span>
             </div>
@@ -111,6 +122,19 @@
         @confirm="closeDuplicateQuestionDialog"
       />
 
+      <ConfirmDialog
+        v-if="tagDeleteTarget"
+        title="确认删除标签"
+        :message="`将从标签输入框中删除“${tagDeleteTarget.value}”。`"
+        subject-label="1 个标签"
+        detail="仅删除当前输入框中的标签文本，不会立即保存问答记录。"
+        prompt="请确认是否继续删除"
+        cancel-text="取消"
+        confirm-text="确认删除"
+        @cancel="cancelTagDelete"
+        @confirm="confirmTagDelete"
+      />
+
       <div v-if="editDialog" class="document-preview-modal" role="dialog" aria-modal="true">
         <form class="qa-edit-dialog" @submit.prevent="saveEditDialog">
           <header class="duplicate-upload-head">
@@ -136,7 +160,18 @@
               <div class="tag-preview" aria-label="标签预览">
                 <span class="tag-preview-title">标签预览</span>
                 <div v-if="editTagPreview.length" class="tag-list">
-                  <span v-for="tag in editTagPreview" :key="tag" class="tag-chip">{{ tag }}</span>
+                  <span v-for="tag in editTagPreview" :key="tag.key" class="tag-chip tag-preview-chip">
+                    <span class="tag-preview-label">{{ tag.value }}</span>
+                    <button
+                      type="button"
+                      class="tag-remove-button"
+                      :aria-label="`删除标签 ${tag.value}`"
+                      :title="`删除标签 ${tag.value}`"
+                      @click.prevent="requestTagDelete('edit', tag)"
+                    >
+                      ×
+                    </button>
+                  </span>
                 </div>
                 <span v-else class="tag-preview-empty">暂无标签</span>
               </div>
@@ -168,6 +203,14 @@ import AppShell from '../components/AppShell.vue'
 import ConfirmDialog from '../components/ConfirmDialog.vue'
 import { api, apiErrorMessage, unwrap } from '../api/client'
 
+type TagInputSource = 'create' | 'edit'
+
+type TagPreviewItem = {
+  key: string
+  value: string
+  segmentIndex: number
+}
+
 const route = useRoute()
 const router = useRouter()
 const items = ref<any[]>([])
@@ -180,6 +223,7 @@ const selectedTag = ref(routeTagFilter())
 const deleteTarget = ref<any | null>(null)
 const requiredDialog = ref<{ message: string; subject: string } | null>(null)
 const duplicateQuestionDialog = ref(false)
+const tagDeleteTarget = ref<(TagPreviewItem & { source: TagInputSource }) | null>(null)
 // 左侧表单只负责新增；单条记录编辑使用独立弹窗状态，避免新增草稿和编辑内容互相污染。
 const editDialog = ref<{
   id: string
@@ -188,8 +232,8 @@ const editDialog = ref<{
   status: string
   tagText: string
 } | null>(null)
-const tagPreview = computed(() => parseTagText(tagText.value))
-const editTagPreview = computed(() => parseTagText(editDialog.value?.tagText || ''))
+const tagPreview = computed(() => parseTagPreview(tagText.value))
+const editTagPreview = computed(() => parseTagPreview(editDialog.value?.tagText || ''))
 
 onMounted(load)
 
@@ -233,6 +277,25 @@ async function load() {
 function parseTagText(value: string) {
   // 标签预览和提交共用同一套英文逗号分割规则，确保“标签1”和“标签1,”都得到同样的实际标签结果。
   return value.split(',').map((x) => x.trim()).filter(Boolean)
+}
+
+function parseTagPreview(value: string): TagPreviewItem[] {
+  // 预览项保留原始分段位置，删除某个 chip 时可以精准移除输入框里对应的那一段文本。
+  return value
+    .split(',')
+    .map((segment, segmentIndex) => ({ value: segment.trim(), segmentIndex }))
+    .filter((tag) => Boolean(tag.value))
+    .map((tag) => ({ ...tag, key: `${tag.segmentIndex}-${tag.value}` }))
+}
+
+function removeTagSegment(value: string, segmentIndex: number) {
+  // 删除后重新按英文逗号拼接有效标签，顺手清理多余空白和尾随逗号，保持输入框内容与预览结果一致。
+  return value
+    .split(',')
+    .filter((_, index) => index !== segmentIndex)
+    .map((segment) => segment.trim())
+    .filter(Boolean)
+    .join(',')
 }
 
 async function save() {
@@ -306,6 +369,25 @@ function openDuplicateQuestionDialog() {
 
 function closeDuplicateQuestionDialog() {
   duplicateQuestionDialog.value = false
+}
+
+function requestTagDelete(source: TagInputSource, tag: TagPreviewItem) {
+  tagDeleteTarget.value = { ...tag, source }
+}
+
+function cancelTagDelete() {
+  tagDeleteTarget.value = null
+}
+
+function confirmTagDelete() {
+  const target = tagDeleteTarget.value
+  if (!target) return
+  if (target.source === 'create') {
+    tagText.value = removeTagSegment(tagText.value, target.segmentIndex)
+  } else if (editDialog.value) {
+    editDialog.value.tagText = removeTagSegment(editDialog.value.tagText, target.segmentIndex)
+  }
+  tagDeleteTarget.value = null
 }
 
 function openEditDialog(item: any) {

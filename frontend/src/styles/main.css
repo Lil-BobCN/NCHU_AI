@@ -431,6 +431,68 @@ textarea:focus {
   line-height: 24px;
 }
 
+.tag-preview-chip {
+  position: relative;
+  padding-right: 12px;
+  overflow: visible;
+}
+
+.tag-preview-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tag-remove-button {
+  position: absolute;
+  top: -8px;
+  right: -7px;
+  display: inline-grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+  padding: 0;
+  border: 2px solid #ff3b45;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(220, 38, 38, 0.12);
+  color: transparent;
+  font-size: 0;
+}
+
+.tag-remove-button::before,
+.tag-remove-button::after {
+  /* 使用伪元素绘制叉号，避免字体字形基线导致红叉视觉中心低于圆心。 */
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 9px;
+  height: 2px;
+  border-radius: 999px;
+  background: #ff3b45;
+  transform-origin: center;
+}
+
+.tag-remove-button::before {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.tag-remove-button::after {
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+.tag-remove-button:hover {
+  border-color: #dc2626;
+  background: #fff5f5;
+}
+
+.tag-remove-button:hover::before,
+.tag-remove-button:hover::after {
+  background: #dc2626;
+}
+
 .qa-toolbar {
   display: flex;
   justify-content: flex-end;
@@ -1888,6 +1950,11 @@ button.danger:hover {
   place-items: center;
   padding: 22px;
   background: rgba(15, 23, 42, 0.58);
+}
+
+.confirm-dialog-modal {
+  /* 确认类弹窗可能从编辑弹窗内部触发，层级必须高于普通编辑/预览弹窗，避免被下层遮罩挡住无法点击。 */
+  z-index: 90;
 }
 
 .document-preview-dialog {
