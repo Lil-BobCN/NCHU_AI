@@ -11,10 +11,16 @@
             <button @click="exportDocuments">导出清单</button>
             <label class="upload">
               上传文件
-              <input type="file" @change="upload" />
+              <input type="file" :accept="uploadAccept" @change="upload" />
             </label>
           </div>
         </header>
+
+        <p class="upload-format-note">支持格式：{{ supportedUploadFormatText }}</p>
+        <div v-if="unsupportedUploadNotice" class="upload-format-warning" role="alert">
+          <span>{{ unsupportedUploadNotice }}</span>
+          <button type="button" class="icon-button" title="关闭" aria-label="关闭" @click="clearUnsupportedUploadNotice">×</button>
+        </div>
 
         <section v-if="visibleUploads.length" class="upload-queue">
           <article v-for="item in visibleUploads" :key="item.id" class="upload-item">
@@ -422,6 +428,7 @@ const actionBusy = ref('')
 const actionMessage = ref('')
 const batchBusy = ref('')
 const pageError = ref('')
+const unsupportedUploadNotice = ref('')
 const duplicateUpload = ref<PendingDuplicateUpload | null>(null)
 const deleteConfirm = ref<DeleteConfirmState | null>(null)
 const selectedDocumentIds = ref<Set<string>>(new Set())
@@ -435,6 +442,28 @@ const documentFilters = ref({
   knowledgeBase: ''
 })
 let pollTimer: number | undefined
+let unsupportedUploadNoticeTimer: number | undefined
+
+const SUPPORTED_UPLOAD_EXTENSIONS = [
+  '.pdf',
+  '.doc',
+  '.docx',
+  '.xls',
+  '.xlsx',
+  '.xlsm',
+  '.txt',
+  '.md',
+  '.jpg',
+  '.jpeg',
+  '.png',
+  '.bmp',
+  '.tif',
+  '.tiff',
+  '.zip',
+  '.rar'
+]
+const uploadAccept = SUPPORTED_UPLOAD_EXTENSIONS.join(',')
+const supportedUploadFormatText = 'PDF、Word、Excel、TXT、Markdown、图片（JPG/PNG/BMP/TIF/TIFF）、ZIP/RAR'
 
 const documentStatusOptions = [
   { value: 'uploaded', label: '已上传' },
@@ -504,6 +533,7 @@ onMounted(async () => {
 
 onUnmounted(() => {
   if (pollTimer) window.clearInterval(pollTimer)
+  if (unsupportedUploadNoticeTimer) window.clearTimeout(unsupportedUploadNoticeTimer)
 })
 
 async function load() {
@@ -545,6 +575,11 @@ async function upload(event: Event) {
   const input = event.target as HTMLInputElement
   const file = input.files?.[0]
   if (!file) return
+  if (!isSupportedUploadFile(file.name)) {
+    showUnsupportedUploadNotice(file.name)
+    input.value = ''
+    return
+  }
   const item: UploadItem = {
     id: createLocalId(),
     fileName: file.name,
@@ -1135,6 +1170,33 @@ function canConvertDocument(doc: any) {
 function canExtractDocument(doc: any) {
   const ext = String(doc?.file_ext || '').toLowerCase()
   return ['.zip', '.rar'].includes(ext) && ['needs_extraction', 'failed'].includes(String(doc?.status || ''))
+}
+
+function uploadFileExtension(fileName: string) {
+  const match = String(fileName || '').toLowerCase().match(/\.[^.]+$/)
+  return match?.[0] || ''
+}
+
+function isSupportedUploadFile(fileName: string) {
+  return SUPPORTED_UPLOAD_EXTENSIONS.includes(uploadFileExtension(fileName))
+}
+
+function showUnsupportedUploadNotice(fileName: string) {
+  const ext = uploadFileExtension(fileName) || '无后缀'
+  unsupportedUploadNotice.value = `不支持 ${ext} 文件上传。支持格式：${supportedUploadFormatText}。`
+  if (unsupportedUploadNoticeTimer) window.clearTimeout(unsupportedUploadNoticeTimer)
+  unsupportedUploadNoticeTimer = window.setTimeout(() => {
+    unsupportedUploadNotice.value = ''
+    unsupportedUploadNoticeTimer = undefined
+  }, 5000)
+}
+
+function clearUnsupportedUploadNotice() {
+  unsupportedUploadNotice.value = ''
+  if (unsupportedUploadNoticeTimer) {
+    window.clearTimeout(unsupportedUploadNoticeTimer)
+    unsupportedUploadNoticeTimer = undefined
+  }
 }
 
 function uploadStatusLabel(doc: any) {
