@@ -59,34 +59,29 @@ class QaStatusUpdate(BaseModel):
 async def list_qa_pairs(
     keyword: str | None = None,
     status: str | None = None,
+    tag: str | None = None,
     document_id: str | None = None,
     page: int = 1,
     page_size: int = 20,
     db: AsyncSession = Depends(get_db),
     _: Admin = Depends(get_current_admin),
 ):
-    query = select(QaPair).where(QaPair.deleted_at.is_(None))
-    count_query = select(func.count()).select_from(QaPair).where(QaPair.deleted_at.is_(None))
-    if keyword:
-        condition = QaPair.question.ilike(f"%{keyword}%") | QaPair.answer.ilike(f"%{keyword}%")
-        query = query.where(condition)
-        count_query = count_query.where(condition)
-    if status:
-        query = query.where(QaPair.status == status)
-        count_query = count_query.where(QaPair.status == status)
-    if document_id:
-        query = query.where(QaPair.source_document_id == document_id)
-        count_query = count_query.where(QaPair.source_document_id == document_id)
+    filters = qa_pair_list_filters(keyword=keyword, status=status, tag=tag, document_id=document_id)
+    query = select(QaPair).where(*filters)
+    count_query = select(func.count()).select_from(QaPair).where(*filters)
     total = await db.scalar(count_query)
     rows = await db.execute(
         query.order_by(QaPair.updated_at.desc()).offset((page - 1) * page_size).limit(page_size)
     )
+    # 标签筛选下拉要覆盖当前查询范围内的全部标签，不能只从当前页聚合，否则分页后会漏选项。
+    available_tags = await list_available_qa_tags(db, keyword=keyword, status=status, document_id=document_id)
     return ok(
         {
             "items": [serialize_qa(item) for item in rows.scalars()],
             "page": page,
             "page_size": page_size,
             "total": total or 0,
+            "available_tags": available_tags,
         }
     )
 
@@ -97,6 +92,10 @@ async def create_qa_pair(
     db: AsyncSession = Depends(get_db),
     admin: Admin = Depends(get_current_admin),
 ):
+    duplicate_id = await db.scalar(select(QaPair.id).where(*qa_pair_duplicate_question_filters(payload.question)))
+    if duplicate_id:
+        # 新增问答只按“问题字符串完全一致”判重，不做模糊匹配，避免把相似但语义不同的问题误拦截。
+        raise HTTPException(status_code=409, detail="当前已经存在该问答")
     source_url = None
     if payload.source_document_id:
         document = await db.scalar(select(Document).where(Document.id == payload.source_document_id))
@@ -180,6 +179,51 @@ async def _get_qa(db: AsyncSession, qa_pair_id: str) -> QaPair:
 
 async def _enqueue_qa_embedding_sync(qa_pair_id: str) -> dict:
     return await TaskQueueService().enqueue("qa_embedding_sync", {"qa_pair_id": qa_pair_id})
+
+
+def qa_pair_list_filters(
+    keyword: str | None = None,
+    status: str | None = None,
+    tag: str | None = None,
+    document_id: str | None = None,
+) -> list:
+    filters = [QaPair.deleted_at.is_(None)]
+    if keyword:
+        condition = QaPair.question.ilike(f"%{keyword}%") | QaPair.answer.ilike(f"%{keyword}%")
+        filters.append(condition)
+    if status:
+        filters.append(QaPair.status == status)
+    if tag:
+        clean_tag = tag.strip()
+        if clean_tag:
+            # 标签筛选使用数组包含，保持按完整标签精确匹配，避免模糊匹配误命中相近分类。
+            filters.append(QaPair.tags.contains([clean_tag]))
+    if document_id:
+        filters.append(QaPair.source_document_id == document_id)
+    return filters
+
+
+def qa_pair_duplicate_question_filters(question: str):
+    # 完全一致判重只排除软删除记录；大小写、标点、空格都按入库后的标准字符串精确比较。
+    return [QaPair.deleted_at.is_(None), QaPair.question == question]
+
+
+async def list_available_qa_tags(
+    db: AsyncSession,
+    keyword: str | None = None,
+    status: str | None = None,
+    document_id: str | None = None,
+) -> list[str]:
+    filters = qa_pair_list_filters(keyword=keyword, status=status, document_id=document_id)
+    filters.append(QaPair.tags.is_not(None))
+    rows = await db.execute(select(QaPair.tags).where(*filters))
+    tags: set[str] = set()
+    for value in rows.scalars():
+        for tag in value or []:
+            clean_tag = str(tag).strip()
+            if clean_tag:
+                tags.add(clean_tag)
+    return sorted(tags, key=lambda item: item.casefold())
 
 
 def serialize_qa(qa: QaPair) -> dict:

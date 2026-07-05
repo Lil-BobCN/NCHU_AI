@@ -383,6 +383,204 @@ textarea:focus {
   color: #dc2626;
 }
 
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.tag-chip {
+  display: inline-flex;
+  align-items: center;
+  max-width: 180px;
+  min-height: 24px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.qa-tag-field {
+  align-content: start;
+}
+
+.tag-preview {
+  display: grid;
+  gap: 6px;
+  min-height: 48px;
+  padding-top: 2px;
+}
+
+.tag-preview-title {
+  color: #52627a;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.tag-preview-empty {
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 24px;
+}
+
+.qa-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: end;
+  margin-left: auto;
+}
+
+.qa-toolbar label,
+.qa-edit-body label {
+  display: grid;
+  gap: 6px;
+  color: #172033;
+  font-weight: 700;
+}
+
+.qa-toolbar select,
+.qa-edit-body input,
+.qa-edit-body select,
+.qa-edit-body textarea {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: #fff;
+  color: #172033;
+  outline: 0;
+}
+
+.qa-toolbar select {
+  min-width: 180px;
+}
+
+.qa-edit-dialog {
+  width: min(640px, 100%);
+  max-height: min(760px, calc(100vh - 44px));
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  overflow: hidden;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: #fff;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.22);
+}
+
+.qa-edit-body {
+  gap: 14px;
+}
+
+.qa-list-panel {
+  display: grid;
+  align-content: start;
+}
+
+.qa-list-panel .panel-header {
+  align-items: end;
+  margin-bottom: 4px;
+}
+
+.qa-item .qa-title {
+  margin: 0;
+}
+
+.qa-item .tag-list {
+  margin-top: 8px;
+}
+
+.qa-item-content {
+  min-width: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.qa-answer {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  color: #172033;
+  line-height: 1.55;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.qa-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+  min-width: 280px;
+}
+
+.qa-state-action.enabled {
+  border-color: #b8d8ff;
+  background: #eef6ff;
+  color: var(--primary);
+}
+
+.qa-state-action.enabled:hover {
+  border-color: #8fc1ff;
+  background: #e2f0ff;
+}
+
+.qa-state-action.disabled {
+  border-color: #d8e0ea;
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.qa-state-action.disabled:hover {
+  border-color: #c7d2df;
+  background: #e8eef5;
+}
+
+.qa-edit-action {
+  border-color: #b9e6cf;
+  background: #effaf4;
+  color: #047857;
+}
+
+.qa-edit-action:hover {
+  border-color: #86d9ae;
+  background: #e2f7eb;
+}
+
+.citation-tags {
+  margin-top: 8px;
+}
+
+/* QA 引用命中时没有传统文档页码来源，单独复用引用区外观展示可点击标签，和“参考来源”形成清晰区分。 */
+.qa-citation-section {
+  gap: 10px;
+}
+
+/* 标签需要像引用链接一样可点击，但视觉上保持 chip 水平排列，避免长标签把对话卡片撑乱。 */
+.qa-citation-tag-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.qa-citation-tag {
+  text-decoration: none;
+}
+
+.qa-citation-tag:hover {
+  background: #dbeafe;
+  color: var(--primary-strong);
+}
+
 .chat-layout {
   height: 100%;
   min-height: 0;
@@ -1912,6 +2110,13 @@ button.danger:hover {
   padding: 14px 0;
 }
 
+.qa-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 18px;
+  align-items: start;
+}
+
 .chunk-head {
   display: flex;
   align-items: center;
@@ -1986,6 +2191,8 @@ button.danger:hover {
 .qa-title {
   font-weight: 700;
   text-align: left;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
 }
 
 .debug-grid {
@@ -2157,6 +2364,31 @@ button.danger:hover {
   .shell {
     height: auto;
     min-height: 100vh;
+  }
+
+  .qa-list-panel .panel-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .qa-item {
+    grid-template-columns: 1fr;
+  }
+
+  .qa-toolbar {
+    width: 100%;
+    margin-left: 0;
+    justify-content: stretch;
+  }
+
+  .qa-toolbar label,
+  .qa-actions {
+    width: 100%;
+  }
+
+  .qa-actions {
+    justify-content: flex-start;
+    min-width: 0;
   }
 
   .sidebar-nav {

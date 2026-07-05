@@ -368,14 +368,19 @@ export const useChatStreamStore = defineStore('chatStream', () => {
       assistant.status = '生成回答中'
     }
     if (event === 'retrieval_done') {
-      assistant.retrieval = data.citation_count ? '已找到相关资料' : '暂未找到明确资料'
+      // 最终是否“找到资料”只能由 citations 事件里的真实引用决定；这里清空检索过程文案，避免把候选召回误说成已找到依据。
+      assistant.retrieval = ''
       assistant.status = '生成回答中'
     }
     if (event === 'delta') {
       assistant.status = ''
       enqueueDelta(assistant, data.content || '')
     }
-    if (event === 'citations') assistant.citations = data.citations
+    if (event === 'citations') {
+      assistant.citations = data.citations
+      // 不再显示“已找到相关资料”这类状态文案；有真实引用时由参考来源/标签区域直接展示。
+      assistant.retrieval = ''
+    }
     if (event === 'suggested_questions') assistant.suggested_questions = data.questions
     if (event === 'error') {
       assistant.error = data.message || '生成失败'

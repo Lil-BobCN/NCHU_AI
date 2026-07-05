@@ -317,9 +317,14 @@ class ChatService:
             answer = self._sanitize_answer(answer)
             if answer and not cached_answer and not used_fallback and not retrieval.get("direct_qa_hit"):
                 await self._set_cached_answer(question, retrieval, history, conversation_summary, answer)
-            citations = to_jsonable(
-                self.retrieval_service.citations_for_answer(retrieval_query, answer, answer_context)
-            )
+            # QA 直答的证据就是命中的 QA 记录本身；它可能没有 document_id，
+            # 不能再交给按文档来源二次筛选的 citations_for_answer，否则会把标签引用清空。
+            if retrieval.get("direct_qa_hit"):
+                citations = to_jsonable(retrieval.get("citations") or [])
+            else:
+                citations = to_jsonable(
+                    self.retrieval_service.citations_for_answer(retrieval_query, answer, answer_context)
+                )
             suggested_questions = []
             if enable_suggested_questions:
                 suggested_questions = to_jsonable(

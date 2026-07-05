@@ -1842,6 +1842,9 @@ class RetrievalService:
         markers = (
             "资料中未找到明确依据",
             "未找到明确依据",
+            # 回答已经声明检索资料没有明确对应内容时，不应再给出看似支持答案的参考来源。
+            "没有找到明确的对应信息",
+            "没有找到明确对应信息",
             "没有找到明确资料",
             "暂未找到明确资料",
             "无法确认",
@@ -2220,20 +2223,23 @@ class RetrievalService:
             if self._is_invalid_document_source(item):
                 continue
             document_id = item.get("document_id")
-            url = item.get("url")
-            if not document_id:
+            qa_pair_id = item.get("qa_pair_id")
+            tags = item.get("tags") or []
+            # QA 问答对可以不绑定来源文档，此时 document_id/url 都可能为空；仍需保留 citation，前端才能在问答详情里展示绑定标签。
+            if not document_id and not qa_pair_id:
                 continue
+            url = item.get("url") or ("/qa-pairs" if qa_pair_id else None)
             citation_key = self._citation_key(item)
             if citation_key in seen:
                 self._merge_citation_location(seen[citation_key], item)
                 self._merge_citation_images(seen[citation_key], item)
                 continue
             seen[citation_key] = {
-                "document_id": str(document_id),
+                "document_id": str(document_id) if document_id else None,
                 "document_title": self._display_document_title(item),
                 "document_name": self._original_download_name(item) or self._display_document_title(item),
                 "chunk_id": str(item.get("chunk_id")) if item.get("chunk_id") else None,
-                "qa_pair_id": str(item.get("qa_pair_id")) if item.get("qa_pair_id") else None,
+                "qa_pair_id": str(qa_pair_id) if qa_pair_id else None,
                 "page_start": item.get("page_start"),
                 "page_end": item.get("page_end"),
                 "section_path": item.get("section_path"),
@@ -2242,6 +2248,7 @@ class RetrievalService:
                 "section_paths": [],
                 "location_label": "",
                 "url": url,
+                "tags": tags,
                 "images": [],
             }
             self._merge_citation_location(seen[citation_key], item)
@@ -2298,6 +2305,9 @@ class RetrievalService:
         return bool(self.LEGACY_URL_ENCODED_NAME_RE.search(file_name))
 
     def _citation_key(self, item: dict) -> str:
+        # QA citation 按问答记录去重，避免同一来源文档下多条 QA 被合并后丢失各自绑定标签。
+        if item.get("qa_pair_id"):
+            return f"qa:{item.get('qa_pair_id')}"
         return f"document:{item.get('document_id')}"
 
     def _merge_citation_location(self, citation: dict, item: dict) -> None:

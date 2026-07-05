@@ -10,11 +10,14 @@ if str(BACKEND_ROOT) not in sys.path:
     sys.path.insert(0, str(BACKEND_ROOT))
 
 from pydantic import ValidationError  # noqa: E402
+from sqlalchemy import select  # noqa: E402
+from sqlalchemy.dialects import postgresql  # noqa: E402
 
 from app.api.v1.chat import ChatRequest  # noqa: E402
-from app.api.v1.qa_pairs import QaPairCreate, QaPairUpdate  # noqa: E402
+from app.api.v1.qa_pairs import QaPairCreate, QaPairUpdate, qa_pair_duplicate_question_filters, qa_pair_list_filters  # noqa: E402
 from app.api.v1.retrieval import SearchRequest  # noqa: E402
 from app.core.config import get_settings  # noqa: E402
+from app.db.models import QaPair  # noqa: E402
 
 
 class ApiLimitTests(unittest.TestCase):
@@ -60,6 +63,22 @@ class ApiLimitTests(unittest.TestCase):
         payload = QaPairUpdate(tags=[])
 
         self.assertEqual(payload.tags, [])
+
+    def test_qa_pair_list_filters_use_exact_tag_array_contains(self) -> None:
+        statement = select(QaPair).where(*qa_pair_list_filters(tag=" 奖学金 "))
+
+        compiled = str(statement.compile(dialect=postgresql.dialect()))
+
+        self.assertIn("qa_pairs.tags @>", compiled)
+        self.assertIn("qa_pairs.deleted_at IS NULL", compiled)
+
+    def test_qa_pair_duplicate_question_filter_uses_exact_question_match(self) -> None:
+        statement = select(QaPair).where(*qa_pair_duplicate_question_filters("完全一致的问题"))
+
+        compiled = str(statement.compile(dialect=postgresql.dialect()))
+
+        self.assertIn("qa_pairs.question = ", compiled)
+        self.assertIn("qa_pairs.deleted_at IS NULL", compiled)
 
 
 if __name__ == "__main__":

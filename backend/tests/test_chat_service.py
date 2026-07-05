@@ -253,14 +253,19 @@ class ChatServiceFollowupTests(unittest.TestCase):
         events = asyncio.run(consume())
         answer = ""
         direct_payload = None
+        citations = None
         for event in events:
             if event.startswith("event: answer_cache"):
                 direct_payload = json.loads(event.split("data: ", 1)[1])
             if event.startswith("event: delta"):
                 answer += json.loads(event.split("data: ", 1)[1]).get("content", "")
+            if event.startswith("event: citations"):
+                citations = json.loads(event.split("data: ", 1)[1]).get("citations")
 
         self.assertEqual(answer, "标准答案：准备申请表、成绩证明和家庭经济困难说明。")
         self.assertEqual(direct_payload["type"], "direct_qa")
+        self.assertEqual(citations[0]["qa_pair_id"], "qa-1")
+        self.assertEqual(citations[0]["tags"], ["奖学金"])
         self.assertFalse(service.model_service.stream_called)
         self.assertTrue(db.retrieval_logs)
         self.assertTrue(db.retrieval_logs[0].answer.startswith("标准答案"))
@@ -416,13 +421,14 @@ class FakeDirectQaRetrievalService:
             "qa_pair_id": "qa-1",
             "qa_question": "申请奖学金需要准备哪些材料",
             "qa_answer": "标准答案：准备申请表、成绩证明和家庭经济困难说明。",
-            "document_id": "00000000-0000-0000-0000-000000000001",
-            "document_title": "奖学金申报说明文档",
-            "document_name": "奖学金申报说明文档.pdf",
+            "document_id": None,
+            "document_title": None,
+            "document_name": None,
             "section_path": "QA问答对",
             "page_start": None,
             "page_end": None,
             "url": "http://example.local/qa",
+            "tags": ["奖学金"],
             "source": "qa_direct_exact",
             "score": 1.0,
         }
@@ -433,22 +439,24 @@ class FakeDirectQaRetrievalService:
     def _citations(self, results):
         return [
             {
-                "document_id": str(item["document_id"]),
+                "document_id": str(item["document_id"]) if item.get("document_id") else None,
                 "document_title": item["document_title"],
                 "document_name": item["document_name"],
                 "chunk_id": None,
+                "qa_pair_id": item.get("qa_pair_id"),
                 "page_start": None,
                 "page_end": None,
                 "section_path": item["section_path"],
                 "url": item["url"],
+                "tags": item.get("tags") or [],
                 "images": [],
             }
             for item in results
-            if item.get("document_id")
+            if item.get("document_id") or item.get("qa_pair_id")
         ]
 
     def citations_for_answer(self, query, answer, contexts):
-        return self._citations(contexts)
+        return []
 
 
 class FakeNoRetrievalService:

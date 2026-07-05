@@ -201,9 +201,24 @@
                 </button>
               </div>
 
-              <div v-if="message.citations?.length" class="citations">
+              <div v-if="qaCitationTags(message).length" class="citations qa-citation-section">
+                <strong>标签</strong>
+                <div class="qa-citation-tag-row" aria-label="问答引用标签">
+                  <RouterLink
+                    v-for="item in qaCitationTags(message)"
+                    :key="item.key"
+                    class="tag-chip qa-citation-tag"
+                    :to="{ path: '/qa-pairs', query: { tag: item.tag } }"
+                    :title="`查看标签“${item.tag}”对应的问答`"
+                  >
+                    {{ item.tag }}
+                  </RouterLink>
+                </div>
+              </div>
+
+              <div v-if="documentCitations(message).length" class="citations">
                 <strong>参考来源</strong>
-                <div v-for="(source, index) in message.citations" :key="index" class="citation-item">
+                <div v-for="(source, index) in documentCitations(message)" :key="index" class="citation-item">
                   <a :href="source.url" target="_blank">
                     {{ index + 1 }}. {{ source.document_title || source.document_name }}
                   </a>
@@ -641,6 +656,32 @@ function citationLocation(source: any) {
     parts.push(source.section_path)
   }
   return parts.join('，')
+}
+
+function citationTags(source: any) {
+  if (!Array.isArray(source?.tags)) return []
+  return source.tags.map((tag: unknown) => String(tag).trim()).filter(Boolean)
+}
+
+function qaCitationTags(message: Message) {
+  const tags = new Map<string, { key: string; tag: string }>()
+  for (const source of message.citations || []) {
+    const sourceTags = citationTags(source)
+    if (!source.qa_pair_id || !sourceTags.length) continue
+    for (const tag of sourceTags) {
+      // QA 命中不再混入普通“参考来源”行，标签本身作为可跳转引用入口，避免无文档来源时显示“暂未找到明确资料”。
+      const key = `${source.qa_pair_id}:${tag}`
+      if (!tags.has(key)) tags.set(key, { key, tag })
+    }
+  }
+  return [...tags.values()]
+}
+
+function documentCitations(message: Message) {
+  return (message.citations || []).filter((source) => {
+    // 带 qa_pair_id 且有 tags 的 citation 代表单条 QA 命中，按需求展示到“标签”区域；普通文档仍保留参考来源模板。
+    return !(source.qa_pair_id && citationTags(source).length)
+  })
 }
 
 function formatNumberRanges(values: number[]) {

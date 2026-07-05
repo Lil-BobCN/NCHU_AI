@@ -126,6 +126,26 @@ class RetrievalServiceParameterTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertGreater(penalty, 0)
 
+    async def test_citations_keep_standalone_qa_tags_without_document_source(self) -> None:
+        service = RetrievalService()
+
+        citations = service._citations([
+            {
+                "qa_pair_id": "11111111-1111-1111-1111-111111111111",
+                "qa_question": "奖学金该怎么发放",
+                "qa_answer": "成绩达标，填写书面申请",
+                "tags": ["111"],
+                "source": "qa_direct_exact",
+            }
+        ])
+
+        # 纯手工维护的 QA 可能没有绑定文档；citation 仍要保留标签，否则智能对话详情只能显示“暂未找到明确资料”。
+        self.assertEqual(len(citations), 1)
+        self.assertIsNone(citations[0]["document_id"])
+        self.assertEqual(citations[0]["qa_pair_id"], "11111111-1111-1111-1111-111111111111")
+        self.assertEqual(citations[0]["tags"], ["111"])
+        self.assertEqual(citations[0]["url"], "/qa-pairs")
+
     async def test_scholarship_query_filters_travel_documents_from_context_and_citations(self) -> None:
         service = RetrievalService()
         service.rag_settings = {
@@ -536,6 +556,34 @@ class RetrievalServiceParameterTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(citations[0]["page_numbers"], [7, 8])
         self.assertEqual(citations[0]["section_paths"], ["办理说明"])
         self.assertEqual(citations[0]["location_label"], "第 7-8 页")
+
+    async def test_citations_include_qa_tags(self) -> None:
+        service = RetrievalService()
+        item = {
+            **_item("qa_text", 1),
+            "qa_pair_id": "00000000-0000-0000-0000-000000000201",
+            "tags": ["奖学金", "申请材料"],
+        }
+
+        citations = service._citations([item], query="奖学金材料", answer="请准备申请表。")
+
+        self.assertEqual(citations[0]["tags"], ["奖学金", "申请材料"])
+
+    async def test_citations_are_empty_when_answer_says_no_clear_match(self) -> None:
+        service = RetrievalService()
+        item = {
+            **_item("vector", 1),
+            "content": "南昌航空大学学生手册目录页，仅包含页码标记。",
+            "document_title": "南昌航空大学学生学生手册（2025年版）A4-20250725.pdf",
+        }
+
+        citations = service.citations_for_answer(
+            "4242",
+            "当前检索到的资料中没有找到明确的对应信息，因此暂时无法基于资料为您解答。",
+            [item],
+        )
+
+        self.assertEqual(citations, [])
 
 
 if __name__ == "__main__":
