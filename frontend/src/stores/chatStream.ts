@@ -166,6 +166,7 @@ export const useChatStreamStore = defineStore('chatStream', () => {
     const data = unwrap<any>(await api.post('/conversations', { title: '新的对话' }))
     conversationId.value = data.id
     localStorage.setItem(ACTIVE_CONVERSATION_STORAGE_KEY, data.id)
+    question.value = ''
     messages.value = []
     await loadConversations()
   }
@@ -186,6 +187,7 @@ export const useChatStreamStore = defineStore('chatStream', () => {
   async function loadConversation(id: string) {
     conversationId.value = id
     localStorage.setItem(ACTIVE_CONVERSATION_STORAGE_KEY, id)
+    question.value = ''
     const active = activeTurn.value
     if (active && active.conversationId === id) {
       ensureActiveTurnVisible(active)

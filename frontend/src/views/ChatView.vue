@@ -252,10 +252,10 @@
             <textarea
               v-model="question"
               rows="2"
-              :maxlength="CHAT_MAX_QUESTION_CHARS"
               :class="{ 'limit-reached': isComposerLimitReached }"
               :aria-invalid="isComposerOverLimit"
               aria-describedby="composer-limit-tip"
+              @input="handleComposerInput"
               placeholder="输入问题，支持连续追问"
               @keydown.enter="handleComposerEnter"
             />
@@ -291,6 +291,28 @@
 
       <div v-if="feedbackToast" class="feedback-toast" role="status" aria-live="polite">
         {{ feedbackToast }}
+      </div>
+
+      <div v-if="truncatedInputText" class="document-preview-modal" role="dialog" aria-modal="true">
+        <section class="feedback-dialog input-limit-dialog">
+          <header>
+            <div>
+              <strong>输入内容已达上限</strong>
+              <span>输入框最多保留 {{ CHAT_MAX_QUESTION_CHARS }} 字，以下内容未被录入。</span>
+            </div>
+            <button type="button" class="icon-button" title="关闭" aria-label="关闭" @click="closeInputLimitDialog">
+              <X :size="18" />
+            </button>
+          </header>
+
+          <div class="input-limit-content">
+            {{ truncatedInputText }}
+          </div>
+
+          <footer>
+            <button type="button" class="primary" @click="closeInputLimitDialog">知道了</button>
+          </footer>
+        </section>
       </div>
 
       <ConfirmDialog
@@ -386,6 +408,7 @@ const feedbackDescription = ref('')
 const feedbackSubmitting = ref(false)
 const feedbackError = ref('')
 const feedbackToast = ref('')
+const truncatedInputText = ref('')
 const conversationDeleteTarget = ref<Conversation | null>(null)
 let feedbackToastTimer: number | undefined
 const feedbackTypeOptions = [
@@ -443,6 +466,25 @@ function handleComposerEnter(event: KeyboardEvent) {
   if (event.shiftKey || event.isComposing) return
   event.preventDefault()
   void chatStore.ask(question.value)
+}
+
+function handleComposerInput(event: Event) {
+  const target = event.target as HTMLTextAreaElement
+  const chars = Array.from(target.value)
+  if (chars.length <= CHAT_MAX_QUESTION_CHARS) {
+    question.value = target.value
+    return
+  }
+
+  const keptText = chars.slice(0, CHAT_MAX_QUESTION_CHARS).join('')
+  const discardedText = chars.slice(CHAT_MAX_QUESTION_CHARS).join('')
+  question.value = keptText
+  target.value = keptText
+  if (discardedText) truncatedInputText.value = discardedText
+}
+
+function closeInputLimitDialog() {
+  truncatedInputText.value = ''
 }
 
 async function startConversationTitleEdit(item: Conversation) {

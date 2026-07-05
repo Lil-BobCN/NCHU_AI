@@ -1428,6 +1428,20 @@ textarea:focus {
   gap: 7px;
 }
 
+.input-limit-content {
+  max-height: min(260px, 45vh);
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  padding: 12px;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  background: #fff7f7;
+  color: #991b1b;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
 .composer {
   border-top: 1px solid var(--line);
   padding: 16px 22px;
