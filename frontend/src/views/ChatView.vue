@@ -146,7 +146,8 @@
           </div>
 
           <article v-for="message in messages" :key="message.localId || message.id" :class="['message', message.role]">
-            <div class="bubble">
+            <div class="message-stack">
+              <div class="bubble">
               <template v-if="message.content && message.role === 'assistant'">
                 <div
                   class="markdown-content"
@@ -174,31 +175,6 @@
 
               <div v-if="message.error" class="error">
                 {{ message.error }}
-              </div>
-
-              <div v-if="chatStore.isActiveUserMessage(message)" class="message-actions">
-                <button
-                  type="button"
-                  class="message-action"
-                  :disabled="stoppingGeneration"
-                  title="撤回并修改"
-                  @click="void chatStore.retractActiveTurn()"
-                >
-                  <Undo2 :size="15" />
-                  <span>撤回</span>
-                </button>
-              </div>
-
-              <div v-if="canFeedback(message)" class="assistant-feedback">
-                <button
-                  type="button"
-                  class="feedback-trigger"
-                  :disabled="message.feedback_status === 'open'"
-                  @click="openFeedbackDialog(message)"
-                >
-                  <CircleAlert :size="15" />
-                  <span>{{ message.feedback_status === 'open' ? '已标记回答有误' : '回答有误' }}</span>
-                </button>
               </div>
 
               <div v-if="qaCitationTags(message).length" class="citations qa-citation-section">
@@ -241,6 +217,106 @@
               <div v-if="message.suggested_questions?.length" class="suggestions">
                 <button v-for="item in message.suggested_questions" :key="item.question" @click="chatStore.ask(item.question)">
                   {{ item.question }}
+                </button>
+              </div>
+            </div>
+              <div v-if="message.role === 'assistant'" class="message-actions-row assistant-actions" aria-label="AI 回复操作">
+                <button
+                  type="button"
+                  class="message-action-button action-copy"
+                  :disabled="messageActionsDisabled(message)"
+                  :data-message-action-key="messageActionKey(message, 'copy')"
+                  aria-label="复制"
+                  @mouseleave="clearMessageActionState(message, 'copy')"
+                  @pointerleave="clearMessageActionState(message, 'copy')"
+                  @blur="clearMessageActionState(message, 'copy')"
+                  @click="copyMessage(message)"
+                >
+                  <Check v-if="isMessageActionConfirmed(message, 'copy')" :size="15" />
+                  <Copy v-else :size="15" />
+                  <span class="message-action-tooltip">复制</span>
+                </button>
+                <button
+                  type="button"
+                  class="message-action-button action-quote"
+                  :disabled="messageActionsDisabled(message)"
+                  :data-message-action-key="messageActionKey(message, 'quote')"
+                  aria-label="引用"
+                  @mouseleave="clearMessageActionState(message, 'quote')"
+                  @pointerleave="clearMessageActionState(message, 'quote')"
+                  @blur="clearMessageActionState(message, 'quote')"
+                  @click="quoteMessage(message)"
+                >
+                  <Check v-if="isMessageActionConfirmed(message, 'quote')" :size="15" />
+                  <Quote v-else :size="15" />
+                  <span class="message-action-tooltip">引用</span>
+                </button>
+                <button
+                  type="button"
+                  class="message-action-button action-feedback"
+                  :class="{ active: message.feedback_status === 'open' }"
+                  :disabled="messageActionsDisabled(message) || message.feedback_status === 'open'"
+                  aria-label="回答有误"
+                  @click="openFeedbackDialog(message)"
+                >
+                  <CircleAlert :size="15" />
+                  <span class="message-action-tooltip">
+                    {{ message.feedback_status === 'open' ? '已标记回答有误' : '回答有误' }}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  class="message-action-button action-delete"
+                  :disabled="messageActionsDisabled(message) || deletingMessageId === message.id"
+                  aria-label="删除"
+                  @click="requestMessageDelete(message)"
+                >
+                  <LoaderCircle v-if="deletingMessageId === message.id" :size="15" class="spin" />
+                  <Trash2 v-else :size="15" />
+                  <span class="message-action-tooltip">删除</span>
+                </button>
+              </div>
+              <div v-else class="message-actions-row user-actions" aria-label="用户消息操作">
+                <button
+                  type="button"
+                  class="message-action-button action-copy"
+                  :disabled="messageActionsDisabled(message)"
+                  :data-message-action-key="messageActionKey(message, 'copy')"
+                  aria-label="复制"
+                  @mouseleave="clearMessageActionState(message, 'copy')"
+                  @pointerleave="clearMessageActionState(message, 'copy')"
+                  @blur="clearMessageActionState(message, 'copy')"
+                  @click="copyMessage(message)"
+                >
+                  <Check v-if="isMessageActionConfirmed(message, 'copy')" :size="15" />
+                  <Copy v-else :size="15" />
+                  <span class="message-action-tooltip">复制</span>
+                </button>
+                <button
+                  type="button"
+                  class="message-action-button action-quote"
+                  :disabled="messageActionsDisabled(message)"
+                  :data-message-action-key="messageActionKey(message, 'quote')"
+                  aria-label="引用"
+                  @mouseleave="clearMessageActionState(message, 'quote')"
+                  @pointerleave="clearMessageActionState(message, 'quote')"
+                  @blur="clearMessageActionState(message, 'quote')"
+                  @click="quoteMessage(message)"
+                >
+                  <Check v-if="isMessageActionConfirmed(message, 'quote')" :size="15" />
+                  <Quote v-else :size="15" />
+                  <span class="message-action-tooltip">引用</span>
+                </button>
+                <button
+                  type="button"
+                  class="message-action-button action-delete"
+                  :disabled="messageActionsDisabled(message) || deletingMessageId === message.id"
+                  aria-label="删除"
+                  @click="requestMessageDelete(message)"
+                >
+                  <LoaderCircle v-if="deletingMessageId === message.id" :size="15" class="spin" />
+                  <Trash2 v-else :size="15" />
+                  <span class="message-action-tooltip">删除</span>
                 </button>
               </div>
             </div>
@@ -326,6 +402,17 @@
         @confirm="confirmConversationDelete"
       />
 
+      <ConfirmDialog
+        v-if="messageDeleteTarget"
+        title="确认删除消息"
+        :message="messageDeleteMessage"
+        :subject-label="messageDeleteSubject"
+        detail="删除后当前页面将隐藏该消息，后台仍会保留删除人和删除时间用于审计追溯。"
+        :busy="deletingMessageId === messageDeleteTarget.id"
+        @cancel="cancelMessageDelete"
+        @confirm="confirmMessageDelete"
+      />
+
       <div v-if="feedbackTarget" class="document-preview-modal" role="dialog" aria-modal="true">
         <form class="feedback-dialog" @submit.prevent="submitFeedback">
           <header>
@@ -375,7 +462,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import AppShell from '../components/AppShell.vue'
 import ConfirmDialog from '../components/ConfirmDialog.vue'
-import { Check, CircleAlert, LoaderCircle, MessageSquareText, Pencil, Plus, Search, SendHorizontal, Square, Trash2, Undo2, X } from 'lucide-vue-next'
+import { Check, CircleAlert, Copy, LoaderCircle, MessageSquareText, Pencil, Plus, Quote, Search, SendHorizontal, Square, Trash2, X } from 'lucide-vue-next'
 import { apiErrorMessage } from '../api/client'
 import { CHAT_MAX_QUESTION_CHARS, useChatStreamStore, type Conversation, type Message } from '../stores/chatStream'
 
@@ -393,6 +480,7 @@ const {
   loading,
   stoppingGeneration,
   deletingConversationId,
+  deletingMessageId,
   renamingConversationId,
   activeConversationTitle
 } = storeToRefs(chatStore)
@@ -410,6 +498,8 @@ const feedbackError = ref('')
 const feedbackToast = ref('')
 const truncatedInputText = ref('')
 const conversationDeleteTarget = ref<Conversation | null>(null)
+const messageDeleteTarget = ref<Message | null>(null)
+const confirmedMessageActionKeys = ref<Set<string>>(new Set())
 let feedbackToastTimer: number | undefined
 const feedbackTypeOptions = [
   { value: 'answer_wrong', label: '答案错误' },
@@ -433,15 +523,29 @@ const conversationEmptyText = computed(() => {
   if (hasConversationSearch.value) return '未找到匹配会话'
   return '暂无历史对话'
 })
+const messageDeleteSubject = computed(() => {
+  if (!messageDeleteTarget.value) return '1 条消息'
+  return messageDeleteTarget.value.role === 'assistant' ? '1 条 AI 回复' : '1 条用户消息'
+})
+const messageDeleteMessage = computed(() => {
+  if (!messageDeleteTarget.value) return ''
+  return messageDeleteTarget.value.role === 'assistant'
+    ? '将删除这条 AI 回复，删除后前端不再显示。'
+    : '将删除这条用户消息，删除后前端不再显示。'
+})
 
 onMounted(async () => {
   chatStore.attachScrollTarget(messagesEl.value)
+  window.addEventListener('pointermove', handleMessageActionPointerMove)
+  window.addEventListener('mousemove', handleMessageActionPointerMove)
   await chatStore.initialize()
 })
 
 onBeforeUnmount(() => {
   if (conversationSearchTimer) window.clearTimeout(conversationSearchTimer)
   if (feedbackToastTimer) window.clearTimeout(feedbackToastTimer)
+  window.removeEventListener('pointermove', handleMessageActionPointerMove)
+  window.removeEventListener('mousemove', handleMessageActionPointerMove)
   chatStore.attachScrollTarget(null)
 })
 
@@ -453,6 +557,13 @@ watch(messages, () => {
   const validKeys = new Set(messages.value.map(messageKey))
   const next = new Set([...expandedAnswerKeys.value].filter((key) => validKeys.has(key)))
   if (next.size !== expandedAnswerKeys.value.size) expandedAnswerKeys.value = next
+  const validActionKeys = new Set<string>()
+  for (const message of messages.value) {
+    validActionKeys.add(messageActionKey(message, 'copy'))
+    validActionKeys.add(messageActionKey(message, 'quote'))
+  }
+  const nextActionKeys = new Set([...confirmedMessageActionKeys.value].filter((key) => validActionKeys.has(key)))
+  if (nextActionKeys.size !== confirmedMessageActionKeys.value.size) confirmedMessageActionKeys.value = nextActionKeys
 })
 
 watch(conversationSearch, (value) => {
@@ -532,8 +643,103 @@ async function confirmConversationDelete() {
   conversationDeleteTarget.value = null
 }
 
-function canFeedback(message: Message) {
-  return message.role === 'assistant' && Boolean(message.id) && Boolean(message.content) && !chatStore.isActiveAssistantMessage(message)
+function requestMessageDelete(message: Message) {
+  if (messageActionsDisabled(message) || deletingMessageId.value) return
+  messageDeleteTarget.value = message
+}
+
+function cancelMessageDelete() {
+  if (deletingMessageId.value) return
+  messageDeleteTarget.value = null
+}
+
+async function confirmMessageDelete() {
+  const target = messageDeleteTarget.value
+  if (!target || deletingMessageId.value) return
+  try {
+    await chatStore.deleteMessage(target)
+    showFeedbackToast('消息已删除')
+    messageDeleteTarget.value = null
+  } catch (error) {
+    showFeedbackToast(apiErrorMessage(error, '删除失败，请稍后重试'))
+  }
+}
+
+function messageActionsDisabled(message: Message) {
+  return (
+    loading.value ||
+    stoppingGeneration.value ||
+    chatStore.isActiveAssistantMessage(message) ||
+    chatStore.isActiveUserMessage(message) ||
+    !message.id ||
+    !message.content
+  )
+}
+
+function messageActionKey(message: Message, action: 'copy' | 'quote') {
+  return `${messageKey(message)}:${action}`
+}
+
+function isMessageActionConfirmed(message: Message, action: 'copy' | 'quote') {
+  return confirmedMessageActionKeys.value.has(messageActionKey(message, action))
+}
+
+function setMessageActionConfirmed(message: Message, action: 'copy' | 'quote') {
+  const next = new Set(confirmedMessageActionKeys.value)
+  next.add(messageActionKey(message, action))
+  confirmedMessageActionKeys.value = next
+}
+
+function clearMessageActionState(message: Message, action: 'copy' | 'quote') {
+  const key = messageActionKey(message, action)
+  if (!confirmedMessageActionKeys.value.has(key)) return
+  const next = new Set(confirmedMessageActionKeys.value)
+  next.delete(key)
+  confirmedMessageActionKeys.value = next
+}
+
+function handleMessageActionPointerMove(event: MouseEvent | PointerEvent) {
+  if (!confirmedMessageActionKeys.value.size) return
+  const target = event.target instanceof Element ? event.target : null
+  const actionButton = target?.closest('[data-message-action-key]') as HTMLElement | null
+  const hoveredKey = actionButton?.dataset.messageActionKey
+  const next = new Set([...confirmedMessageActionKeys.value].filter((key) => key === hoveredKey))
+  if (next.size !== confirmedMessageActionKeys.value.size) confirmedMessageActionKeys.value = next
+}
+
+async function copyMessage(message: Message) {
+  if (messageActionsDisabled(message)) return
+  setMessageActionConfirmed(message, 'copy')
+  try {
+    await writeClipboardText(message.content)
+    showFeedbackToast('复制成功')
+  } catch (error) {
+    showFeedbackToast(apiErrorMessage(error, '复制失败，请手动选择文本复制'))
+  }
+}
+
+function quoteMessage(message: Message) {
+  if (messageActionsDisabled(message)) return
+  chatStore.quoteMessage(message)
+  setMessageActionConfirmed(message, 'quote')
+  showFeedbackToast('已引用到输入框')
+}
+
+async function writeClipboardText(text: string) {
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(text)
+    return
+  }
+  const textarea = document.createElement('textarea')
+  textarea.value = text
+  textarea.setAttribute('readonly', 'true')
+  textarea.style.position = 'fixed'
+  textarea.style.left = '-9999px'
+  document.body.appendChild(textarea)
+  textarea.select()
+  const copied = document.execCommand('copy')
+  document.body.removeChild(textarea)
+  if (!copied) throw new Error('copy command failed')
 }
 
 const ANSWER_COLLAPSE_THRESHOLD = 900

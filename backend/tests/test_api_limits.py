@@ -14,10 +14,11 @@ from sqlalchemy import select  # noqa: E402
 from sqlalchemy.dialects import postgresql  # noqa: E402
 
 from app.api.v1.chat import ChatRequest  # noqa: E402
+from app.api.v1.conversations import conversation_message_delete_filters, conversation_message_list_filters  # noqa: E402
 from app.api.v1.qa_pairs import QaPairCreate, QaPairUpdate, qa_pair_duplicate_question_filters, qa_pair_list_filters  # noqa: E402
 from app.api.v1.retrieval import SearchRequest  # noqa: E402
 from app.core.config import get_settings  # noqa: E402
-from app.db.models import QaPair  # noqa: E402
+from app.db.models import ConversationMessage, QaPair  # noqa: E402
 
 
 class ApiLimitTests(unittest.TestCase):
@@ -79,6 +80,22 @@ class ApiLimitTests(unittest.TestCase):
 
         self.assertIn("qa_pairs.question = ", compiled)
         self.assertIn("qa_pairs.deleted_at IS NULL", compiled)
+
+    def test_conversation_message_list_filters_exclude_soft_deleted_messages(self) -> None:
+        statement = select(ConversationMessage).where(*conversation_message_list_filters("conversation-1"))
+
+        compiled = str(statement.compile(dialect=postgresql.dialect()))
+
+        self.assertIn("conversation_messages.conversation_id = ", compiled)
+        self.assertIn("conversation_messages.deleted_at IS NULL", compiled)
+
+    def test_conversation_message_delete_filters_allow_user_and_assistant_messages(self) -> None:
+        statement = select(ConversationMessage).where(*conversation_message_delete_filters("conversation-1", "message-1"))
+
+        compiled = str(statement.compile(dialect=postgresql.dialect()))
+
+        self.assertIn("conversation_messages.role IN ", compiled)
+        self.assertIn("conversation_messages.deleted_at IS NULL", compiled)
 
 
 if __name__ == "__main__":

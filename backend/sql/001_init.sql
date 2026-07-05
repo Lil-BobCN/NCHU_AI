@@ -186,10 +186,15 @@ CREATE TABLE IF NOT EXISTS conversation_messages (
   suggested_questions jsonb NOT NULL DEFAULT '[]',
   latency_ms integer NULL,
   model_name varchar(128) NULL,
-  created_at timestamptz NOT NULL DEFAULT now()
+  created_at timestamptz NOT NULL DEFAULT now(),
+  deleted_at timestamptz NULL,
+  deleted_by uuid NULL
 );
+ALTER TABLE conversation_messages ADD COLUMN IF NOT EXISTS deleted_at timestamptz NULL;
+ALTER TABLE conversation_messages ADD COLUMN IF NOT EXISTS deleted_by uuid NULL;
 CREATE INDEX IF NOT EXISTS idx_messages_conversation_id ON conversation_messages(conversation_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_messages_created_at ON conversation_messages(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_messages_visible_conversation_id ON conversation_messages(conversation_id, created_at) WHERE deleted_at IS NULL;
 
 CREATE TABLE IF NOT EXISTS retrieval_logs (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),

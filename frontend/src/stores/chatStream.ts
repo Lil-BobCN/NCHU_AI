@@ -15,6 +15,8 @@ export type Message = {
   status?: string
   retrieval?: string
   error?: string
+  deleted_at?: string | null
+  deleted_by?: string | null
 }
 
 export type Conversation = {
@@ -69,6 +71,7 @@ export const useChatStreamStore = defineStore('chatStream', () => {
   const loading = ref(false)
   const stoppingGeneration = ref(false)
   const deletingConversationId = ref<string | null>(null)
+  const deletingMessageId = ref<string | null>(null)
   const renamingConversationId = ref<string | null>(null)
   const activeAbortController = ref<AbortController | null>(null)
   const activeTurn = ref<ActiveTurn | null>(null)
@@ -240,6 +243,31 @@ export const useChatStreamStore = defineStore('chatStream', () => {
     }
     await loadConversations()
     return data
+  }
+
+  function quoteMessage(message: Message) {
+    if (!message.content) return
+    question.value = message.content
+  }
+
+  async function deleteMessage(message: Message) {
+    if (!conversationId.value || !message.id || deletingMessageId.value) {
+      return
+    }
+    deletingMessageId.value = message.id
+    try {
+      const data = unwrap<any>(await api.delete(`/conversations/${conversationId.value}/messages/${message.id}`))
+      messages.value = messages.value.filter((item) => item.id !== message.id)
+      upsertConversation({
+        id: data.conversation_id || conversationId.value,
+        message_count: data.message_count,
+        last_message_at: data.last_message_at || null
+      })
+      await loadConversations()
+      await scrollToBottom()
+    } finally {
+      deletingMessageId.value = null
+    }
   }
 
   async function ask(text: string) {
@@ -582,6 +610,7 @@ export const useChatStreamStore = defineStore('chatStream', () => {
     loading,
     stoppingGeneration,
     deletingConversationId,
+    deletingMessageId,
     renamingConversationId,
     activeConversationTitle,
     initialize,
@@ -596,6 +625,8 @@ export const useChatStreamStore = defineStore('chatStream', () => {
     deleteConversation,
     renameConversation,
     submitAnswerFeedback,
+    quoteMessage,
+    deleteMessage,
     ask,
     stopGeneration,
     retractActiveTurn,

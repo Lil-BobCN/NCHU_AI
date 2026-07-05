@@ -575,7 +575,10 @@ class ChatService:
     ) -> list[dict]:
         rows = await db.execute(
             select(ConversationMessage)
-            .where(ConversationMessage.conversation_id == conversation_id)
+            .where(
+                ConversationMessage.conversation_id == conversation_id,
+                ConversationMessage.deleted_at.is_(None),
+            )
             .order_by(ConversationMessage.created_at.desc())
             .limit(limit)
         )
@@ -593,7 +596,10 @@ class ChatService:
     ) -> list[dict]:
         rows = await db.execute(
             select(ConversationMessage)
-            .where(ConversationMessage.conversation_id == conversation_id)
+            .where(
+                ConversationMessage.conversation_id == conversation_id,
+                ConversationMessage.deleted_at.is_(None),
+            )
             .order_by(ConversationMessage.created_at.desc())
             .limit(limit)
         )

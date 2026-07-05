@@ -98,10 +98,64 @@ async def list_messages(
     }
     rows = await db.execute(
         select(ConversationMessage)
-        .where(ConversationMessage.conversation_id == conversation_id)
+        .where(*conversation_message_list_filters(conversation_id))
         .order_by(ConversationMessage.created_at.asc())
     )
     return ok([serialize_message(item, feedback_by_message.get(str(item.id))) for item in rows.scalars()])
+
+
+@router.delete("/{conversation_id}/messages/{message_id}")
+async def delete_message(
+    conversation_id: str,
+    message_id: str,
+    db: AsyncSession = Depends(get_db),
+    admin: Admin = Depends(get_current_admin),
+):
+    conversation = await db.scalar(
+        select(Conversation.id).where(Conversation.id == conversation_id, Conversation.deleted_at.is_(None))
+    )
+    if conversation is None:
+        raise HTTPException(status_code=404, detail="会话不存在")
+
+    message = await db.scalar(
+        select(ConversationMessage).where(*conversation_message_delete_filters(conversation_id, message_id))
+    )
+    if message is None:
+        raise HTTPException(status_code=404, detail="消息不存在或不支持删除")
+
+    now = datetime.now(timezone.utc)
+    message.deleted_at = now
+    message.deleted_by = str(admin.id)
+    await db.flush()
+
+    visible_count = await db.scalar(
+        select(func.count())
+        .select_from(ConversationMessage)
+        .where(*conversation_message_list_filters(conversation_id))
+    )
+    last_message_at = await db.scalar(
+        select(func.max(ConversationMessage.created_at)).where(*conversation_message_list_filters(conversation_id))
+    )
+    await db.execute(
+        update(Conversation)
+        .where(Conversation.id == conversation_id, Conversation.deleted_at.is_(None))
+        .values(
+            message_count=int(visible_count or 0),
+            last_message_at=last_message_at,
+            updated_at=now,
+        )
+    )
+    await db.commit()
+    return ok(
+        {
+            "id": str(message.id),
+            "conversation_id": str(message.conversation_id),
+            "deleted_at": now.isoformat(),
+            "deleted_by": str(admin.id),
+            "message_count": int(visible_count or 0),
+            "last_message_at": last_message_at.isoformat() if last_message_at else None,
+        }
+    )
 
 
 @router.patch("/{conversation_id}")
@@ -202,12 +256,29 @@ def conversation_list_filters(search: str | None = None, feedback_only: bool = F
             exists(
                 select(ConversationMessage.id).where(
                     ConversationMessage.conversation_id == Conversation.id,
+                    ConversationMessage.deleted_at.is_(None),
                     ConversationMessage.content.ilike(pattern),
                 )
             ),
         )
     )
     return filters
+
+
+def conversation_message_list_filters(conversation_id: str) -> list:
+    return [
+        ConversationMessage.conversation_id == conversation_id,
+        ConversationMessage.deleted_at.is_(None),
+    ]
+
+
+def conversation_message_delete_filters(conversation_id: str, message_id: str) -> list:
+    return [
+        ConversationMessage.id == message_id,
+        ConversationMessage.conversation_id == conversation_id,
+        ConversationMessage.role.in_(("user", "assistant")),
+        ConversationMessage.deleted_at.is_(None),
+    ]
 
 
 def normalize_conversation_search_query(value: str | None) -> str:
@@ -224,6 +295,7 @@ async def backfill_default_conversation_titles(db: AsyncSession, conversations: 
             .where(
                 ConversationMessage.conversation_id == conversation.id,
                 ConversationMessage.role == "user",
+                ConversationMessage.deleted_at.is_(None),
             )
             .order_by(ConversationMessage.created_at.asc())
             .limit(1)
@@ -253,6 +325,8 @@ def serialize_message(item: ConversationMessage, feedback: dict | None = None) -
         "citations": item.citations,
         "suggested_questions": item.suggested_questions,
         "created_at": item.created_at.isoformat() if item.created_at else None,
+        "deleted_at": item.deleted_at.isoformat() if item.deleted_at else None,
+        "deleted_by": str(item.deleted_by) if item.deleted_by else None,
     }
     if feedback:
         data.update(feedback)
