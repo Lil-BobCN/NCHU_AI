@@ -145,7 +145,11 @@
             <strong>暂无消息</strong>
           </div>
 
-          <article v-for="message in messages" :key="message.localId || message.id" :class="['message', message.role]">
+          <article
+            v-for="message in messages"
+            :key="message.localId || message.id"
+            :class="['message', message.role, { 'feedback-open': message.role === 'assistant' && message.feedback_status === 'open' }]"
+          >
             <div class="message-stack">
               <div class="bubble">
               <template v-if="message.content && message.role === 'assistant'">
@@ -255,13 +259,14 @@
                   type="button"
                   class="message-action-button action-feedback"
                   :class="{ active: message.feedback_status === 'open' }"
-                  :disabled="messageActionsDisabled(message) || message.feedback_status === 'open'"
-                  aria-label="回答有误"
-                  @click="openFeedbackDialog(message)"
+                  :disabled="messageActionsDisabled(message) || feedbackCancelSubmitting"
+                  :aria-label="message.feedback_status === 'open' ? '取消异常反馈' : '回答有误'"
+                  @click="handleFeedbackAction(message)"
                 >
-                  <CircleAlert :size="15" />
+                  <Undo2 v-if="message.feedback_status === 'open'" :size="15" />
+                  <CircleAlert v-else :size="15" />
                   <span class="message-action-tooltip">
-                    {{ message.feedback_status === 'open' ? '已标记回答有误' : '回答有误' }}
+                    {{ message.feedback_status === 'open' ? '取消异常反馈' : '回答有误' }}
                   </span>
                 </button>
                 <button
@@ -413,6 +418,19 @@
         @confirm="confirmMessageDelete"
       />
 
+      <ConfirmDialog
+        v-if="feedbackCancelTarget"
+        title="取消异常反馈"
+        message="将撤销本次“回答有误”标记，撤销后该反馈不再计入异常统计。"
+        subject-label="1 条异常反馈"
+        detail="系统仍会保留原反馈内容、撤销人和撤销时间用于审计追溯。"
+        prompt="请确认是否取消异常反馈"
+        confirm-text="确认取消反馈"
+        :busy="feedbackCancelSubmitting"
+        @cancel="cancelFeedbackCancel"
+        @confirm="confirmCancelFeedback"
+      />
+
       <div v-if="feedbackTarget" class="document-preview-modal" role="dialog" aria-modal="true">
         <form class="feedback-dialog" @submit.prevent="submitFeedback">
           <header>
@@ -462,7 +480,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import AppShell from '../components/AppShell.vue'
 import ConfirmDialog from '../components/ConfirmDialog.vue'
-import { Check, CircleAlert, Copy, LoaderCircle, MessageSquareText, Pencil, Plus, Quote, Search, SendHorizontal, Square, Trash2, X } from 'lucide-vue-next'
+import { Check, CircleAlert, Copy, LoaderCircle, MessageSquareText, Pencil, Plus, Quote, Search, SendHorizontal, Square, Trash2, Undo2, X } from 'lucide-vue-next'
 import { apiErrorMessage } from '../api/client'
 import { CHAT_MAX_QUESTION_CHARS, useChatStreamStore, type Conversation, type Message } from '../stores/chatStream'
 
@@ -494,6 +512,8 @@ const feedbackTarget = ref<Message | null>(null)
 const feedbackType = ref('answer_wrong')
 const feedbackDescription = ref('')
 const feedbackSubmitting = ref(false)
+const feedbackCancelTarget = ref<Message | null>(null)
+const feedbackCancelSubmitting = ref(false)
 const feedbackError = ref('')
 const feedbackToast = ref('')
 const truncatedInputText = ref('')
@@ -831,12 +851,38 @@ function findLastSentenceBoundary(text: string) {
   return boundary
 }
 
+function handleFeedbackAction(message: Message) {
+  if (message.feedback_status === 'open') {
+    feedbackCancelTarget.value = message
+    return
+  }
+  openFeedbackDialog(message)
+}
+
 function openFeedbackDialog(message: Message) {
-  if (message.feedback_status === 'open') return
   feedbackTarget.value = message
-  feedbackType.value = 'answer_wrong'
-  feedbackDescription.value = ''
+  feedbackType.value = message.feedback_error_type || 'answer_wrong'
+  feedbackDescription.value = message.feedback_description || ''
   feedbackError.value = ''
+}
+
+function cancelFeedbackCancel() {
+  if (feedbackCancelSubmitting.value) return
+  feedbackCancelTarget.value = null
+}
+
+async function confirmCancelFeedback() {
+  if (!feedbackCancelTarget.value || feedbackCancelSubmitting.value) return
+  feedbackCancelSubmitting.value = true
+  try {
+    await chatStore.cancelAnswerFeedback(feedbackCancelTarget.value)
+    feedbackCancelTarget.value = null
+    showFeedbackToast('已取消异常反馈')
+  } catch (error) {
+    showFeedbackToast(apiErrorMessage(error, '取消反馈失败，请稍后重试'))
+  } finally {
+    feedbackCancelSubmitting.value = false
+  }
 }
 
 function closeFeedbackDialog() {

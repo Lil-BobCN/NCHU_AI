@@ -220,6 +220,8 @@ class AnswerFeedback(Base, TimestampMixin):
     answer_snapshot: Mapped[str] = mapped_column(Text, nullable=False, server_default="")
     citations_snapshot: Mapped[list] = mapped_column(JSONB, nullable=False, server_default="[]")
     status: Mapped[str] = mapped_column(String(32), nullable=False, server_default="open")
+    canceled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    canceled_by: Mapped[str | None] = mapped_column(UUID(as_uuid=False), nullable=True)
     created_by: Mapped[str | None] = mapped_column(UUID(as_uuid=False), nullable=True)
 
 

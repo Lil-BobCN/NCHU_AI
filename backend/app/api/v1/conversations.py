@@ -79,23 +79,20 @@ async def list_messages(
     db: AsyncSession = Depends(get_db),
     _: Admin = Depends(get_current_admin),
 ):
-    feedback_rows = await db.execute(
-        select(
-            AnswerFeedback.assistant_message_id,
-            AnswerFeedback.error_type,
-            AnswerFeedback.status,
-        ).where(
-            AnswerFeedback.conversation_id == conversation_id,
-            AnswerFeedback.status == "open",
-        )
+    feedback_history_rows = await db.execute(
+        select(AnswerFeedback)
+        .where(AnswerFeedback.conversation_id == conversation_id)
+        .order_by(AnswerFeedback.created_at.asc(), AnswerFeedback.updated_at.asc())
     )
-    feedback_by_message = {
-        str(row.assistant_message_id): {
-            "feedback_status": row.status,
-            "feedback_error_type": row.error_type,
+    feedback_by_message = {}
+    for feedback in feedback_history_rows.scalars():
+        message_feedback = {
+            "feedback_error_type": feedback.error_type,
+            "feedback_description": feedback.description,
         }
-        for row in feedback_rows
-    }
+        if feedback.status == "open":
+            message_feedback["feedback_status"] = feedback.status
+        feedback_by_message[str(feedback.assistant_message_id)] = message_feedback
     rows = await db.execute(
         select(ConversationMessage)
         .where(*conversation_message_list_filters(conversation_id))

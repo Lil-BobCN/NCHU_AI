@@ -230,10 +230,14 @@ CREATE TABLE IF NOT EXISTS answer_feedbacks (
   answer_snapshot text NOT NULL DEFAULT '',
   citations_snapshot jsonb NOT NULL DEFAULT '[]',
   status varchar(32) NOT NULL DEFAULT 'open',
+  canceled_at timestamptz NULL,
+  canceled_by uuid NULL,
   created_by uuid NULL,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now()
 );
+ALTER TABLE answer_feedbacks ADD COLUMN IF NOT EXISTS canceled_at timestamptz NULL;
+ALTER TABLE answer_feedbacks ADD COLUMN IF NOT EXISTS canceled_by uuid NULL;
 CREATE INDEX IF NOT EXISTS idx_answer_feedbacks_conversation_status ON answer_feedbacks(conversation_id, status);
 CREATE INDEX IF NOT EXISTS idx_answer_feedbacks_assistant_message ON answer_feedbacks(assistant_message_id);
 CREATE INDEX IF NOT EXISTS idx_answer_feedbacks_created_at ON answer_feedbacks(created_at DESC);

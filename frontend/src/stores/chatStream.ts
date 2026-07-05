@@ -12,6 +12,7 @@ export type Message = {
   suggested_questions?: any[]
   feedback_status?: string
   feedback_error_type?: string
+  feedback_description?: string
   status?: string
   retrieval?: string
   error?: string
@@ -234,6 +235,29 @@ export const useChatStreamStore = defineStore('chatStream', () => {
     }
     message.feedback_status = data.status || 'open'
     message.feedback_error_type = data.error_type || errorType
+    message.feedback_description = data.description ?? description
+    if (data.conversation_id) {
+      upsertConversation({
+        id: data.conversation_id,
+        open_feedback_count: data.conversation_feedback_count,
+        has_feedback: Number(data.conversation_feedback_count || 0) > 0
+      })
+    }
+    await loadConversations()
+    return data
+  }
+
+  async function cancelAnswerFeedback(message: Message) {
+    if (!message.id || message.role !== 'assistant') throw new Error('鏃犳硶瀹氫綅瑕佸彇娑堢殑鍙嶉')
+    let data: any
+    try {
+      data = unwrap<any>(await api.patch(`/feedback/answers/${message.id}/cancel`))
+    } catch (error) {
+      throw new Error(apiErrorMessage(error, '鍙栨秷鍙嶉澶辫触锛岃绋嶅悗閲嶈瘯'))
+    }
+    message.feedback_status = undefined
+    message.feedback_error_type = data.error_type || message.feedback_error_type
+    message.feedback_description = data.description ?? message.feedback_description ?? ''
     if (data.conversation_id) {
       upsertConversation({
         id: data.conversation_id,
@@ -625,6 +649,7 @@ export const useChatStreamStore = defineStore('chatStream', () => {
     deleteConversation,
     renameConversation,
     submitAnswerFeedback,
+    cancelAnswerFeedback,
     quoteMessage,
     deleteMessage,
     ask,

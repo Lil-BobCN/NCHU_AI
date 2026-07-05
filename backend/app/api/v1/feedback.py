@@ -22,6 +22,13 @@ ALLOWED_ERROR_TYPES = {
 }
 
 
+def answer_feedback_cancel_filters(assistant_message_id: str) -> list:
+    return [
+        AnswerFeedback.assistant_message_id == assistant_message_id,
+        AnswerFeedback.status == "open",
+    ]
+
+
 class AnswerFeedbackCreate(BaseModel):
     assistant_message_id: str = Field(min_length=1)
     error_type: str = Field(min_length=1)
@@ -146,6 +153,67 @@ async def submit_answer_feedback(
             "description": payload.description,
             "status": "open",
             "created_at": created_at.isoformat() if created_at else None,
+            "conversation_feedback_count": int(open_count or 0),
+        }
+    )
+
+
+@router.patch("/answers/{assistant_message_id}/cancel")
+async def cancel_answer_feedback(
+    assistant_message_id: str,
+    db: AsyncSession = Depends(get_db),
+    admin: Admin = Depends(get_current_admin),
+):
+    feedback = await db.scalar(select(AnswerFeedback).where(*answer_feedback_cancel_filters(assistant_message_id)))
+    if feedback is None:
+        raise HTTPException(status_code=404, detail="open feedback not found")
+
+    now = datetime.now(timezone.utc)
+    feedback.status = "canceled"
+    feedback.canceled_at = now
+    feedback.canceled_by = str(admin.id)
+    feedback.updated_at = now
+
+    if feedback.retrieval_log_id:
+        retrieval_log = await db.scalar(select(RetrievalLog).where(RetrievalLog.id == feedback.retrieval_log_id))
+        if retrieval_log is not None:
+            quality = dict(retrieval_log.answer_quality or {})
+            previous = dict(quality.get("feedback") or {})
+            previous.update(
+                {
+                    "has_error": False,
+                    "status": "canceled",
+                    "feedback_id": str(feedback.id),
+                    "canceled_at": now.isoformat(),
+                    "canceled_by": str(admin.id),
+                }
+            )
+            quality["feedback"] = previous
+            await db.execute(
+                update(RetrievalLog)
+                .where(RetrievalLog.id == retrieval_log.id)
+                .values(answer_quality=quality)
+            )
+
+    await db.commit()
+    open_count = await db.scalar(
+        select(func.count())
+        .select_from(AnswerFeedback)
+        .where(
+            AnswerFeedback.conversation_id == feedback.conversation_id,
+            AnswerFeedback.status == "open",
+        )
+    )
+    return ok(
+        {
+            "id": str(feedback.id),
+            "conversation_id": str(feedback.conversation_id),
+            "assistant_message_id": str(feedback.assistant_message_id),
+            "error_type": feedback.error_type,
+            "description": feedback.description,
+            "status": "canceled",
+            "canceled_at": now.isoformat(),
+            "canceled_by": str(admin.id),
             "conversation_feedback_count": int(open_count or 0),
         }
     )
