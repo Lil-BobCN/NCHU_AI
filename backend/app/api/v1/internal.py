@@ -203,7 +203,7 @@ async def get_job(job_id: str, db: AsyncSession = Depends(get_db)) -> dict:
 async def create_conversation(payload: ConversationCreateRequest, db: AsyncSession = Depends(get_db)) -> dict:
     conversation = Conversation(
         title=normalize_conversation_title(payload.title),
-        created_by=None,
+        created_by=payload.created_by,
         context_state={"created_by": payload.created_by or "java"},
         message_count=0,
     )
