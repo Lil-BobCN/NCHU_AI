@@ -6,7 +6,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from app.api.v1.documents import normalize_knowledge_base, serialize_document  # noqa: E402
+from app.api.v1.documents import normalize_knowledge_base, router, serialize_document, serialize_knowledge_bases  # noqa: E402
 from app.db.models import Document  # noqa: E402
 
 
@@ -44,6 +44,18 @@ class DocumentApiTests(unittest.TestCase):
         self.assertEqual(data["publish_scope"], "custom")
         self.assertEqual(data["allowed_dept_ids"], ["finance"])
         self.assertEqual(data["allowed_user_ids"], ["1001"])
+
+    def test_knowledge_base_list_route_is_registered_before_document_id_route(self) -> None:
+        paths = [route.path for route in router.routes]
+
+        self.assertIn("/documents/knowledge-bases", paths)
+        self.assertLess(paths.index("/documents/knowledge-bases"), paths.index("/documents/{document_id}"))
+
+    def test_serialize_knowledge_bases_includes_default_contract(self) -> None:
+        data = serialize_knowledge_bases(["  招生 政策  ", None, "default"])
+
+        self.assertEqual(data["default"], "default")
+        self.assertEqual(data["items"], ["招生 政策", "default"])
 
 
 if __name__ == "__main__":

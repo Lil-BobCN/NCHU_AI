@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, field_validator
 from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -14,25 +14,99 @@ from app.services.task_queue_service import TaskQueueService
 
 router = APIRouter(prefix="/qa-pairs", tags=["qa-pairs"])
 
+ALLOWED_QA_STATUSES = {"enabled", "disabled"}
+
 
 class QaPairCreate(BaseModel):
-    question: str
-    answer: str
+    question: str = Field(min_length=1, max_length=2000)
+    answer: str = Field(min_length=1, max_length=10000)
     status: str = "enabled"
     source_document_id: str | None = None
     source_chunk_ids: list[str] | None = None
     tags: list[str] | None = None
 
+    @field_validator("question")
+    @classmethod
+    def normalize_question(cls, value: str) -> str:
+        normalized = " ".join(value.strip().split())
+        if not normalized:
+            raise ValueError("question cannot be blank")
+        return normalized
+
+    @field_validator("answer")
+    @classmethod
+    def normalize_answer(cls, value: str) -> str:
+        normalized = value.strip()
+        if not normalized:
+            raise ValueError("answer cannot be blank")
+        return normalized
+
+    @field_validator("status")
+    @classmethod
+    def validate_status(cls, value: str) -> str:
+        normalized = value.strip()
+        if normalized not in ALLOWED_QA_STATUSES:
+            raise ValueError("unsupported QA status")
+        return normalized
+
+    @field_validator("tags")
+    @classmethod
+    def normalize_tags(cls, value: list[str] | None) -> list[str] | None:
+        return normalize_tags(value)
+
 
 class QaPairUpdate(BaseModel):
-    question: str | None = None
-    answer: str | None = None
+    question: str | None = Field(default=None, max_length=2000)
+    answer: str | None = Field(default=None, max_length=10000)
     status: str | None = None
     tags: list[str] | None = None
+
+    @field_validator("question")
+    @classmethod
+    def normalize_optional_question(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        normalized = " ".join(value.strip().split())
+        if not normalized:
+            raise ValueError("question cannot be blank")
+        return normalized
+
+    @field_validator("answer")
+    @classmethod
+    def normalize_optional_answer(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        normalized = value.strip()
+        if not normalized:
+            raise ValueError("answer cannot be blank")
+        return normalized
+
+    @field_validator("status")
+    @classmethod
+    def validate_status(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        normalized = value.strip()
+        if normalized not in ALLOWED_QA_STATUSES:
+            raise ValueError("unsupported QA status")
+        return normalized
+
+    @field_validator("tags")
+    @classmethod
+    def normalize_tags(cls, value: list[str] | None) -> list[str] | None:
+        return normalize_tags(value)
 
 
 class QaStatusUpdate(BaseModel):
     status: str
+
+    @field_validator("status")
+    @classmethod
+    def validate_status(cls, value: str) -> str:
+        normalized = value.strip()
+        if normalized not in ALLOWED_QA_STATUSES:
+            raise ValueError("unsupported QA status")
+        return normalized
 
 
 @router.get("")
@@ -40,6 +114,7 @@ async def list_qa_pairs(
     keyword: str | None = None,
     status: str | None = None,
     document_id: str | None = None,
+    tag: str | None = None,
     page: int = 1,
     page_size: int = 20,
     db: AsyncSession = Depends(get_db),
@@ -57,6 +132,10 @@ async def list_qa_pairs(
     if document_id:
         query = query.where(QaPair.source_document_id == document_id)
         count_query = count_query.where(QaPair.source_document_id == document_id)
+    normalized_tag = normalize_tag(tag)
+    if normalized_tag:
+        query = query.where(QaPair.tags.any(normalized_tag))
+        count_query = count_query.where(QaPair.tags.any(normalized_tag))
     total = await db.scalar(count_query)
     rows = await db.execute(
         query.order_by(QaPair.updated_at.desc()).offset((page - 1) * page_size).limit(page_size)
@@ -160,6 +239,24 @@ async def _get_qa(db: AsyncSession, qa_pair_id: str) -> QaPair:
 
 async def _enqueue_qa_embedding_sync(qa_pair_id: str) -> dict:
     return await TaskQueueService().enqueue("qa_embedding_sync", {"qa_pair_id": qa_pair_id})
+
+
+def normalize_tag(value: str | None) -> str:
+    return " ".join(str(value or "").strip().split())[:64]
+
+
+def normalize_tags(value: list[str] | None) -> list[str] | None:
+    if value is None:
+        return None
+    normalized: list[str] = []
+    seen: set[str] = set()
+    for item in value:
+        tag = normalize_tag(item)
+        if not tag or tag in seen:
+            continue
+        seen.add(tag)
+        normalized.append(tag)
+    return normalized
 
 
 def serialize_qa(qa: QaPair) -> dict:

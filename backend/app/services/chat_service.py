@@ -189,7 +189,7 @@ class ChatService:
                     .values(
                         message_count=Conversation.message_count + 2,
                         summary="",
-                        context_state={},
+                        context_state=to_jsonable(self._owner_context_metadata(context_state)),
                         last_message_at=now,
                         updated_at=now,
                     )
@@ -297,6 +297,12 @@ class ChatService:
                     )
                     async for event in self._stream_delta_text(answer):
                         yield event
+            elif not answer_context:
+                used_fallback = True
+                fallback = self._fallback_answer(answer_context)
+                answer_parts.append(fallback)
+                async for event in self._stream_delta_text(fallback):
+                    yield event
             else:
                 messages = self._build_messages_with_memory(
                     question,
@@ -529,7 +535,11 @@ class ChatService:
         }
         if remaining_count == 0 or had_completed_assistant:
             values["summary"] = ""
-            values["context_state"] = {}
+            if remaining_count == 0:
+                values["context_state"] = {}
+            else:
+                current_state = await db.scalar(select(Conversation.context_state).where(Conversation.id == conversation_id))
+                values["context_state"] = self._owner_context_metadata(current_state)
 
         await db.execute(update(Conversation).where(Conversation.id == conversation_id).values(**values))
         await db.commit()
@@ -1281,6 +1291,7 @@ class ChatService:
             pending_action = previous_state.get("pending_action") or {}
 
         return {
+            **self._owner_context_metadata(previous_state),
             "active_task": active_task,
             "pending_action": pending_action,
             "last_resolution": {

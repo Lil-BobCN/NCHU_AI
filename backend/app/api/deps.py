@@ -6,9 +6,11 @@ from uuid import NAMESPACE_URL, uuid5
 from fastapi import Depends, Header, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import get_settings
+from app.db.models import Admin
 from app.db.session import get_db
 
 
@@ -67,7 +69,27 @@ async def get_current_user_from_sa_token(
 async def get_current_admin(
     credentials: HTTPAuthorizationCredentials | None = Depends(security),
     db: AsyncSession = Depends(get_db),
-) -> CurrentUser:
+) -> Admin | CurrentUser:
+    if credentials is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="未登录，缺少 Authorization Header")
+
+    settings = get_settings()
+    try:
+        payload = jwt.decode(
+            credentials.credentials,
+            settings.jwt_secret_key,
+            algorithms=[settings.jwt_algorithm],
+        )
+        subject = str(payload.get("sub") or "").strip()
+        if subject:
+            admin = await db.scalar(
+                select(Admin).where(Admin.id == subject, Admin.is_active.is_(True))
+            )
+            if admin is not None:
+                return admin
+    except JWTError:
+        pass
+
     return await get_current_user_from_sa_token(credentials, db)
 
 

@@ -28,7 +28,8 @@ def _content_disposition(filename: str) -> str:
     return f'attachment; filename="{_ascii_download_name(safe_name)}"; filename*=UTF-8\'\'{encoded}'
 
 
-@router.api_route("/{bucket}/{object_key:path}", methods=["GET", "HEAD"])
+@router.get("/{bucket}/{object_key:path}")
+@router.head("/{bucket}/{object_key:path}", include_in_schema=False)
 async def get_file(
     request: Request,
     bucket: str,
