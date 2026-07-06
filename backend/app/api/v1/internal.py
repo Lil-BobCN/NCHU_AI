@@ -248,10 +248,9 @@ async def list_conversations(
 ) -> dict:
     page = max(1, int(page or 1))
     page_size = min(100, max(1, int(page_size or 20)))
-    # 权限校验：如果显式传入 created_by，必须匹配当前用户（用于前端 Chat 页面数据隔离）
-    # 不传 created_by 时，不做用户级过滤（后管需要返回全部数据，由 Java 层按角色/部门权限控制）
-    if created_by and str(created_by) not in {current_user.user_id, current_user.login_id, current_user.id}:
-        raise HTTPException(status_code=403, detail="无权查看其他用户会话")
+    # /internal/rag/ 内部接口，由 Java 后端调用，Java 层已负责用户身份与权限控制
+    # 此处仅根据 Java 传入的 created_by 参数做数据过滤，不再重复校验用户所有权
+    # 不传 created_by 时，不做用户级过滤（后管需要返回全部数据）
     filters = _conversation_filters(
         q,
         feedback_only,
@@ -289,8 +288,6 @@ async def list_conversation_messages(
 ) -> dict:
     conversation_id = _normalize_uuid(conversation_id, "conversation_id")
     conversation = await _get_conversation(db, conversation_id)
-    if not _can_access_conversation(conversation, current_user):
-        raise HTTPException(status_code=403, detail="无权访问此会话")
     feedback_rows = await db.execute(
         select(AnswerFeedback).where(
             _feedback_conversation_id() == str(conversation_id),
