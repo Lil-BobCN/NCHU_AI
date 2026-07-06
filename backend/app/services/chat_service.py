@@ -52,13 +52,16 @@ class ChatService:
         document_ids: list[str] | None = None,
         enable_rewrite: bool = True,
         created_by: str | None = None,
+        context_created_by: str | None = None,
     ) -> AsyncGenerator[str, None]:
         started = time.perf_counter()
         conversation: Conversation | None = None
         user_message: ConversationMessage | None = None
         assistant_message: ConversationMessage | None = None
         try:
-            conversation = await self._get_or_create_conversation(db, conversation_id, question, created_by)
+            conversation = await self._get_or_create_conversation(
+                db, conversation_id, question, created_by, context_created_by
+            )
             await self._auto_title_conversation_if_needed(db, conversation, question)
             conversation_summary = (conversation.summary or "").strip()
             context_state = self._normalize_context_state(getattr(conversation, "context_state", None))
@@ -186,7 +189,7 @@ class ChatService:
                     .values(
                         message_count=Conversation.message_count + 2,
                         summary="",
-                        context_state={},
+                        context_state=to_jsonable(self._owner_context_metadata(context_state)),
                         last_message_at=now,
                         updated_at=now,
                     )
@@ -410,6 +413,7 @@ class ChatService:
         document_ids: list[str] | None = None,
         enable_rewrite: bool = True,
         created_by: str | None = None,
+        context_created_by: str | None = None,
     ) -> dict:
         answer = ""
         citations = []
@@ -426,6 +430,7 @@ class ChatService:
             document_ids,
             enable_rewrite,
             created_by,
+            context_created_by,
         ):
             if event.startswith("event: delta"):
                 payload = json.loads(event.split("data: ", 1)[1])
@@ -530,7 +535,11 @@ class ChatService:
         }
         if remaining_count == 0 or had_completed_assistant:
             values["summary"] = ""
-            values["context_state"] = {}
+            if remaining_count == 0:
+                values["context_state"] = {}
+            else:
+                current_state = await db.scalar(select(Conversation.context_state).where(Conversation.id == conversation_id))
+                values["context_state"] = self._owner_context_metadata(current_state)
 
         await db.execute(update(Conversation).where(Conversation.id == conversation_id).values(**values))
         await db.commit()
@@ -542,16 +551,26 @@ class ChatService:
         }
 
     async def _get_or_create_conversation(
-        self, db: AsyncSession, conversation_id: str | None, question: str, created_by: str | None = None
+        self,
+        db: AsyncSession,
+        conversation_id: str | None,
+        question: str,
+        created_by: str | None = None,
+        context_created_by: str | None = None,
     ) -> Conversation:
         if conversation_id:
             conversation = await db.scalar(
                 select(Conversation).where(Conversation.id == conversation_id, Conversation.deleted_at.is_(None))
             )
             if conversation:
+                await self._ensure_owner_context(db, conversation, created_by, context_created_by)
                 return conversation
         title = auto_title_from_question(question)
-        conversation_values = {"title": title, "created_by": created_by}
+        conversation_values = {
+            "title": title,
+            "created_by": created_by,
+            "context_state": self._owner_context_state(created_by, context_created_by),
+        }
         normalized_conversation_id = self._normalize_conversation_id(conversation_id)
         if normalized_conversation_id:
             conversation_values["id"] = normalized_conversation_id
@@ -560,6 +579,51 @@ class ChatService:
         await db.commit()
         await db.refresh(conversation)
         return conversation
+
+    async def _ensure_owner_context(
+        self,
+        db: AsyncSession,
+        conversation: Conversation,
+        created_by: str | None,
+        context_created_by: str | None,
+    ) -> None:
+        values: dict = {}
+        if created_by and not conversation.created_by:
+            values["created_by"] = created_by
+            conversation.created_by = created_by
+
+        current_state = self._normalize_context_state(getattr(conversation, "context_state", None))
+        updated_state = self._owner_context_state(created_by, context_created_by, current_state)
+        if updated_state != current_state:
+            values["context_state"] = to_jsonable(updated_state)
+            conversation.context_state = updated_state
+
+        if values:
+            await db.execute(update(Conversation).where(Conversation.id == conversation.id).values(**values))
+            await db.commit()
+
+    def _owner_context_state(
+        self,
+        created_by: str | None,
+        context_created_by: str | None,
+        existing_state: dict | None = None,
+    ) -> dict:
+        state = self._normalize_context_state(existing_state)
+        owner_id = str(created_by or "").strip()
+        raw_created_by = str(context_created_by or "").strip()
+        if owner_id and not state.get("owner_id"):
+            state["owner_id"] = owner_id
+        if raw_created_by:
+            current_created_by = str(state.get("created_by") or "").strip()
+            if not current_created_by or current_created_by == owner_id:
+                state["created_by"] = raw_created_by
+        elif owner_id and not state.get("created_by"):
+            state["created_by"] = owner_id
+        return state
+
+    def _owner_context_metadata(self, state: dict | None) -> dict:
+        normalized = self._normalize_context_state(state)
+        return {key: normalized[key] for key in ("created_by", "owner_id") if normalized.get(key)}
 
     def _normalize_conversation_id(self, conversation_id: str | None) -> str | None:
         if not conversation_id:
@@ -626,11 +690,16 @@ class ChatService:
     def _normalize_context_state(self, state: object) -> dict:
         if not isinstance(state, dict):
             return {"active_task": {}, "pending_action": {}, "last_resolution": {}}
-        return {
+        normalized = {
             "active_task": state.get("active_task") if isinstance(state.get("active_task"), dict) else {},
             "pending_action": state.get("pending_action") if isinstance(state.get("pending_action"), dict) else {},
             "last_resolution": state.get("last_resolution") if isinstance(state.get("last_resolution"), dict) else {},
         }
+        for key in ("created_by", "owner_id"):
+            value = str(state.get(key) or "").strip()
+            if value:
+                normalized[key] = value
+        return normalized
 
     def _is_smalltalk_greeting(self, question: str) -> bool:
         compact = re.sub(r"[\s!！?？。,.，～~、]+", "", (question or "").strip().lower())
@@ -1222,6 +1291,7 @@ class ChatService:
             pending_action = previous_state.get("pending_action") or {}
 
         return {
+            **self._owner_context_metadata(previous_state),
             "active_task": active_task,
             "pending_action": pending_action,
             "last_resolution": {

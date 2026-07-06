@@ -4,18 +4,23 @@ from pathlib import Path
 import sys
 import unittest
 
+from sqlalchemy.dialects import postgresql
+
 
 BACKEND_ROOT = Path(__file__).resolve().parents[1]
 if str(BACKEND_ROOT) not in sys.path:
     sys.path.insert(0, str(BACKEND_ROOT))
 
+from app.api.deps import CurrentUser  # noqa: E402
 from app.api.v1.internal import (  # noqa: E402
     InternalChatRetractRequest,
+    _can_access_conversation,
+    _conversation_filters,
     _java_session_to_uuid,
     _serialize_job,
     _serialize_message,
 )
-from app.db.models import AnswerFeedback, ConversationMessage, DocumentJob  # noqa: E402
+from app.db.models import AnswerFeedback, Conversation, ConversationMessage, DocumentJob  # noqa: E402
 
 
 class InternalApiContractTests(unittest.TestCase):
@@ -69,6 +74,37 @@ class InternalApiContractTests(unittest.TestCase):
             _java_session_to_uuid("java-session-1"),
             _java_session_to_uuid("java-session-1"),
         )
+
+    def test_conversation_filter_matches_java_user_and_owner_uuid(self) -> None:
+        filters = _conversation_filters(
+            created_by="java-user-1",
+            owner_id="9a66f24f-4700-42b5-888c-5e0752d7bff1",
+        )
+
+        sql = " ".join(
+            str(item.compile(dialect=postgresql.dialect(), compile_kwargs={"literal_binds": True}))
+            for item in filters
+        )
+
+        self.assertIn("java-user-1", sql)
+        self.assertIn("9a66f24f-4700-42b5-888c-5e0752d7bff1", sql)
+        self.assertIn("conversations.created_by", sql)
+
+    def test_conversation_access_accepts_owner_context_metadata(self) -> None:
+        conversation = Conversation(title="测试会话")
+        conversation.id = "conv-1"
+        conversation.created_by = "11111111-1111-1111-1111-111111111111"
+        conversation.context_state = {
+            "owner_id": "9a66f24f-4700-42b5-888c-5e0752d7bff1",
+            "created_by": "java-user-1",
+        }
+        current_user = CurrentUser(
+            id="9a66f24f-4700-42b5-888c-5e0752d7bff1",
+            user_id="java-user-1",
+            login_id="sys_user:java-user-1",
+        )
+
+        self.assertTrue(_can_access_conversation(conversation, current_user))
 
 
 if __name__ == "__main__":

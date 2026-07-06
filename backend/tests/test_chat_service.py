@@ -23,6 +23,31 @@ class ChatServiceFollowupTests(unittest.TestCase):
         self.assertEqual(service._normalize_conversation_id(conversation_id), conversation_id)
         self.assertIsNone(service._normalize_conversation_id("java-session-text"))
 
+    def test_stream_chat_preserves_java_owner_context(self) -> None:
+        service = ChatService()
+        service.retrieval_service = FakeNoRetrievalService()
+        service.model_service = FakeNoModelService()
+        db = FakeChatStreamSession()
+        owner_id = "9a66f24f-4700-42b5-888c-5e0752d7bff1"
+        java_user_id = "java-user-1"
+
+        async def consume() -> None:
+            async for _ in service.stream_chat(
+                db,
+                "你好",
+                None,
+                enable_suggested_questions=False,
+                created_by=owner_id,
+                context_created_by=java_user_id,
+            ):
+                pass
+
+        asyncio.run(consume())
+
+        self.assertEqual(db.conversation.created_by, owner_id)
+        self.assertEqual(db.conversation.context_state["owner_id"], owner_id)
+        self.assertEqual(db.conversation.context_state["created_by"], java_user_id)
+
     def test_answer_cache_key_changes_with_corpus_version(self) -> None:
         service = ChatService()
         retrieval = {

@@ -243,10 +243,18 @@ async def list_conversations(
     feedback_only: bool = False,
     created_by: str | None = None,
     db: AsyncSession = Depends(get_db),
+    current_user: CurrentUser = Depends(get_current_user_from_sa_token),
 ) -> dict:
     page = max(1, int(page or 1))
     page_size = min(100, max(1, int(page_size or 20)))
-    filters = _conversation_filters(q, feedback_only, created_by)
+    if created_by and str(created_by) not in {current_user.user_id, current_user.login_id, current_user.id}:
+        raise HTTPException(status_code=403, detail="无权查看其他用户会话")
+    filters = _conversation_filters(
+        q,
+        feedback_only,
+        created_by or current_user.user_id,
+        _conversation_owner_id(current_user),
+    )
     total = await db.scalar(select(func.count()).select_from(Conversation).where(*filters))
     rows = await db.execute(
         select(Conversation)
@@ -349,15 +357,16 @@ async def stream_chat(
     return StreamingResponse(
         _stream_with_java_boundary(
             service.stream_chat(
-                db,
-                payload.question,
-                conversation_id,
-                payload.options.enable_suggested_questions,
-                payload.options.top_k,
-                payload.options.rerank_top_k,
-                document_ids,
-                payload.options.enable_rewrite,
-                _conversation_owner_id(current_user),
+                db=db,
+                question=payload.question,
+                conversation_id=conversation_id,
+                enable_suggested_questions=payload.options.enable_suggested_questions,
+                top_k=payload.options.top_k,
+                rerank_top_k=payload.options.rerank_top_k,
+                document_ids=document_ids,
+                enable_rewrite=payload.options.enable_rewrite,
+                created_by=_conversation_owner_id(current_user),
+                context_created_by=current_user.user_id,
             )
         ),
         media_type="text/event-stream",
@@ -374,15 +383,16 @@ async def chat(
     document_ids = await _allowed_document_ids(db, payload.access_scope, payload.user_context)
     conversation_id = _java_session_to_uuid(payload.session_id)
     result = await ChatService().chat_once(
-        db,
-        payload.question,
-        conversation_id,
-        payload.options.enable_suggested_questions,
-        payload.options.top_k,
-        payload.options.rerank_top_k,
-        document_ids,
-        payload.options.enable_rewrite,
-        _conversation_owner_id(current_user),
+        db=db,
+        question=payload.question,
+        conversation_id=conversation_id,
+        enable_suggested_questions=payload.options.enable_suggested_questions,
+        top_k=payload.options.top_k,
+        rerank_top_k=payload.options.rerank_top_k,
+        document_ids=document_ids,
+        enable_rewrite=payload.options.enable_rewrite,
+        created_by=_conversation_owner_id(current_user),
+        context_created_by=current_user.user_id,
     )
     return ok(result)
 
@@ -554,14 +564,24 @@ def _conversation_filters(
     search: str | None = None,
     feedback_only: bool = False,
     created_by: str | None = None,
+    owner_id: str | None = None,
 ) -> list:
     filters = [Conversation.deleted_at.is_(None)]
+    owner_filters = []
     if created_by:
-        owner_filters = [Conversation.context_state["created_by"].as_string() == str(created_by)]
+        owner_filters.append(Conversation.context_state["created_by"].as_string() == str(created_by))
         try:
             owner_filters.append(Conversation.created_by == str(UUID(str(created_by))))
         except ValueError:
             pass
+    if owner_id:
+        owner_filters.extend(
+            [
+                Conversation.created_by == owner_id,
+                Conversation.context_state["owner_id"].as_string() == owner_id,
+            ]
+        )
+    if owner_filters:
         filters.append(or_(*owner_filters))
     if feedback_only:
         filters.append(
@@ -603,10 +623,15 @@ def _feedback_conversation_id():
 
 
 def _can_access_conversation(conversation: Conversation, current_user: CurrentUser) -> bool:
-    if not conversation.created_by or conversation.created_by == _conversation_owner_id(current_user):
+    owner_id = _conversation_owner_id(current_user)
+    if not conversation.created_by or conversation.created_by == owner_id:
         return True
     context_state = conversation.context_state or {}
-    return context_state.get("created_by") in {current_user.user_id, current_user.login_id}
+    return context_state.get("owner_id") == owner_id or context_state.get("created_by") in {
+        current_user.user_id,
+        current_user.login_id,
+        owner_id,
+    }
 
 
 def _conversation_owner_id(current_user: CurrentUser) -> str:
