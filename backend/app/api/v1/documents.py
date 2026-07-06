@@ -2,6 +2,7 @@ import csv
 import io
 from datetime import datetime
 from uuid import UUID
+from uuid import uuid4
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, Response, UploadFile
 from pydantic import BaseModel, Field, field_validator
@@ -16,6 +17,7 @@ from app.db.session import get_db
 from app.services.document_state import ARCHIVE_EXTENSIONS, LEGACY_OFFICE_EXTENSIONS, indexing_blocker
 from app.services.document_pipeline import supported_file
 from app.services.document_lifecycle_service import DocumentLifecycleService
+from app.services.knowledge_base_service import KnowledgeBaseService, normalize_knowledge_base_name
 from app.services.minio_service import MinioService
 from app.services.task_queue_service import TaskQueueService
 from app.services.document_upload_service import (
@@ -27,6 +29,13 @@ from app.services.document_upload_service import (
 
 
 router = APIRouter(prefix="/documents", tags=["documents"])
+
+
+BATCH_ACTIONS = {
+    "batch_reparse": ("BRP", "批量重解析"),
+    "batch_rechunk": ("BRC", "批量重切片"),
+}
+BATCH_JOB_STATUSES = {"pending", "running", "succeeded", "failed", "skipped", "canceled"}
 
 
 class DocumentBatchPayload(BaseModel):
@@ -102,7 +111,12 @@ async def upload_document(
     document = result.document
     jobs = []
     if auto_process:
-        task = await _enqueue_document_task("document_full_pipeline", str(document.id))
+        task = await _enqueue_document_task(
+            "document_full_pipeline",
+            str(document.id),
+            task_action="initial_parse",
+            task_label="初次解析",
+        )
         jobs.append({"job_type": "parse", "status": "queued", "task_id": task["id"]})
     return ok(
         {
@@ -137,6 +151,8 @@ async def list_documents(
     keyword: str | None = None,
     status: str | None = None,
     knowledge_base: str | None = None,
+    batch_id: str | None = None,
+    batch_status: str | None = None,
     page: int = 1,
     page_size: int = 20,
     db: AsyncSession = Depends(get_db),
@@ -155,6 +171,10 @@ async def list_documents(
     if normalized_knowledge_base:
         query = query.where(Document.knowledge_base == normalized_knowledge_base)
         count_query = count_query.where(Document.knowledge_base == normalized_knowledge_base)
+    batch_document_ids = _batch_document_ids_query(batch_id, batch_status)
+    if batch_document_ids is not None:
+        query = query.where(Document.id.in_(batch_document_ids))
+        count_query = count_query.where(Document.id.in_(batch_document_ids))
     total = await db.scalar(count_query)
     rows = await db.execute(
         query.order_by(Document.created_at.desc()).offset((page - 1) * page_size).limit(page_size)
@@ -174,6 +194,8 @@ async def export_documents(
     keyword: str | None = None,
     status: str | None = None,
     knowledge_base: str | None = None,
+    batch_id: str | None = None,
+    batch_status: str | None = None,
     db: AsyncSession = Depends(get_db),
     _: Admin = Depends(get_current_admin),
 ):
@@ -186,6 +208,9 @@ async def export_documents(
     normalized_knowledge_base = normalize_knowledge_base(knowledge_base)
     if normalized_knowledge_base:
         query = query.where(Document.knowledge_base == normalized_knowledge_base)
+    batch_document_ids = _batch_document_ids_query(batch_id, batch_status)
+    if batch_document_ids is not None:
+        query = query.where(Document.id.in_(batch_document_ids))
     rows = await db.execute(query.order_by(Document.created_at.desc()))
     buffer = io.StringIO(newline="")
     writer = csv.writer(buffer)
@@ -234,6 +259,8 @@ async def batch_update_knowledge_base(
     db: AsyncSession = Depends(get_db),
     _: Admin = Depends(get_current_admin),
 ):
+    if not await KnowledgeBaseService().exists(db, payload.knowledge_base):
+        raise HTTPException(status_code=400, detail="知识库不存在或已停用")
     documents = await _get_documents(db, payload.document_ids)
     ids = [str(document.id) for document in documents]
     await db.execute(
@@ -258,11 +285,16 @@ async def batch_reparse_documents(
     _: Admin = Depends(get_current_admin),
 ):
     documents = await _get_documents(db, payload.document_ids)
+    batch = _new_batch("batch_reparse", [str(document.id) for document in documents])
     jobs = []
-    for document in documents:
-        task = await _enqueue_document_task("document_full_pipeline", str(document.id))
-        jobs.append({"document_id": str(document.id), "status": "queued", "task_id": task["id"]})
-    return ok({"jobs": jobs, "count": len(jobs)})
+    for index, document in enumerate(documents, start=1):
+        task = await _enqueue_document_task(
+            "document_full_pipeline",
+            str(document.id),
+            **_batch_task_params(batch, index),
+        )
+        jobs.append(_batch_job_item(document, batch, "queued", task_id=task["id"], message="等待后台调度"))
+    return ok({"batch": batch, "jobs": jobs, "count": len(jobs)})
 
 
 @router.post("/batch/rechunk")
@@ -272,16 +304,23 @@ async def batch_rechunk_documents(
     _: Admin = Depends(get_current_admin),
 ):
     documents = await _get_documents(db, payload.document_ids)
+    batch = _new_batch("batch_rechunk", [str(document.id) for document in documents])
     jobs = []
     skipped = []
-    for document in documents:
+    for index, document in enumerate(documents, start=1):
         skip = await _indexing_skip_payload(db, document, "chunk")
         if skip:
+            item = _batch_job_item(document, batch, "skipped", message=skip.get("message") or "已跳过")
             skipped.append(skip)
+            jobs.append(item)
             continue
-        task = await _enqueue_document_task("document_rechunk", str(document.id))
-        jobs.append({"document_id": str(document.id), "status": "queued", "task_id": task["id"]})
-    return ok({"jobs": jobs, "skipped": skipped, "count": len(jobs)})
+        task = await _enqueue_document_task(
+            "document_rechunk",
+            str(document.id),
+            **_batch_task_params(batch, index),
+        )
+        jobs.append(_batch_job_item(document, batch, "queued", task_id=task["id"], message="等待后台调度"))
+    return ok({"batch": batch, "jobs": jobs, "skipped": skipped, "count": len(jobs)})
 
 
 @router.post("/cleanup-deleted-artifacts")
@@ -340,7 +379,12 @@ async def reparse_document(
     _: Admin = Depends(get_current_admin),
 ):
     document = await _get_document(db, document_id)
-    task = await _enqueue_document_task("document_full_pipeline", str(document.id))
+    task = await _enqueue_document_task(
+        "document_full_pipeline",
+        str(document.id),
+        task_action="manual_reparse",
+        task_label="重解析",
+    )
     return ok({"document_id": document_id, "status": "queued", "task_id": task["id"]})
 
 
@@ -354,7 +398,12 @@ async def rechunk_document(
     skip = await _indexing_skip_payload(db, document, "chunk")
     if skip:
         return ok(skip)
-    task = await _enqueue_document_task("document_rechunk", str(document.id))
+    task = await _enqueue_document_task(
+        "document_rechunk",
+        str(document.id),
+        task_action="manual_rechunk",
+        task_label="重切片",
+    )
     return ok({"document_id": str(document.id), "status": "queued", "task_id": task["id"]})
 
 
@@ -368,7 +417,12 @@ async def reembed_document(
     skip = await _indexing_skip_payload(db, document, "embed")
     if skip:
         return ok(skip)
-    task = await _enqueue_document_task("document_reembed", str(document.id))
+    task = await _enqueue_document_task(
+        "document_reembed",
+        str(document.id),
+        task_action="manual_reembed",
+        task_label="重向量化",
+    )
     return ok({"document_id": str(document.id), "status": "queued", "task_id": task["id"]})
 
 
@@ -523,8 +577,68 @@ async def _indexing_skip_payload(db: AsyncSession, document: Document, job_type:
     }
 
 
-async def _enqueue_document_task(task_type: str, document_id: str) -> dict:
-    return await TaskQueueService().enqueue(task_type, {"document_id": document_id})
+async def _enqueue_document_task(task_type: str, document_id: str, **params) -> dict:
+    payload = {"document_id": document_id, **{key: value for key, value in params.items() if value is not None}}
+    return await TaskQueueService().enqueue(task_type, payload)
+
+
+def _new_batch(action: str, document_ids: list[str]) -> dict:
+    prefix, label = BATCH_ACTIONS[action]
+    batch_id = f"{prefix}-{datetime.now().strftime('%Y%m%d%H%M%S')}-{uuid4().hex[:6].upper()}"
+    return {
+        "id": batch_id,
+        "action": action,
+        "label": label,
+        "total": len(document_ids),
+        "document_ids": document_ids,
+        "submitted_at": datetime.now().isoformat(timespec="seconds"),
+    }
+
+
+def _batch_task_params(batch: dict, index: int) -> dict:
+    return {
+        "task_action": batch["action"],
+        "task_label": batch["label"],
+        "batch_id": batch["id"],
+        "batch_action": batch["action"],
+        "batch_label": batch["label"],
+        "batch_size": batch["total"],
+        "batch_index": index,
+    }
+
+
+def _batch_job_item(
+    document: Document,
+    batch: dict,
+    status: str,
+    *,
+    task_id: str | None = None,
+    message: str | None = None,
+) -> dict:
+    return {
+        "document_id": str(document.id),
+        "title": _display_document_title(document),
+        "file_name": document.file_name,
+        "status": status,
+        "message": message,
+        "task_id": task_id,
+        "batch_id": batch["id"],
+        "batch_action": batch["action"],
+        "batch_label": batch["label"],
+    }
+
+
+def _batch_document_ids_query(batch_id: str | None, batch_status: str | None = None):
+    normalized_batch_id = normalize_batch_id(batch_id)
+    if not normalized_batch_id:
+        return None
+    query = select(DocumentJob.document_id).where(
+        DocumentJob.params["batch_id"].astext == normalized_batch_id
+    )
+    normalized_status = normalize_batch_status(batch_status)
+    if normalized_status:
+        query = query.where(DocumentJob.status == normalized_status)
+    return query
 
 
 def _normalize_document_id(document_id: str) -> str:
@@ -554,7 +668,16 @@ def serialize_document(document: Document) -> dict:
 
 
 def normalize_knowledge_base(value: str | None) -> str:
-    return " ".join(str(value or "").strip().split())[:64]
+    return normalize_knowledge_base_name(value)
+
+
+def normalize_batch_id(value: str | None) -> str:
+    return str(value or "").strip()[:96]
+
+
+def normalize_batch_status(value: str | None) -> str:
+    status = str(value or "").strip()
+    return status if status in BATCH_JOB_STATUSES else ""
 
 
 def serialize_duplicate_check(duplicate_check, message: str | None = None) -> dict:
@@ -595,8 +718,11 @@ def serialize_job(job: DocumentJob) -> dict:
         "progress": job.progress,
         "message": job.message,
         "error_message": job.error_message,
+        "params": job.params,
         "result": job.result,
         "created_at": job.created_at.isoformat() if job.created_at else None,
+        "updated_at": job.updated_at.isoformat() if job.updated_at else None,
+        "finished_at": job.finished_at.isoformat() if job.finished_at else None,
     }
 
 

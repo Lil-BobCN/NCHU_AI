@@ -260,7 +260,7 @@ export const useChatStreamStore = defineStore('chatStream', () => {
   async function cancelAnswerFeedback(message: Message) {
     // 取消反馈和提交反馈使用同一套归属校验，
     // 否则旧的“已标记”状态可能会取消另一个会话里的反馈。
-    if (!message.id || message.role !== 'assistant') throw new Error('鏃犳硶瀹氫綅瑕佸彇娑堢殑鍙嶉')
+    if (!message.id || message.role !== 'assistant') throw new Error('无法定位要取消的反馈')
     const targetConversationId = message.conversation_id || conversationId.value
     if (!targetConversationId || targetConversationId !== conversationId.value) {
       throw new Error('反馈消息不属于当前会话，请刷新后重试')
@@ -273,7 +273,7 @@ export const useChatStreamStore = defineStore('chatStream', () => {
         })
       )
     } catch (error) {
-      throw new Error(apiErrorMessage(error, '鍙栨秷鍙嶉澶辫触锛岃绋嶅悗閲嶈瘯'))
+      throw new Error(apiErrorMessage(error, '取消反馈失败，请稍后重试'))
     }
     message.feedback_status = undefined
     message.feedback_error_type = data.error_type || message.feedback_error_type

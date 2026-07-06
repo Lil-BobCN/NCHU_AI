@@ -2559,6 +2559,206 @@ button.danger:hover {
   font-size: 12px;
 }
 
+.data-table tbody tr.document-row-failed {
+  background: #fff7ed;
+  box-shadow: inset 4px 0 0 #f97316;
+}
+
+.data-table tbody tr.document-row-failed:hover {
+  background: #ffedd5;
+}
+
+.table-progress.failed .progress-line span {
+  background: linear-gradient(90deg, #f97316, #ef4444);
+}
+
+.progress-meta {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.progress-meta small {
+  flex: 1 1 auto;
+}
+
+.task-batch-badge {
+  flex: none;
+  max-width: 150px;
+  min-height: 20px;
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: #ecfeff;
+  color: #0e7490;
+  font-size: 12px;
+  font-weight: 800;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.document-row-failed .task-batch-badge {
+  background: #ffedd5;
+  color: #c2410c;
+}
+
+.batch-task-panel {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 45;
+  width: min(520px, calc(100vw - 48px));
+  max-height: min(680px, calc(100vh - 48px));
+  display: grid;
+  grid-template-rows: auto auto auto minmax(0, 1fr);
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 20px 52px rgba(15, 23, 42, 0.2);
+}
+
+.batch-task-panel header,
+.batch-summary-dialog header,
+.batch-summary-dialog footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.batch-task-panel header > div,
+.batch-summary-dialog header > div {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.batch-task-panel strong,
+.batch-summary-dialog strong {
+  min-width: 0;
+  color: #172033;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.batch-task-panel header span,
+.batch-summary-dialog header span {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.batch-task-summary,
+.batch-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.batch-task-summary span,
+.batch-summary-grid span {
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line-soft);
+  border-radius: 8px;
+  background: #f8fbff;
+  color: #334155;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.batch-task-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.batch-task-list {
+  min-height: 0;
+  display: grid;
+  gap: 8px;
+  overflow: auto;
+  padding-right: 2px;
+}
+
+.batch-task-item {
+  display: grid;
+  gap: 7px;
+  padding: 10px;
+  border: 1px solid var(--line-soft);
+  border-radius: 8px;
+  background: #f8fbff;
+}
+
+.batch-task-item > div:first-child {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.batch-task-item span {
+  flex: none;
+  min-height: 22px;
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: #e0f2fe;
+  color: #0369a1;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.batch-task-item small {
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+
+.batch-task-succeeded span {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.batch-task-failed {
+  border-color: #fed7aa;
+  background: #fff7ed;
+  box-shadow: inset 3px 0 0 #f97316;
+}
+
+.batch-task-failed span {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.batch-task-skipped span {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.batch-summary-dialog {
+  width: min(460px, calc(100vw - 32px));
+  display: grid;
+  gap: 16px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: var(--shadow-md);
+}
+
+.batch-summary-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 @media (max-width: 820px) {
   .shell,
   .chat-layout,

@@ -13,10 +13,14 @@ class TaskQueueService:
         self.redis_service = RedisService()
 
     async def enqueue(self, task_type: str, payload: dict) -> dict:
+        task_id = str(uuid4())
+        task_payload = to_jsonable(payload)
+        if isinstance(task_payload, dict):
+            task_payload.setdefault("queue_task_id", task_id)
         task = {
-            "id": str(uuid4()),
+            "id": task_id,
             "type": task_type,
-            "payload": to_jsonable(payload),
+            "payload": task_payload,
             "enqueued_at": datetime.now(timezone.utc).isoformat(),
         }
         await self.redis_service.lpush(
