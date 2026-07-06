@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field, field_validator
 from sqlalchemy import String, and_, cast, false, func, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_current_user_from_sa_token
+from app.api.deps import CurrentUser, get_current_user_from_sa_token
 from app.core.config import get_settings
 from app.core.responses import ok
 from app.db.models import AnswerFeedback, Conversation, ConversationMessage, Document, DocumentJob
@@ -216,11 +216,17 @@ async def get_job(job_id: str, db: AsyncSession = Depends(get_db)) -> dict:
 
 
 @router.post("/conversations")
-async def create_conversation(payload: ConversationCreateRequest, db: AsyncSession = Depends(get_db)) -> dict:
+async def create_conversation(
+    payload: ConversationCreateRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: CurrentUser = Depends(get_current_user_from_sa_token),
+) -> dict:
+    created_by = payload.created_by or current_user.user_id
+    owner_id = _conversation_owner_id(current_user)
     conversation = Conversation(
         title=normalize_conversation_title(payload.title),
-        created_by=None,
-        context_state={"created_by": payload.created_by or "java"},
+        created_by=owner_id,
+        context_state={"created_by": created_by, "owner_id": owner_id},
         message_count=0,
     )
     db.add(conversation)
@@ -235,11 +241,12 @@ async def list_conversations(
     page_size: int = 20,
     q: str | None = None,
     feedback_only: bool = False,
+    created_by: str | None = None,
     db: AsyncSession = Depends(get_db),
 ) -> dict:
     page = max(1, int(page or 1))
     page_size = min(100, max(1, int(page_size or 20)))
-    filters = _conversation_filters(q, feedback_only)
+    filters = _conversation_filters(q, feedback_only, created_by)
     total = await db.scalar(select(func.count()).select_from(Conversation).where(*filters))
     rows = await db.execute(
         select(Conversation)
@@ -264,9 +271,15 @@ async def list_conversations(
 
 
 @router.get("/conversations/{conversation_id}/messages")
-async def list_conversation_messages(conversation_id: str, db: AsyncSession = Depends(get_db)) -> dict:
+async def list_conversation_messages(
+    conversation_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: CurrentUser = Depends(get_current_user_from_sa_token),
+) -> dict:
     conversation_id = _normalize_uuid(conversation_id, "conversation_id")
-    await _get_conversation(db, conversation_id)
+    conversation = await _get_conversation(db, conversation_id)
+    if not _can_access_conversation(conversation, current_user):
+        raise HTTPException(status_code=403, detail="无权访问此会话")
     feedback_rows = await db.execute(
         select(AnswerFeedback).where(
             _feedback_conversation_id() == str(conversation_id),
@@ -287,6 +300,7 @@ async def update_conversation(
     conversation_id: str,
     payload: ConversationUpdateRequest,
     db: AsyncSession = Depends(get_db),
+    current_user: CurrentUser = Depends(get_current_user_from_sa_token),
 ) -> dict:
     conversation_id = _normalize_uuid(conversation_id, "conversation_id")
     try:
@@ -294,6 +308,8 @@ async def update_conversation(
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     conversation = await _get_conversation(db, conversation_id)
+    if not _can_access_conversation(conversation, current_user):
+        raise HTTPException(status_code=403, detail="无权修改此会话")
     now = datetime.now(timezone.utc)
     await db.execute(update(Conversation).where(Conversation.id == conversation_id).values(title=title, updated_at=now))
     await db.commit()
@@ -303,9 +319,15 @@ async def update_conversation(
 
 
 @router.delete("/conversations/{conversation_id}")
-async def delete_conversation(conversation_id: str, db: AsyncSession = Depends(get_db)) -> dict:
+async def delete_conversation(
+    conversation_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: CurrentUser = Depends(get_current_user_from_sa_token),
+) -> dict:
     conversation_id = _normalize_uuid(conversation_id, "conversation_id")
-    await _get_conversation(db, conversation_id)
+    conversation = await _get_conversation(db, conversation_id)
+    if not _can_access_conversation(conversation, current_user):
+        raise HTTPException(status_code=403, detail="无权删除此会话")
     await db.execute(
         update(Conversation)
         .where(Conversation.id == conversation_id)
@@ -316,7 +338,11 @@ async def delete_conversation(conversation_id: str, db: AsyncSession = Depends(g
 
 
 @router.post("/chat/stream")
-async def stream_chat(payload: InternalChatRequest, db: AsyncSession = Depends(get_db)) -> StreamingResponse:
+async def stream_chat(
+    payload: InternalChatRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: CurrentUser = Depends(get_current_user_from_sa_token),
+) -> StreamingResponse:
     document_ids = await _allowed_document_ids(db, payload.access_scope, payload.user_context)
     conversation_id = _java_session_to_uuid(payload.session_id)
     service = ChatService()
@@ -331,6 +357,7 @@ async def stream_chat(payload: InternalChatRequest, db: AsyncSession = Depends(g
                 payload.options.rerank_top_k,
                 document_ids,
                 payload.options.enable_rewrite,
+                _conversation_owner_id(current_user),
             )
         ),
         media_type="text/event-stream",
@@ -339,7 +366,11 @@ async def stream_chat(payload: InternalChatRequest, db: AsyncSession = Depends(g
 
 
 @router.post("/chat")
-async def chat(payload: InternalChatRequest, db: AsyncSession = Depends(get_db)) -> dict:
+async def chat(
+    payload: InternalChatRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: CurrentUser = Depends(get_current_user_from_sa_token),
+) -> dict:
     document_ids = await _allowed_document_ids(db, payload.access_scope, payload.user_context)
     conversation_id = _java_session_to_uuid(payload.session_id)
     result = await ChatService().chat_once(
@@ -351,6 +382,7 @@ async def chat(payload: InternalChatRequest, db: AsyncSession = Depends(get_db))
         payload.options.rerank_top_k,
         document_ids,
         payload.options.enable_rewrite,
+        _conversation_owner_id(current_user),
     )
     return ok(result)
 
@@ -518,8 +550,19 @@ def _document_access_condition(user: UserContext, scope: AccessScope, allow_expl
     )
 
 
-def _conversation_filters(search: str | None = None, feedback_only: bool = False) -> list:
+def _conversation_filters(
+    search: str | None = None,
+    feedback_only: bool = False,
+    created_by: str | None = None,
+) -> list:
     filters = [Conversation.deleted_at.is_(None)]
+    if created_by:
+        owner_filters = [Conversation.context_state["created_by"].as_string() == str(created_by)]
+        try:
+            owner_filters.append(Conversation.created_by == str(UUID(str(created_by))))
+        except ValueError:
+            pass
+        filters.append(or_(*owner_filters))
     if feedback_only:
         filters.append(
             select(AnswerFeedback.id)
@@ -557,6 +600,17 @@ async def _open_feedback_counts(db: AsyncSession, conversation_ids: list[str]) -
 
 def _feedback_conversation_id():
     return cast(AnswerFeedback.conversation_id, String)
+
+
+def _can_access_conversation(conversation: Conversation, current_user: CurrentUser) -> bool:
+    if not conversation.created_by or conversation.created_by == _conversation_owner_id(current_user):
+        return True
+    context_state = conversation.context_state or {}
+    return context_state.get("created_by") in {current_user.user_id, current_user.login_id}
+
+
+def _conversation_owner_id(current_user: CurrentUser) -> str:
+    return current_user.id
 
 
 def _serialize_conversation(item: Conversation, open_feedback_count: int = 0) -> dict:

@@ -51,13 +51,14 @@ class ChatService:
         rerank_top_k: int | None = None,
         document_ids: list[str] | None = None,
         enable_rewrite: bool = True,
+        created_by: str | None = None,
     ) -> AsyncGenerator[str, None]:
         started = time.perf_counter()
         conversation: Conversation | None = None
         user_message: ConversationMessage | None = None
         assistant_message: ConversationMessage | None = None
         try:
-            conversation = await self._get_or_create_conversation(db, conversation_id, question)
+            conversation = await self._get_or_create_conversation(db, conversation_id, question, created_by)
             await self._auto_title_conversation_if_needed(db, conversation, question)
             conversation_summary = (conversation.summary or "").strip()
             context_state = self._normalize_context_state(getattr(conversation, "context_state", None))
@@ -408,6 +409,7 @@ class ChatService:
         rerank_top_k: int | None = None,
         document_ids: list[str] | None = None,
         enable_rewrite: bool = True,
+        created_by: str | None = None,
     ) -> dict:
         answer = ""
         citations = []
@@ -423,6 +425,7 @@ class ChatService:
             rerank_top_k,
             document_ids,
             enable_rewrite,
+            created_by,
         ):
             if event.startswith("event: delta"):
                 payload = json.loads(event.split("data: ", 1)[1])
@@ -539,7 +542,7 @@ class ChatService:
         }
 
     async def _get_or_create_conversation(
-        self, db: AsyncSession, conversation_id: str | None, question: str
+        self, db: AsyncSession, conversation_id: str | None, question: str, created_by: str | None = None
     ) -> Conversation:
         if conversation_id:
             conversation = await db.scalar(
@@ -548,7 +551,7 @@ class ChatService:
             if conversation:
                 return conversation
         title = auto_title_from_question(question)
-        conversation_values = {"title": title}
+        conversation_values = {"title": title, "created_by": created_by}
         normalized_conversation_id = self._normalize_conversation_id(conversation_id)
         if normalized_conversation_id:
             conversation_values["id"] = normalized_conversation_id
