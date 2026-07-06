@@ -35,7 +35,9 @@ class DocumentPipeline:
         self.archive_import_service = ArchiveImportService()
         self.lifecycle_service = DocumentLifecycleService()
 
-    async def run_full_pipeline_from_storage(self, db: AsyncSession, document_id: str) -> None:
+    async def run_full_pipeline_from_storage(
+        self, db: AsyncSession, document_id: str, job_params: dict | None = None
+    ) -> None:
         document = await db.scalar(select(Document).where(Document.id == document_id))
         if document is None:
             raise ValueError("文档不存在")
@@ -44,10 +46,12 @@ class DocumentPipeline:
             document.storage_bucket,
             document.storage_object_key,
         )
-        await self.run_full_pipeline(db, document_id, file_bytes)
+        await self.run_full_pipeline(db, document_id, file_bytes, job_params)
 
-    async def run_full_pipeline(self, db: AsyncSession, document_id: str, file_bytes: bytes) -> None:
-        parse_job = await self._create_job(db, document_id, "parse")
+    async def run_full_pipeline(
+        self, db: AsyncSession, document_id: str, file_bytes: bytes, job_params: dict | None = None
+    ) -> None:
+        parse_job = await self._create_job(db, document_id, "parse", job_params)
         parse_job_id = str(parse_job.id)
         try:
             await self._set_job(db, parse_job_id, "running", 5, "开始解析")
@@ -94,7 +98,7 @@ class DocumentPipeline:
             await self._fail(db, document_id, parse_job_id, exc)
             return
 
-        chunk_job = await self._create_job(db, document_id, "chunk")
+        chunk_job = await self._create_job(db, document_id, "chunk", job_params)
         chunk_job_id = str(chunk_job.id)
         try:
             await self._set_job(db, chunk_job_id, "running", 5, "开始切片")
@@ -115,7 +119,7 @@ class DocumentPipeline:
             await self._fail(db, document_id, chunk_job_id, exc)
             return
 
-        embed_job = await self._create_job(db, document_id, "embed")
+        embed_job = await self._create_job(db, document_id, "embed", job_params)
         embed_job_id = str(embed_job.id)
         try:
             await self._set_job(db, embed_job_id, "running", 5, "开始向量化")
@@ -135,8 +139,10 @@ class DocumentPipeline:
         except Exception as exc:
             await self._fail(db, document_id, embed_job_id, exc)
 
-    async def run_chunk_and_embed(self, db: AsyncSession, document_id: str) -> None:
-        chunk_job = await self._create_job(db, document_id, "chunk")
+    async def run_chunk_and_embed(
+        self, db: AsyncSession, document_id: str, job_params: dict | None = None
+    ) -> None:
+        chunk_job = await self._create_job(db, document_id, "chunk", job_params)
         chunk_job_id = str(chunk_job.id)
         try:
             await self._set_job(db, chunk_job_id, "running", 5, "开始重新切片")
@@ -161,10 +167,12 @@ class DocumentPipeline:
             await self._fail(db, document_id, chunk_job_id, exc)
             return
 
-        await self.run_embed_only(db, document_id)
+        await self.run_embed_only(db, document_id, job_params)
 
-    async def run_embed_only(self, db: AsyncSession, document_id: str) -> None:
-        embed_job = await self._create_job(db, document_id, "embed")
+    async def run_embed_only(
+        self, db: AsyncSession, document_id: str, job_params: dict | None = None
+    ) -> None:
+        embed_job = await self._create_job(db, document_id, "embed", job_params)
         embed_job_id = str(embed_job.id)
         try:
             await self._set_job(db, embed_job_id, "running", 5, "开始重新向量化")
@@ -641,8 +649,20 @@ class DocumentPipeline:
         await db.refresh(child)
         return child
 
-    async def _create_job(self, db: AsyncSession, document_id: str, job_type: str) -> DocumentJob:
-        job = DocumentJob(document_id=document_id, job_type=job_type, status="pending", progress=0)
+    async def _create_job(
+        self,
+        db: AsyncSession,
+        document_id: str,
+        job_type: str,
+        params: dict | None = None,
+    ) -> DocumentJob:
+        job = DocumentJob(
+            document_id=document_id,
+            job_type=job_type,
+            status="pending",
+            progress=0,
+            params=to_jsonable(params or {}),
+        )
         db.add(job)
         await db.commit()
         await db.refresh(job)
@@ -708,6 +728,7 @@ class DocumentPipeline:
                     "progress": job.progress,
                     "message": job.message,
                     "error_message": job.error_message,
+                    "params": job.params,
                     "result": job.result,
                 }
             ),

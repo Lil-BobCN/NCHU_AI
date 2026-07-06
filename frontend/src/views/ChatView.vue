@@ -33,20 +33,20 @@
           <LoaderCircle v-else-if="searchingConversations" :size="15" class="spin search-loading" />
         </label>
 
-        <div class="conversation-scroll">
-          <div class="conversation-filter-row" aria-label="历史对话筛选">
-            <button
-              type="button"
-              class="conversation-filter-button"
-              :class="{ active: conversationFeedbackOnly }"
-              :aria-pressed="conversationFeedbackOnly"
-              @click="void chatStore.toggleFeedbackOnlyConversations()"
-            >
-              <CircleAlert :size="15" />
-              <span>只看异常</span>
-            </button>
-          </div>
+        <div class="conversation-filter-row" aria-label="历史对话筛选">
+          <button
+            type="button"
+            class="conversation-filter-button"
+            :class="{ active: conversationFeedbackOnly }"
+            :aria-pressed="conversationFeedbackOnly"
+            @click="void chatStore.toggleFeedbackOnlyConversations()"
+          >
+            <CircleAlert :size="15" />
+            <span>只看异常</span>
+          </button>
+        </div>
 
+        <div class="conversation-scroll">
           <div
             v-for="item in conversations"
             :key="item.id"
@@ -201,9 +201,9 @@
                 </button>
               </div>
 
-              <div v-if="message.citations?.length" class="citations">
+              <div v-if="visibleCitations(message).length" class="citations">
                 <strong>参考来源</strong>
-                <div v-for="(source, index) in message.citations" :key="index" class="citation-item">
+                <div v-for="(source, index) in visibleCitations(message)" :key="index" class="citation-item">
                   <a :href="source.url" target="_blank">
                     {{ index + 1 }}. {{ source.document_title || source.document_name }}
                   </a>
@@ -557,13 +557,11 @@ async function submitFeedback() {
   feedbackSubmitting.value = true
   feedbackError.value = ''
   try {
-    // 补充说明为选填项，提交前仅做去空格规整，允许空字符串正常入库。
     await chatStore.submitAnswerFeedback(
       feedbackTarget.value,
       feedbackType.value,
       feedbackDescription.value.trim()
     )
-    feedbackSubmitting.value = false
     closeFeedbackDialog()
     showFeedbackToast('反馈提交成功，我们将尽快优化知识库')
   } catch (error) {
@@ -611,6 +609,14 @@ function citationLocation(source: any) {
     parts.push(source.section_path)
   }
   return parts.join('，')
+}
+
+function visibleCitations(message: Message) {
+  return (message.citations || []).filter((source: any) => {
+    const title = String(source?.document_title || source?.document_name || '').trim()
+    const url = String(source?.url || '').trim()
+    return Boolean(title && url)
+  })
 }
 
 function formatNumberRanges(values: number[]) {

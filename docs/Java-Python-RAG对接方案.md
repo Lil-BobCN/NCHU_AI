@@ -113,6 +113,16 @@ Python 不负责：
 | `rag_retrieval_logs` | Python | 不写 | 召回日志、上下文、引用来源 |
 | `rag_evaluation_*` | Python | 不写 | RAG 评测相关 |
 
+`rag_documents` 需要保存 Java 传入的部门权限字段：
+
+- `attach_id`
+- `knowledge_id`
+- `publish_dept_id`
+- `visible_in_chat`
+- `status`
+
+这些字段不是由 Python 判定业务权限，而是用于检索时快速执行 Java 已定义的权限过滤规则。
+
 ### 3.3 特殊共享规则
 
 #### `knowledge_attach`
@@ -129,6 +139,8 @@ Java 创建和维护业务字段：
 - 删除状态
 - 创建人
 - 所属部门
+- `publish_dept_id`，发布部门，用于问答检索部门权限过滤
+- `visible_in_chat`，是否允许进入问答检索
 
 Python 只允许回写 RAG 状态字段：
 
@@ -241,6 +253,8 @@ Java 每次问答必须传：
     "data_scope": "self"
   },
   "access_scope": {
+    "scope_mode": "dept",
+    "allowed_dept_ids": ["finance"],
     "allowed_knowledge_ids": ["kb_public", "kb_student"],
     "allowed_attach_ids": [101, 102, 103],
     "deny_attach_ids": []
@@ -255,18 +269,156 @@ Java 每次问答必须传：
 | `user_context.user_id` | 是 | 当前用户 ID |
 | `user_context.dept_id` | 是 | 当前用户部门 |
 | `user_context.role_codes` | 是 | 当前用户角色 |
+| `access_scope.scope_mode` | 是 | 权限模式，建议支持 `dept`、`all_public`、`custom`、`admin_all` |
+| `access_scope.allowed_dept_ids` | 部门权限场景必填 | 允许检索的发布部门范围 |
 | `access_scope.allowed_knowledge_ids` | 是 | 允许检索的知识库范围 |
 | `access_scope.allowed_attach_ids` | 可选 | 允许检索的具体文档 |
 | `access_scope.deny_attach_ids` | 可选 | 强制排除文档 |
 
 权限过滤原则：
 
-- 有 `allowed_attach_ids` 时，以文档级权限为准。
-- 没有 `allowed_attach_ids` 但有 `allowed_knowledge_ids` 时，以知识库级权限过滤。
-- 两者都没有时，拒绝知识库检索。
+- `scope_mode = dept` 时，以 `allowed_dept_ids` 过滤发布部门。
+- 有 `allowed_attach_ids` 时，再叠加文档级权限过滤。
+- 有 `allowed_knowledge_ids` 时，再叠加知识库级权限过滤。
+- 普通用户不能传 `admin_all`；只有 Java 确认当前用户是系统管理员时才允许。
+- 没有任何有效范围时，拒绝知识库检索。
 - `deny_attach_ids` 永远优先排除。
 
-### 4.4 Python 检索过滤要求
+### 4.4 部门权限模式
+
+如果业务规则是“哪个部门发布的资料，只有该部门用户或管理员可以检索”，推荐使用 `scope_mode = dept`。
+
+核心规则：
+
+1. Java 在文档上传或发布时，将发布部门写入 `knowledge_attach.publish_dept_id` 或等价字段。
+2. Java 在用户提问时，根据当前登录用户和角色计算 `allowed_dept_ids`。
+3. Python 检索时按 `allowed_dept_ids` 过滤文档发布部门。
+4. 系统管理员或校级管理员由 Java 传更大的部门范围，或传 `scope_mode = admin_all`。
+
+示例：
+
+```json
+{
+  "user_context": {
+    "user_id": "20001",
+    "dept_id": "finance",
+    "role_codes": ["dept_counselor"],
+    "data_scope": "dept"
+  },
+  "access_scope": {
+    "scope_mode": "dept",
+    "allowed_dept_ids": ["finance"],
+    "allowed_knowledge_ids": [],
+    "allowed_attach_ids": [],
+    "deny_attach_ids": []
+  }
+}
+```
+
+如果当前用户是校级管理员，Java 可以传：
+
+```json
+{
+  "access_scope": {
+    "scope_mode": "admin_all",
+    "allowed_dept_ids": [],
+    "allowed_knowledge_ids": [],
+    "allowed_attach_ids": [],
+    "deny_attach_ids": []
+  }
+}
+```
+
+`admin_all` 不是前端可自行指定的权限，只能由 Java 后端在完成角色校验后传给 Python。
+
+### 4.5 部门、用户、文档关系模型
+
+部门权限需要拆成三类数据，且都由 Java 维护：
+
+| 数据 | Java 维护位置 | 说明 |
+| --- | --- | --- |
+| 用户属于哪个部门 | `sys_user.dept_id` 或用户-部门关系表 | 用于判断当前用户归属部门 |
+| 用户拥有哪些部门数据权限 | 角色、部门、数据权限配置 | 例如只能看本部门、可看多个部门、可看全校 |
+| 文档绑定哪个发布部门 | `knowledge_attach.publish_dept_id` | 用于问答检索时过滤文档 |
+
+推荐字段：
+
+```text
+sys_user
+- user_id
+- dept_id
+
+sys_dept
+- dept_id
+- parent_id
+- dept_name
+
+knowledge_attach
+- id
+- kid
+- doc_name
+- publish_dept_id
+- created_by
+- visible_in_chat
+- status
+- rag_doc_id
+
+rag_documents
+- rag_doc_id
+- attach_id
+- knowledge_id
+- publish_dept_id
+- owner_user_id
+- visible_in_chat
+- status
+```
+
+如果一个用户只属于一个部门，Java 直接用 `sys_user.dept_id` 即可。
+
+如果一个用户可能属于多个部门，Java 增加用户-部门关系表，例如：
+
+```text
+sys_user_dept
+- user_id
+- dept_id
+```
+
+Python 不需要直接查 `sys_user` 或判断用户是否属于某个部门。Python 只接收 Java 计算好的结果：
+
+```json
+{
+  "user_context": {
+    "user_id": "20001",
+    "dept_id": "finance",
+    "role_codes": ["dept_counselor"]
+  },
+  "access_scope": {
+    "scope_mode": "dept",
+    "allowed_dept_ids": ["finance"]
+  }
+}
+```
+
+也就是说：
+
+```text
+用户是不是某个部门的人：Java 判断
+用户能看哪些部门资料：Java 判断
+文档属于哪个部门：Java 写入 publish_dept_id
+RAG 能不能召回该文档：Python 按 allowed_dept_ids 和 publish_dept_id 过滤
+```
+
+如果存在全校公开资料，可以额外增加 `publish_scope`：
+
+```text
+publish_scope = dept     只对发布部门可见
+publish_scope = public   全校可见
+publish_scope = private  仅创建人或指定人员可见
+```
+
+第一版如果没有全校公开和个人私有资料，可以先不加 `publish_scope`，只做 `publish_dept_id`。
+
+### 4.6 Python 检索过滤要求
 
 Python 的向量召回、关键词召回、QA 召回都必须在召回前过滤权限。
 
@@ -285,15 +437,26 @@ Python 的向量召回、关键词召回、QA 召回都必须在召回前过滤�
 示例逻辑：
 
 ```sql
-WHERE d.attach_id = ANY(:allowed_attach_ids)
-  AND d.knowledge_id = ANY(:allowed_knowledge_ids)
+WHERE (
+    :scope_mode = 'admin_all'
+    OR d.publish_dept_id = ANY(:allowed_dept_ids)
+  )
+  AND (
+    :allowed_knowledge_ids_is_empty
+    OR d.knowledge_id = ANY(:allowed_knowledge_ids)
+  )
+  AND (
+    :allowed_attach_ids_is_empty
+    OR d.attach_id = ANY(:allowed_attach_ids)
+  )
+  AND NOT (d.attach_id = ANY(:deny_attach_ids))
   AND d.status = 'indexed'
   AND c.is_active = true
 ```
 
 如果用户没有某个文档权限，该文档从召回第一步就不会进入候选集。
 
-### 4.5 大权限范围性能处理
+### 4.7 大权限范围性能处理
 
 如果用户可访问文档很多，不建议每次传几万个 `allowed_attach_ids`。
 
@@ -392,6 +555,8 @@ Java 在完成文件上传和 `knowledge_attach` 写入后调用。
   "attach_id": 101,
   "knowledge_id": "kb_student",
   "doc_id": "java-doc-001",
+  "publish_dept_id": "finance",
+  "visible_in_chat": true,
   "file_name": "学生事务指南.docx",
   "file_ext": "docx",
   "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
@@ -879,10 +1044,11 @@ Cache-Control: no-cache
 
 ```text
 1. 管理员调整文档或知识库权限
-2. Java 更新权限配置
-3. Python 不需要重建向量
-4. 后续问答时 Java 传新的 access_scope
-5. Python 按新的 access_scope 过滤召回
+2. Java 更新权限配置、发布部门或 visible_in_chat
+3. 如发布部门或可见性字段变化，Java 通知 Python 同步 rag_documents 元数据
+4. Python 不需要重建向量
+5. 后续问答时 Java 传新的 access_scope
+6. Python 按新的 access_scope 过滤召回
 ```
 
 如果采用权限快照表：
@@ -1113,4 +1279,3 @@ Python 只需要记住以下规则：
 6. 所有召回都必须带权限过滤。
 7. 没有权限范围就拒绝检索。
 8. 处理结果同步给 Java 业务表。
-

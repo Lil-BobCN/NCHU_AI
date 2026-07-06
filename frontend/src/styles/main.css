@@ -397,7 +397,7 @@ textarea:focus {
   border-radius: 8px;
   padding: 14px;
   display: grid;
-  grid-template-rows: auto auto minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
   align-content: start;
   gap: 12px;
   min-height: 0;
@@ -464,15 +464,9 @@ textarea:focus {
 }
 
 .conversation-filter-row {
-  /* 筛选按钮参与会话列表滚动，但吸顶位置限制在搜索框下方，避免遮挡搜索输入框。 */
-  position: sticky;
-  top: 0;
-  z-index: 2;
   display: flex;
   align-items: center;
   gap: 8px;
-  padding-bottom: 4px;
-  background: rgba(255, 255, 255, 0.96);
 }
 
 .conversation-filter-button {
@@ -1280,10 +1274,19 @@ textarea:focus {
 }
 
 .document-toolbar {
-  grid-template-columns: minmax(220px, 1fr) minmax(130px, 160px) minmax(160px, 220px) auto auto;
+  grid-template-columns:
+    minmax(180px, 1fr)
+    minmax(120px, 150px)
+    minmax(160px, 220px)
+    minmax(160px, 220px)
+    minmax(120px, 150px)
+    auto
+    auto
+    auto;
 }
 
-.document-toolbar select {
+.document-toolbar select,
+.document-batch-toolbar select {
   min-height: 40px;
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -1394,6 +1397,15 @@ button.danger:hover {
 
 .data-table tbody tr:hover {
   background: #f8fbff;
+}
+
+.data-table tbody tr.document-row-failed {
+  background: #fff7ed;
+  box-shadow: inset 4px 0 0 #f97316;
+}
+
+.data-table tbody tr.document-row-failed:hover {
+  background: #ffedd5;
 }
 
 .select-cell {
@@ -1525,12 +1537,203 @@ button.danger:hover {
   gap: 6px;
 }
 
+.table-progress.failed .progress-line span {
+  background: linear-gradient(90deg, #f97316, #ef4444);
+}
+
 .table-progress small {
   display: block;
   overflow: hidden;
   color: var(--text-muted);
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.progress-meta {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.progress-meta small {
+  flex: 1 1 auto;
+}
+
+.task-batch-badge {
+  flex: none;
+  max-width: 150px;
+  min-height: 20px;
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: #ecfeff;
+  color: #0e7490;
+  font-size: 12px;
+  font-weight: 800;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.document-row-failed .task-batch-badge {
+  background: #ffedd5;
+  color: #c2410c;
+}
+
+.batch-task-panel {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 45;
+  width: min(520px, calc(100vw - 48px));
+  max-height: min(680px, calc(100vh - 48px));
+  display: grid;
+  grid-template-rows: auto auto auto minmax(0, 1fr);
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 20px 52px rgba(15, 23, 42, 0.2);
+}
+
+.batch-task-panel header,
+.batch-summary-dialog header,
+.batch-summary-dialog footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.batch-task-panel header > div,
+.batch-summary-dialog header > div {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.batch-task-panel strong,
+.batch-summary-dialog strong {
+  min-width: 0;
+  color: #172033;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.batch-task-panel header span,
+.batch-summary-dialog header span {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.batch-task-summary,
+.batch-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.batch-task-summary span,
+.batch-summary-grid span {
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line-soft);
+  border-radius: 8px;
+  background: #f8fbff;
+  color: #334155;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.batch-task-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.batch-task-list {
+  min-height: 0;
+  display: grid;
+  gap: 8px;
+  overflow: auto;
+  padding-right: 2px;
+}
+
+.batch-task-item {
+  display: grid;
+  gap: 7px;
+  padding: 10px;
+  border: 1px solid var(--line-soft);
+  border-radius: 8px;
+  background: #f8fbff;
+}
+
+.batch-task-item > div:first-child {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.batch-task-item span {
+  flex: none;
+  min-height: 22px;
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: #e0f2fe;
+  color: #0369a1;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.batch-task-item small {
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+
+.batch-task-succeeded span {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.batch-task-failed {
+  border-color: #fed7aa;
+  background: #fff7ed;
+  box-shadow: inset 3px 0 0 #f97316;
+}
+
+.batch-task-failed span {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.batch-task-skipped span {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.batch-summary-dialog {
+  width: min(460px, calc(100vw - 32px));
+  display: grid;
+  gap: 16px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: var(--shadow-md);
+}
+
+.batch-summary-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .panel {
@@ -1592,18 +1795,6 @@ button.danger:hover {
   padding: 12px;
 }
 
-.document-detail-view {
-  min-width: 0;
-}
-
-.document-detail-head {
-  /* 进入解析详情后隐藏列表工具区，用独立操作条承接返回动作，避免详情继续堆在列表下方。 */
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  gap: 10px;
-}
-
 .document-workspace {
   display: grid;
   grid-template-columns: minmax(260px, 340px) 1fr;
@@ -1614,19 +1805,6 @@ button.danger:hover {
 .document-summary {
   position: sticky;
   top: 18px;
-}
-
-.document-detail-main {
-  /* 左侧任务列表可能很高，右侧详情独立纵向排列，避免外层 Grid 行高撑出大空白。 */
-  display: grid;
-  align-content: start;
-  gap: 18px;
-  min-width: 0;
-  margin-top: 18px;
-}
-
-.document-detail-main .panel {
-  margin-top: 0;
 }
 
 .job-list {
@@ -1898,6 +2076,10 @@ button.danger:hover {
   border-radius: 4px;
   background: #fff3b0;
   box-shadow: 0 0 0 2px #fde68a;
+}
+
+.chunk-panel {
+  grid-column: 2;
 }
 
 .chunk-search {
@@ -2197,6 +2379,8 @@ button.danger:hover {
   }
 
   .chunk-search,
+  .document-toolbar,
+  .document-batch-toolbar,
   .debug-form.extended,
   .qa-generate-controls,
   .composer {

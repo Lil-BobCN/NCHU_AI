@@ -53,7 +53,6 @@ type ActiveTurn = {
 
 const TYPEWRITER_DELAY_MS = 15
 const SCROLL_BOTTOM_EPSILON_PX = 1
-// 与后端 settings.chat_max_question_chars 保持一致，先在前端拦截超长输入，避免用户看到泛化的请求失败。
 export const CHAT_MAX_QUESTION_CHARS = 2000
 const ACTIVE_CONVERSATION_STORAGE_KEY = 'rag_active_conversation_id'
 let conversationSearchRequestId = 0
@@ -222,7 +221,6 @@ export const useChatStreamStore = defineStore('chatStream', () => {
         await api.post('/feedback/answers', {
           assistant_message_id: message.id,
           error_type: errorType,
-          // 补充说明允许为空，后端会保存为空字符串而不是阻断提交。
           description: description.trim()
         })
       )
@@ -331,7 +329,7 @@ export const useChatStreamStore = defineStore('chatStream', () => {
       loading.value = false
       stoppingGeneration.value = false
       await loadConversations()
-      await scrollToBottom()
+      await scrollToBottom({ force: true })
     }
   }
 
@@ -397,7 +395,7 @@ export const useChatStreamStore = defineStore('chatStream', () => {
     clearTypeQueue(turn.assistantMessage)
     removeTurnMessages(turn)
     activeAbortController.value?.abort()
-    await scrollToBottom()
+    await scrollToBottom({ force: true })
   }
 
   async function retractActiveTurn() {
@@ -410,7 +408,7 @@ export const useChatStreamStore = defineStore('chatStream', () => {
     clearTypeQueue(turn.assistantMessage)
     removeTurnMessages(turn)
     activeAbortController.value?.abort()
-    await scrollToBottom()
+    await scrollToBottom({ force: true })
   }
 
   async function discardActiveTurn(turn: ActiveTurn) {
@@ -539,7 +537,6 @@ export const useChatStreamStore = defineStore('chatStream', () => {
     if (!target) return
     const isAtBottom = isScrollAtBottom()
     const isScrollingUp = target.scrollTop < lastMessagesScrollTop
-    // AI 输出期间用户只要向上滚动查看历史内容，就暂停自动跟随，避免后续 delta 抢回滚动条。
     if (loading.value && isScrollingUp && !isAtBottom) {
       autoFollowOutput.value = false
     } else if (isAtBottom) {

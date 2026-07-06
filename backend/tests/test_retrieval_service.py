@@ -388,6 +388,72 @@ class RetrievalServiceParameterTests(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(all("接口测试" not in item["document_title"] for item in result["answer_context"]))
         self.assertTrue(all("接口测试" not in item["document_title"] for item in result["citations"]))
 
+    async def test_low_score_candidates_are_not_forced_into_answer_context(self) -> None:
+        service = RetrievalService()
+        service.rag_settings = {
+            "vector_top_k": 30,
+            "keyword_top_k": 30,
+            "qa_top_k": 10,
+            "rerank_top_k": 5,
+            "rerank_max_candidates": 10,
+            "rerank_enabled": False,
+            "similarity_threshold": 0.35,
+            "rerank_threshold": 0.45,
+        }
+        service._get_cached_retrieval = AsyncMock(return_value=None)
+        service._set_cached_retrieval = AsyncMock()
+        service._corpus_version = AsyncMock(return_value=_corpus_version())
+
+        async def vector_search(db, query, top_k, document_ids=None):
+            return [
+                {
+                    **_item("vector", 1),
+                    "document_title": "无关公开文档",
+                    "document_name": "unrelated.pdf",
+                    "content": "这是系统架构、任务排期和团队分工说明，不包含学生手册内容。",
+                    "score": 0.12,
+                }
+            ]
+
+        async def empty_search(db, query, top_k, document_ids=None):
+            return []
+
+        async def rerank(query, candidates):
+            return candidates
+
+        service._vector_search = vector_search
+        service._keyword_search = empty_search
+        service._qa_search = empty_search
+        service._rerank = rerank
+
+        result = await service.search(db=None, query="请介绍学生手册有哪些内容", rerank_top_k=5)
+
+        self.assertEqual(result["rerank_results"], [])
+        self.assertEqual(result["answer_context"], [])
+        self.assertEqual(result["citations"], [])
+        self.assertTrue(result["no_match"])
+
+    async def test_answer_context_requires_query_evidence_when_thresholds_enabled(self) -> None:
+        service = RetrievalService()
+        service.rag_settings = {
+            "similarity_threshold": 0.35,
+            "rerank_threshold": 0.45,
+        }
+        contexts = service.select_answer_context(
+            "请介绍学生手册有哪些内容",
+            [
+                {
+                    **_item("vector", 1),
+                    "document_title": "公开技术方案",
+                    "document_name": "public-tech-plan.pdf",
+                    "content": "本方案介绍 PDF、Word、图片接入和 OCR 等技术架构。",
+                    "combined_score": 2.0,
+                }
+            ],
+        )
+
+        self.assertEqual(contexts, [])
+
     async def test_citations_skip_internal_documents(self) -> None:
         service = RetrievalService()
         citations = service._citations(

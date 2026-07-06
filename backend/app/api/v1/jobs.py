@@ -34,6 +34,7 @@ async def get_job(
             "progress": job.progress,
             "message": job.message,
             "error_message": job.error_message,
+            "params": job.params,
             "result": job.result,
         }
     )
@@ -58,8 +59,11 @@ async def list_document_jobs(
                 "progress": job.progress,
                 "message": job.message,
                 "error_message": job.error_message,
+                "params": job.params,
                 "result": job.result,
                 "created_at": job.created_at.isoformat() if job.created_at else None,
+                "updated_at": job.updated_at.isoformat() if job.updated_at else None,
+                "finished_at": job.finished_at.isoformat() if job.finished_at else None,
             }
             for job in rows.scalars()
         ]

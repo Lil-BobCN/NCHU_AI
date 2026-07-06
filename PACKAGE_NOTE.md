@@ -1,4 +1,4 @@
-﻿# Package Note
+# Package Note
 
 This zip is a cleaned source package for Git publishing.
 

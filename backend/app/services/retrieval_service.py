@@ -34,6 +34,12 @@ class RetrievalService:
         "保密",
         "AI底座",
         "底座规划",
+        "底座方案",
+        "规划方案",
+        "任务排期",
+        "团队分工",
+        "技术架构",
+        "Demo",
     )
 
     def __init__(self) -> None:
@@ -151,6 +157,7 @@ class RetrievalService:
         answer_context, answer_filter = self._filter_by_business_domain(query_domain, answer_context, stage="answer_context")
         answer_context = self._filter_invalid_document_sources(answer_context, stage="answer_context")
         citations = self._citations(answer_context)
+        no_match = not bool(answer_context)
         result = to_jsonable({
             "raw_query": query,
             "rewritten_query": query,
@@ -159,6 +166,8 @@ class RetrievalService:
             "final_context": final_context,
             "answer_context": answer_context,
             "citations": citations,
+            "no_match": no_match,
+            "no_match_reason": "no_effective_answer_context" if no_match else None,
             "business_filter": self._merge_business_filter_stats(
                 business_filter,
                 rerank_filter,
@@ -1410,7 +1419,7 @@ class RetrievalService:
                 item for item in candidates
                 if self._threshold_score(item) >= similarity_threshold
             ]
-            filtered = fallback or candidates[:1]
+            filtered = fallback
         return filtered
 
     def _policy_coverage_plan(self, query: str, contexts: list[dict]) -> dict:
@@ -1675,11 +1684,36 @@ class RetrievalService:
                         covered.append(facet)
                         break
 
-        return [
+        selected = [
             self._with_answer_context_score(query, item)
             for index, item in enumerate(results)
             if index in selected_indexes
         ]
+        return self._filter_low_relevance_answer_context(query, selected)
+
+    def _filter_low_relevance_answer_context(self, query: str, contexts: list[dict]) -> list[dict]:
+        if not contexts or not self._should_require_query_evidence():
+            return contexts
+        terms = self._meaningful_query_terms(query)
+        if not terms:
+            return contexts
+        kept = []
+        for item in contexts:
+            if str(item.get("source") or "").startswith("qa_direct"):
+                kept.append(item)
+                continue
+            term_hits = int(item.get("answer_term_hits") or self._term_hit_count(terms, self._item_evidence(item)))
+            if term_hits > 0:
+                kept.append(item)
+        return kept
+
+    def _should_require_query_evidence(self) -> bool:
+        try:
+            similarity_threshold = float(self.rag_settings["similarity_threshold"])
+            rerank_threshold = float(self.rag_settings["rerank_threshold"])
+        except (KeyError, TypeError, ValueError):
+            return True
+        return similarity_threshold > 0 or rerank_threshold > 0
 
     def citations_for_answer(self, query: str, answer: str, contexts: list[dict]) -> list[dict]:
         if not contexts or self._answer_declines_evidence(answer):
@@ -2557,7 +2591,7 @@ class RetrievalService:
             {
                 "embedding_model": self.settings.embedding_model,
                 "rerank_model": self.settings.rerank_model,
-                "retrieval_logic_version": 13,
+                "retrieval_logic_version": 14,
                 "top_k": top_k,
                 "query": query,
                 "options": options,

@@ -12,7 +12,7 @@ BACKEND_ROOT = Path(__file__).resolve().parents[1]
 if str(BACKEND_ROOT) not in sys.path:
     sys.path.insert(0, str(BACKEND_ROOT))
 
-from app.services.chat_service import ChatService, SMALLTALK_WELCOME  # noqa: E402
+from app.services.chat_service import ChatService, NO_RELEVANT_CONTEXT_ANSWER, SMALLTALK_WELCOME  # noqa: E402
 
 
 class ChatServiceFollowupTests(unittest.TestCase):
@@ -302,6 +302,39 @@ class ChatServiceFollowupTests(unittest.TestCase):
         self.assertEqual(db.retrieval_logs[0].recall_results, [])
         self.assertEqual(db.retrieval_logs[0].citations, [])
 
+    def test_no_effective_context_uses_standard_fallback_without_citations(self) -> None:
+        service = ChatService()
+        service.retrieval_service = FakeEmptyRetrievalService()
+        service.model_service = FakeNoModelService()
+        db = FakeChatStreamSession()
+
+        async def consume() -> list[str]:
+            events = []
+            async for event in service.stream_chat(
+                db,
+                "请介绍学生手册有哪些内容",
+                None,
+                enable_suggested_questions=False,
+            ):
+                events.append(event)
+            return events
+
+        events = asyncio.run(consume())
+        answer = ""
+        citations = None
+        for event in events:
+            if event.startswith("event: delta"):
+                answer += json.loads(event.split("data: ", 1)[1]).get("content", "")
+            if event.startswith("event: citations"):
+                citations = json.loads(event.split("data: ", 1)[1]).get("citations")
+
+        self.assertEqual(answer, NO_RELEVANT_CONTEXT_ANSWER)
+        self.assertEqual(citations, [])
+        self.assertFalse(service.model_service.stream_called)
+        self.assertTrue(db.retrieval_logs)
+        self.assertEqual(db.retrieval_logs[0].final_context, [])
+        self.assertEqual(db.retrieval_logs[0].citations, [])
+
 
 class FakeMessage:
     def __init__(self, message_id: str, conversation_id: str, role: str, content: str) -> None:
@@ -460,6 +493,30 @@ class FakeNoRetrievalService:
 
     def citations_for_answer(self, *args, **kwargs):
         raise AssertionError("smalltalk should skip citations")
+
+
+class FakeEmptyRetrievalService:
+    async def find_direct_qa_answer(self, *args, **kwargs):
+        return None
+
+    async def search(self, *args, **kwargs):
+        return {
+            "raw_query": "请介绍学生手册有哪些内容",
+            "rewritten_query": "请介绍学生手册有哪些内容",
+            "recall_results": [],
+            "rerank_results": [],
+            "final_context": [],
+            "answer_context": [],
+            "citations": [],
+            "no_match": True,
+            "no_match_reason": "no_effective_answer_context",
+            "retrieval_options": {},
+            "effective_settings": {},
+            "corpus_version": {"knowledge_base_version": 1},
+        }
+
+    def citations_for_answer(self, query, answer, contexts):
+        return []
 
 
 class FakeChatStreamSession:

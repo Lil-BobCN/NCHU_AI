@@ -1,132 +1,163 @@
 <template>
   <AppShell>
     <div class="page">
+      <header class="page-header">
+        <h1>文档管理</h1>
+        <div class="page-header-actions">
+          <button @click="exportDocuments">导出清单</button>
+          <label class="upload">
+            上传文件
+            <input type="file" @change="upload" />
+          </label>
+        </div>
+      </header>
+
       <p v-if="pageError" class="error">{{ pageError }}</p>
       <p v-if="actionMessage" class="document-state-note">{{ actionMessage }}</p>
 
-      <template v-if="!selectedDocument">
-        <header class="page-header">
-          <h1>文档管理</h1>
-          <div class="page-header-actions">
-            <button @click="exportDocuments">导出清单</button>
-            <label class="upload">
-              上传文件
-              <input type="file" @change="upload" />
-            </label>
+      <section v-if="visibleUploads.length" class="upload-queue">
+        <article v-for="item in visibleUploads" :key="item.id" class="upload-item">
+          <div>
+            <strong>{{ item.fileName }}</strong>
+            <span>{{ item.status }}</span>
           </div>
-        </header>
+          <div class="progress-line">
+            <span :style="{ width: `${item.progress}%` }"></span>
+          </div>
+          <small>{{ item.progress }}%</small>
+        </article>
+      </section>
 
-        <section v-if="visibleUploads.length" class="upload-queue">
-          <article v-for="item in visibleUploads" :key="item.id" class="upload-item">
-            <div>
-              <strong>{{ item.fileName }}</strong>
-              <span>{{ item.status }}</span>
-            </div>
-            <div class="progress-line">
-              <span :style="{ width: `${item.progress}%` }"></span>
-            </div>
-            <small>{{ item.progress }}%</small>
-          </article>
-        </section>
+      <form class="document-toolbar" @submit.prevent="loadDocuments">
+        <input v-model="documentFilters.keyword" placeholder="搜索文档名称" />
+        <select v-model="documentFilters.status" aria-label="按状态筛选">
+          <option value="">全部状态</option>
+          <option v-for="option in documentStatusOptions" :key="option.value" :value="option.value">
+            {{ option.label }}
+          </option>
+        </select>
+        <select v-model="documentFilters.knowledgeBase" aria-label="按所属知识库筛选">
+          <option value="">全部知识库</option>
+          <option v-for="item in knowledgeBaseOptions" :key="item.value" :value="item.value">
+            {{ item.label }}
+          </option>
+        </select>
+        <input v-model="documentFilters.batchId" placeholder="任务编号" />
+        <select v-model="documentFilters.batchStatus" aria-label="按任务结果筛选">
+          <option value="">全部任务结果</option>
+          <option value="failed">失败</option>
+          <option value="succeeded">成功</option>
+          <option value="running">处理中</option>
+          <option value="pending">排队中</option>
+          <option value="skipped">已跳过</option>
+        </select>
+        <button type="submit">筛选</button>
+        <button type="button" @click="resetDocumentFilters">重置</button>
+        <button type="button" :disabled="knowledgeBasesLoading" @click="loadKnowledgeBases">
+          {{ knowledgeBasesLoading ? '刷新中' : '刷新知识库' }}
+        </button>
+      </form>
 
-        <form class="document-toolbar" @submit.prevent="loadDocuments">
-          <input v-model="documentFilters.keyword" placeholder="搜索文档名称" />
-          <select v-model="documentFilters.status" aria-label="按状态筛选">
-            <option value="">全部状态</option>
-            <option v-for="option in documentStatusOptions" :key="option.value" :value="option.value">
-              {{ option.label }}
-            </option>
-          </select>
-          <input v-model="documentFilters.knowledgeBase" placeholder="所属知识库" list="knowledge-base-options" />
-          <datalist id="knowledge-base-options">
-            <option v-for="item in knowledgeBaseOptions" :key="item" :value="item" />
-          </datalist>
-          <button type="submit">筛选</button>
-          <button type="button" @click="resetDocumentFilters">重置</button>
-        </form>
+      <section class="document-batch-toolbar">
+        <label class="checkbox-line">
+          <input type="checkbox" :checked="allVisibleDocumentsSelected" @change="toggleAllVisibleDocuments" />
+          本页全选
+        </label>
+        <span>已选 {{ selectedDocumentIds.size }} 项</span>
+        <select v-model="batchKnowledgeBase" aria-label="批量归类知识库">
+          <option value="">批量归类到知识库</option>
+          <option v-for="item in knowledgeBaseOptions" :key="item.value" :value="item.value">
+            {{ item.label }}
+          </option>
+        </select>
+        <button :disabled="!hasSelectedDocuments || Boolean(batchBusy) || !batchKnowledgeBase" @click="batchUpdateKnowledgeBase">
+          批量归类
+        </button>
+        <button :disabled="!hasSelectedDocuments || Boolean(batchBusy)" @click="batchReparseDocuments">
+          批量重解析
+        </button>
+        <button :disabled="!hasSelectedDocuments || Boolean(batchBusy)" @click="batchRechunkDocuments">
+          批量重切片
+        </button>
+        <button class="danger" :disabled="!hasSelectedDocuments || Boolean(batchBusy)" @click="batchDeleteDocuments">
+          批量删除
+        </button>
+        <button type="button" :disabled="!hasSelectedDocuments || Boolean(batchBusy)" @click="clearDocumentSelection">
+          清空选择
+        </button>
+        <small v-if="batchBusy">{{ batchBusy }}...</small>
+      </section>
 
-        <section class="document-batch-toolbar">
-          <label class="checkbox-line">
-            <input type="checkbox" :checked="allVisibleDocumentsSelected" @change="toggleAllVisibleDocuments" />
-            本页全选
-          </label>
-          <span>已选 {{ selectedDocumentIds.size }} 项</span>
-          <input v-model="batchKnowledgeBase" placeholder="批量归类到知识库" list="knowledge-base-options" />
-          <button :disabled="!hasSelectedDocuments || Boolean(batchBusy)" @click="batchUpdateKnowledgeBase">
-            批量归类
-          </button>
-          <button :disabled="!hasSelectedDocuments || Boolean(batchBusy)" @click="batchReparseDocuments">
-            批量重解析
-          </button>
-          <button :disabled="!hasSelectedDocuments || Boolean(batchBusy)" @click="batchRechunkDocuments">
-            批量重切片
-          </button>
-          <button class="danger" :disabled="!hasSelectedDocuments || Boolean(batchBusy)" @click="batchDeleteDocuments">
-            批量删除
-          </button>
-          <button type="button" :disabled="!hasSelectedDocuments || Boolean(batchBusy)" @click="clearDocumentSelection">
-            清空选择
-          </button>
-          <small v-if="batchBusy">{{ batchBusy }}...</small>
-        </section>
-
-        <div class="table-scroll">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th class="select-cell">
-                  <input type="checkbox" :checked="allVisibleDocumentsSelected" @change="toggleAllVisibleDocuments" />
-                </th>
-                <th>文档</th>
-                <th>大小</th>
-                <th>所属知识库</th>
-                <th>状态</th>
-                <th>处理进度</th>
-                <th>质量</th>
-                <th>来源</th>
-                <th>操作</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="doc in documents" :key="doc.id">
-                <td class="select-cell">
-                  <input
-                    type="checkbox"
-                    :checked="isDocumentSelected(doc.id)"
-                    :aria-label="`选择 ${doc.title || doc.file_name}`"
-                    @click.stop
-                    @change="toggleDocumentSelection(doc.id)"
-                  />
-                </td>
-                <td class="document-name-cell" :title="doc.title || doc.file_name">{{ doc.title || doc.file_name }}</td>
-                <td>{{ formatSize(doc.file_size) }}</td>
-                <td><span class="knowledge-badge">{{ formatKnowledgeBase(doc) }}</span></td>
-                <td><span class="status">{{ formatDocumentStatus(doc) }}</span></td>
-                <td>
-                  <div class="table-progress">
-                    <div class="progress-line">
-                      <span :style="{ width: `${documentProgress(doc).progress}%` }"></span>
-                    </div>
-                    <small :title="documentProgress(doc).message">{{ documentProgress(doc).message }}</small>
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th class="select-cell">
+                <input type="checkbox" :checked="allVisibleDocumentsSelected" @change="toggleAllVisibleDocuments" />
+              </th>
+              <th>文档</th>
+              <th>大小</th>
+              <th>所属知识库</th>
+              <th>状态</th>
+              <th>处理进度</th>
+              <th>质量</th>
+              <th>来源</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="doc in documents"
+              :key="doc.id"
+              :class="documentRowClass(doc)"
+              :title="documentFailureMessage(doc) || undefined"
+            >
+              <td class="select-cell">
+                <input
+                  type="checkbox"
+                  :checked="isDocumentSelected(doc.id)"
+                  :aria-label="`选择 ${doc.title || doc.file_name}`"
+                  @click.stop
+                  @change="toggleDocumentSelection(doc.id)"
+                />
+              </td>
+              <td class="document-name-cell" :title="doc.title || doc.file_name">{{ doc.title || doc.file_name }}</td>
+              <td>{{ formatSize(doc.file_size) }}</td>
+              <td><span class="knowledge-badge">{{ formatKnowledgeBase(doc) }}</span></td>
+              <td><span class="status">{{ formatDocumentStatus(doc) }}</span></td>
+              <td>
+                <div class="table-progress" :class="{ failed: Boolean(documentFailureMessage(doc)) }">
+                  <div class="progress-line">
+                    <span :style="{ width: `${documentProgress(doc).progress}%` }"></span>
                   </div>
-                </td>
-                <td>{{ doc.parse_quality_score || '-' }}</td>
-                <td class="source-actions">
-                  <button class="linklike" :disabled="!doc.preview_url && !doc.download_url" @click="openPreview(doc)">
-                    预览
-                  </button>
-                  <button class="linklike" @click="jumpToParsedContent(doc)">解析文本</button>
-                  <button class="linklike" @click="jumpToChunks(doc)">切片</button>
-                </td>
-                <td class="actions">
-                  <button @click="inspectDocument(doc)">解析/切片</button>
-                  <button @click="remove(doc.id)">删除</button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </template>
+                  <div class="progress-meta">
+                    <small :title="documentProgress(doc).message">{{ documentProgress(doc).message }}</small>
+                    <span
+                      v-if="documentBatchBadge(doc)"
+                      class="task-batch-badge"
+                      :title="documentBatchTitle(doc)"
+                    >
+                      {{ documentBatchBadge(doc) }}
+                    </span>
+                  </div>
+                </div>
+              </td>
+              <td>{{ doc.parse_quality_score || '-' }}</td>
+              <td class="source-actions">
+                <button class="linklike" :disabled="!doc.preview_url && !doc.download_url" @click="openPreview(doc)">
+                  预览
+                </button>
+                <button class="linklike" @click="jumpToParsedContent(doc)">解析文本</button>
+                <button class="linklike" @click="jumpToChunks(doc)">切片</button>
+              </td>
+              <td class="actions">
+                <button @click="inspectDocument(doc)">解析/切片</button>
+                <button @click="remove(doc.id)">删除</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
       <div v-if="previewDocument" class="document-preview-modal" role="dialog" aria-modal="true">
         <div class="document-preview-dialog">
@@ -195,20 +226,83 @@
         </div>
       </div>
 
-      <section v-if="selectedDocument" class="document-detail-view">
-        <header class="document-detail-head">
-          <button type="button" @click="closeDocumentDetail">返回文档列表</button>
+      <aside v-if="activeBatch" class="batch-task-panel" role="dialog" aria-live="polite">
+        <header>
+          <div>
+            <strong>{{ activeBatch.label }}</strong>
+            <span>{{ activeBatch.id }}</span>
+          </div>
+          <button class="icon-button" title="关闭" aria-label="关闭" @click="activeBatch = null">×</button>
         </header>
+        <div class="batch-task-summary">
+          <span>共 {{ activeBatch.items.length }} 项</span>
+          <span>成功 {{ activeBatchCounts.succeeded }}</span>
+          <span>失败 {{ activeBatchCounts.failed }}</span>
+          <span>处理中 {{ activeBatchCounts.active }}</span>
+        </div>
+        <div class="batch-task-actions">
+          <button type="button" @click="filterBatchDocuments(activeBatch)">筛选本批次</button>
+          <button type="button" :disabled="activeBatchCounts.failed === 0" @click="filterBatchDocuments(activeBatch, 'failed')">
+            筛选失败
+          </button>
+        </div>
+        <div class="batch-task-list">
+          <article
+            v-for="item in activeBatch.items"
+            :key="item.documentId"
+            class="batch-task-item"
+            :class="`batch-task-${item.status}`"
+            :title="item.errorMessage || item.message || item.title"
+          >
+            <div>
+              <strong>{{ item.title || item.fileName }}</strong>
+              <span>{{ formatBatchItemStatus(item.status) }}</span>
+            </div>
+            <div class="progress-line">
+              <span :style="{ width: `${item.progress || 0}%` }"></span>
+            </div>
+            <small>{{ item.errorMessage || item.message || '-' }}</small>
+          </article>
+        </div>
+      </aside>
 
-        <div class="document-workspace">
-          <div class="panel document-summary">
-            <header class="panel-header">
-              <div>
-                <h2>{{ selectedDocument.title || selectedDocument.file_name }}</h2>
-                <p>{{ formatDocumentStatus(selectedDocument) }} · {{ formatSize(selectedDocument.file_size) }}</p>
-              </div>
-              <button @click="inspectDocument(selectedDocument)">刷新</button>
-            </header>
+      <div v-if="batchSummary" class="document-preview-modal" role="dialog" aria-modal="true">
+        <div class="batch-summary-dialog">
+          <header>
+            <div>
+              <strong>{{ batchSummary.label }}完成</strong>
+              <span>{{ batchSummary.id }}</span>
+            </div>
+            <button class="icon-button" title="关闭" aria-label="关闭" @click="batchSummary = null">×</button>
+          </header>
+          <div class="batch-summary-grid">
+            <span>成功 {{ batchSummary.succeeded }}</span>
+            <span>失败 {{ batchSummary.failed }}</span>
+            <span>跳过 {{ batchSummary.skipped }}</span>
+          </div>
+          <footer>
+            <button type="button" @click="filterBatchSummary()">查看本批次</button>
+            <button
+              type="button"
+              class="danger"
+              :disabled="batchSummary.failed === 0"
+              @click="filterBatchSummary('failed')"
+            >
+              筛选失败文档
+            </button>
+          </footer>
+        </div>
+      </div>
+
+      <section v-if="selectedDocument" class="document-workspace">
+        <div class="panel document-summary">
+          <header class="panel-header">
+            <div>
+              <h2>{{ selectedDocument.title || selectedDocument.file_name }}</h2>
+              <p>{{ formatDocumentStatus(selectedDocument) }} · {{ formatSize(selectedDocument.file_size) }}</p>
+            </div>
+            <button @click="inspectDocument(selectedDocument)">刷新</button>
+          </header>
 
           <div class="document-actions">
             <p v-if="selectedDocumentNotice" class="document-state-note">{{ selectedDocumentNotice }}</p>
@@ -285,47 +379,44 @@
           </div>
         </div>
 
-          <div class="document-detail-main">
-            <div ref="parsePreviewEl" class="panel parse-preview">
-              <header class="panel-header">
-                <h2>解析预览</h2>
-              </header>
-              <pre v-if="parseResult" class="parse-content" v-html="highlightedParsePreview"></pre>
-              <p v-else class="empty-state">暂无解析结果</p>
+        <div ref="parsePreviewEl" class="panel parse-preview">
+          <header class="panel-header">
+            <h2>解析预览</h2>
+          </header>
+          <pre v-if="parseResult" class="parse-content" v-html="highlightedParsePreview"></pre>
+          <p v-else class="empty-state">暂无解析结果</p>
+        </div>
+
+        <div ref="chunkPanelEl" class="panel chunk-panel">
+          <header class="panel-header">
+            <div>
+              <h2>切片预览</h2>
+              <p>{{ chunkTotal }} 个切片</p>
             </div>
+            <form class="chunk-search" @submit.prevent="loadChunks(selectedDocument.id)">
+              <input v-model="chunkKeyword" placeholder="搜索切片内容" />
+              <button>搜索</button>
+            </form>
+          </header>
 
-            <div ref="chunkPanelEl" class="panel chunk-panel">
-              <header class="panel-header">
-                <div>
-                  <h2>切片预览</h2>
-                  <p>{{ chunkTotal }} 个切片</p>
-                </div>
-                <form class="chunk-search" @submit.prevent="loadChunks(selectedDocument.id)">
-                  <input v-model="chunkKeyword" placeholder="搜索切片内容" />
-                  <button>搜索</button>
-                </form>
-              </header>
-
-              <article v-for="chunk in chunks" :key="chunk.id" class="chunk">
-                <header class="chunk-head">
-                  <strong>
-                    #{{ chunk.chunk_no }}
-                    <span v-if="chunk.page_start">第 {{ chunk.page_start }} 页</span>
-                    <span v-if="chunk.section_path"> · {{ chunk.section_path }}</span>
-                  </strong>
-                  <button class="linklike" @click="locateChunkInParsedContent(chunk)">定位原文</button>
-                </header>
-                <div class="chunk-meta">
-                  <span>{{ chunk.chunk_type }}</span>
-                  <span>{{ chunk.char_count || chunk.content.length }} 字符</span>
-                  <span>{{ chunk.is_active ? '已启用' : '未启用' }}</span>
-                </div>
-                <p>{{ chunk.content }}</p>
-              </article>
-
-              <p v-if="!chunks.length" class="empty-state">暂无切片</p>
+          <article v-for="chunk in chunks" :key="chunk.id" class="chunk">
+            <header class="chunk-head">
+              <strong>
+                #{{ chunk.chunk_no }}
+                <span v-if="chunk.page_start">第 {{ chunk.page_start }} 页</span>
+                <span v-if="chunk.section_path"> · {{ chunk.section_path }}</span>
+              </strong>
+              <button class="linklike" @click="locateChunkInParsedContent(chunk)">定位原文</button>
+            </header>
+            <div class="chunk-meta">
+              <span>{{ chunk.chunk_type }}</span>
+              <span>{{ chunk.char_count || chunk.content.length }} 字符</span>
+              <span>{{ chunk.is_active ? '已启用' : '未启用' }}</span>
             </div>
-          </div>
+            <p>{{ chunk.content }}</p>
+          </article>
+
+          <p v-if="!chunks.length" class="empty-state">暂无切片</p>
         </div>
       </section>
     </div>
@@ -385,6 +476,44 @@ type UploadOptions = {
   overwriteDocumentId?: string
 }
 
+type KnowledgeBaseOption = {
+  value: string
+  label: string
+  name?: string
+  source?: string
+}
+
+type BatchItemStatus = 'queued' | 'pending' | 'running' | 'succeeded' | 'failed' | 'skipped' | 'canceled'
+
+type BatchTaskItem = {
+  documentId: string
+  title: string
+  fileName: string
+  status: BatchItemStatus
+  progress: number
+  message: string
+  errorMessage: string
+  jobType?: string
+  jobId?: string
+}
+
+type BatchTask = {
+  id: string
+  action: string
+  label: string
+  submittedAt: string
+  items: BatchTaskItem[]
+  summaryShown?: boolean
+}
+
+type BatchSummary = {
+  id: string
+  label: string
+  succeeded: number
+  failed: number
+  skipped: number
+}
+
 const documents = ref<any[]>([])
 const chunks = ref<any[]>([])
 const chunkTotal = ref(0)
@@ -404,13 +533,19 @@ const pageError = ref('')
 const duplicateUpload = ref<PendingDuplicateUpload | null>(null)
 const selectedDocumentIds = ref<Set<string>>(new Set())
 const batchKnowledgeBase = ref('')
+const knowledgeBases = ref<KnowledgeBaseOption[]>([])
+const knowledgeBasesLoading = ref(false)
+const activeBatch = ref<BatchTask | null>(null)
+const batchSummary = ref<BatchSummary | null>(null)
 const parsePreviewEl = ref<HTMLElement | null>(null)
 const chunkPanelEl = ref<HTMLElement | null>(null)
 const highlightedChunkText = ref('')
 const documentFilters = ref({
   keyword: '',
   status: '',
-  knowledgeBase: ''
+  knowledgeBase: '',
+  batchId: '',
+  batchStatus: ''
 })
 let pollTimer: number | undefined
 
@@ -436,10 +571,20 @@ const allVisibleDocumentsSelected = computed(() => (
   documents.value.length > 0 && documents.value.every((doc) => selectedDocumentIds.value.has(doc.id))
 ))
 const selectedDocumentIdList = computed(() => [...selectedDocumentIds.value])
+const activeBatchCounts = computed(() => summarizeBatch(activeBatch.value))
 const knowledgeBaseOptions = computed(() => {
-  const values = new Set(['default'])
-  for (const doc of documents.value) values.add(formatKnowledgeBase(doc))
-  return [...values].sort()
+  const options = new Map<string, KnowledgeBaseOption>()
+  appendKnowledgeBaseOption(options, { value: 'default', label: 'default' })
+  for (const item of knowledgeBases.value) appendKnowledgeBaseOption(options, item)
+  for (const doc of documents.value) {
+    const value = normalizeKnowledgeBaseValue(formatKnowledgeBase(doc))
+    if (value) appendKnowledgeBaseOption(options, { value, label: value })
+  }
+  return [...options.values()].sort((left, right) => {
+    if (left.value === 'default') return -1
+    if (right.value === 'default') return 1
+    return left.label.localeCompare(right.label, 'zh-Hans-CN')
+  })
 })
 const highlightedParsePreview = computed(() => {
   const content = previewContent(parseResult.value?.content || '')
@@ -476,7 +621,7 @@ const duplicateDialogMessage = computed(() => {
 })
 
 onMounted(async () => {
-  await load()
+  await Promise.all([loadKnowledgeBases(), load()])
   pollTimer = window.setInterval(pollProcessing, 2000)
 })
 
@@ -487,6 +632,26 @@ onUnmounted(() => {
 async function load() {
   await loadDocuments()
   await pollProcessing(false)
+}
+
+async function loadKnowledgeBases() {
+  knowledgeBasesLoading.value = true
+  try {
+    const data = unwrap<any>(await api.get('/knowledge-bases'))
+    const items = Array.isArray(data.items) ? data.items : []
+    knowledgeBases.value = items
+      .map((item: any) => ({
+        value: normalizeKnowledgeBaseValue(item?.value || item?.name || item?.label),
+        label: String(item?.label || item?.name || item?.value || '').trim(),
+        name: item?.name,
+        source: item?.source
+      }))
+      .filter((item: KnowledgeBaseOption) => item.value)
+  } catch (error) {
+    pageError.value = apiErrorMessage(error, '加载知识库列表失败')
+  } finally {
+    knowledgeBasesLoading.value = false
+  }
 }
 
 async function loadDocuments() {
@@ -508,14 +673,35 @@ function documentListParams() {
   return {
     keyword: documentFilters.value.keyword.trim() || undefined,
     status: documentFilters.value.status || undefined,
-    knowledge_base: documentFilters.value.knowledgeBase.trim() || undefined,
+    knowledge_base: normalizeKnowledgeBaseValue(documentFilters.value.knowledgeBase) || undefined,
+    batch_id: documentFilters.value.batchId.trim() || undefined,
+    batch_status: documentFilters.value.batchStatus || undefined,
     page_size: 100
   }
 }
 
 async function resetDocumentFilters() {
-  documentFilters.value = { keyword: '', status: '', knowledgeBase: '' }
+  documentFilters.value = { keyword: '', status: '', knowledgeBase: '', batchId: '', batchStatus: '' }
   await loadDocuments()
+}
+
+function appendKnowledgeBaseOption(options: Map<string, KnowledgeBaseOption>, item: KnowledgeBaseOption) {
+  const value = normalizeKnowledgeBaseValue(item.value || item.name || item.label)
+  if (!value || options.has(value)) return
+  options.set(value, {
+    ...item,
+    value,
+    label: String(item.label || item.name || value).trim() || value
+  })
+}
+
+function normalizeKnowledgeBaseValue(value: string) {
+  return String(value || '').trim().replace(/\s+/g, ' ').slice(0, 64)
+}
+
+function isKnownKnowledgeBase(value: string) {
+  const normalized = normalizeKnowledgeBaseValue(value)
+  return Boolean(normalized && knowledgeBaseOptions.value.some((item) => item.value === normalized))
 }
 
 async function upload(event: Event) {
@@ -728,9 +914,13 @@ async function batchDeleteDocuments() {
 }
 
 async function batchUpdateKnowledgeBase() {
-  const target = batchKnowledgeBase.value.trim()
+  const target = normalizeKnowledgeBaseValue(batchKnowledgeBase.value)
   if (!hasSelectedDocuments.value || batchBusy.value || !target) {
-    if (!target) pageError.value = '请输入要归类到的知识库名称'
+    if (!target) pageError.value = '请选择要归类到的知识库'
+    return
+  }
+  if (!isKnownKnowledgeBase(target)) {
+    pageError.value = '请选择已有知识库'
     return
   }
   await runBatchAction('批量归类', async () => {
@@ -744,7 +934,8 @@ async function batchUpdateKnowledgeBase() {
 async function batchReparseDocuments() {
   if (!hasSelectedDocuments.value || batchBusy.value) return
   await runBatchAction('批量重解析', async () => {
-    await api.post('/documents/batch/reparse', { document_ids: selectedDocumentIdList.value })
+    const data = unwrap<any>(await api.post('/documents/batch/reparse', { document_ids: selectedDocumentIdList.value }))
+    openBatchTask(data, 'batch_reparse')
   })
 }
 
@@ -752,6 +943,7 @@ async function batchRechunkDocuments() {
   if (!hasSelectedDocuments.value || batchBusy.value) return
   await runBatchAction('批量重切片', async () => {
     const data = unwrap<any>(await api.post('/documents/batch/rechunk', { document_ids: selectedDocumentIdList.value }))
+    openBatchTask(data, 'batch_rechunk')
     if (data.skipped?.length) {
       actionMessage.value = `已提交 ${data.count || 0} 个重切片任务，${data.skipped.length} 个文档因状态限制跳过`
     }
@@ -771,6 +963,139 @@ async function runBatchAction(label: string, action: () => Promise<void>) {
   } finally {
     batchBusy.value = ''
   }
+}
+
+function openBatchTask(data: any, fallbackAction: string) {
+  const batch = data?.batch || {}
+  const jobs = Array.isArray(data?.jobs) ? data.jobs : []
+  const id = String(batch.id || jobs[0]?.batch_id || `LOCAL-${Date.now()}`)
+  const action = String(batch.action || fallbackAction)
+  activeBatch.value = {
+    id,
+    action,
+    label: String(batch.label || batchActionLabel(action)),
+    submittedAt: String(batch.submitted_at || new Date().toISOString()),
+    items: jobs.map((item: any) => ({
+      documentId: String(item.document_id || ''),
+      title: String(item.title || item.file_name || item.document_id || ''),
+      fileName: String(item.file_name || ''),
+      status: normalizeBatchItemStatus(item.status || 'queued'),
+      progress: item.status === 'skipped' ? 100 : 0,
+      message: String(item.message || '等待后台调度'),
+      errorMessage: String(item.error_message || '')
+    })).filter((item: BatchTaskItem) => item.documentId)
+  }
+  batchSummary.value = null
+  updateBatchCompletion()
+}
+
+async function refreshActiveBatch() {
+  const batch = activeBatch.value
+  if (!batch || isBatchComplete(batch)) return
+  await Promise.all(batch.items.map((item) => refreshJobs(item.documentId)))
+  updateBatchCompletion()
+}
+
+function syncBatchItemFromJobs(documentId: string, jobs: any[]) {
+  const batch = activeBatch.value
+  if (!batch) return
+  const item = batch.items.find((entry) => entry.documentId === documentId)
+  if (!item) return
+  const relevant = jobs.filter((job) => job?.params?.batch_id === batch.id)
+  if (!relevant.length) return
+  const primaryType = batch.action === 'batch_reparse' ? 'parse' : batch.action === 'batch_rechunk' ? 'chunk' : ''
+  const primary = relevant.find((job) => job.status === 'failed') ||
+    relevant.find((job) => job.job_type === primaryType) ||
+    relevant[0]
+  item.jobId = String(primary.id || '')
+  item.jobType = String(primary.job_type || '')
+  item.status = normalizeBatchItemStatus(primary.status || 'queued')
+  item.progress = ['succeeded', 'failed', 'skipped', 'canceled'].includes(item.status)
+    ? 100
+    : Number(primary.progress || 0)
+  item.message = String(primary.message || primary.status || '-')
+  item.errorMessage = String(primary.error_message || '')
+}
+
+function updateBatchCompletion() {
+  const batch = activeBatch.value
+  if (!batch || batch.summaryShown || !isBatchComplete(batch)) return
+  const counts = summarizeBatch(batch)
+  batch.summaryShown = true
+  batchSummary.value = {
+    id: batch.id,
+    label: batch.label,
+    succeeded: counts.succeeded,
+    failed: counts.failed,
+    skipped: counts.skipped
+  }
+}
+
+function isBatchComplete(batch: BatchTask) {
+  return batch.items.length > 0 && batch.items.every((item) => isTerminalBatchStatus(item.status))
+}
+
+function summarizeBatch(batch: BatchTask | null) {
+  const counts = { succeeded: 0, failed: 0, skipped: 0, active: 0 }
+  for (const item of batch?.items || []) {
+    if (item.status === 'succeeded') counts.succeeded += 1
+    else if (item.status === 'failed') counts.failed += 1
+    else if (item.status === 'skipped') counts.skipped += 1
+    else counts.active += 1
+  }
+  return counts
+}
+
+function filterBatchDocuments(batch: BatchTask, status = '') {
+  documentFilters.value.batchId = batch.id
+  documentFilters.value.batchStatus = status
+  void loadDocuments()
+}
+
+function filterBatchSummary(status = '') {
+  const summary = batchSummary.value
+  if (!summary) return
+  documentFilters.value.batchId = summary.id
+  documentFilters.value.batchStatus = status
+  batchSummary.value = null
+  void loadDocuments()
+}
+
+function normalizeBatchItemStatus(status: string): BatchItemStatus {
+  const value = String(status || 'queued')
+  if (['pending', 'running', 'succeeded', 'failed', 'skipped', 'canceled'].includes(value)) {
+    return value as BatchItemStatus
+  }
+  return 'queued'
+}
+
+function isTerminalBatchStatus(status: BatchItemStatus) {
+  return ['succeeded', 'failed', 'skipped', 'canceled'].includes(status)
+}
+
+function batchActionLabel(action: string) {
+  const labels: Record<string, string> = {
+    batch_reparse: '批量重解析',
+    batch_rechunk: '批量重切片',
+    initial_parse: '初次解析',
+    manual_reparse: '重解析',
+    manual_rechunk: '重切片',
+    manual_reembed: '重向量化'
+  }
+  return labels[action] || action || '后台任务'
+}
+
+function formatBatchItemStatus(status: BatchItemStatus) {
+  const labels: Record<BatchItemStatus, string> = {
+    queued: '排队',
+    pending: '排队',
+    running: '处理中',
+    succeeded: '成功',
+    failed: '失败',
+    skipped: '跳过',
+    canceled: '取消'
+  }
+  return labels[status] || status
 }
 
 async function exportDocuments() {
@@ -806,15 +1131,6 @@ function openPreview(doc: any) {
 
 function closePreview() {
   previewDocument.value = null
-}
-
-function closeDocumentDetail() {
-  selectedDocument.value = null
-  parseResult.value = null
-  chunks.value = []
-  chunkTotal.value = 0
-  selectedJobs.value = []
-  highlightedChunkText.value = ''
 }
 
 async function jumpToParsedContent(doc: any) {
@@ -918,6 +1234,7 @@ async function loadChunks(id: string) {
 async function pollProcessing(refreshDocuments = true) {
   const targets = documents.value.filter((doc) => shouldPoll(doc))
   await Promise.all(targets.map((doc) => refreshJobs(doc.id)))
+  await refreshActiveBatch()
   if (selectedDocument.value) {
     await refreshJobs(selectedDocument.value.id)
   }
@@ -939,6 +1256,7 @@ async function refreshJobs(documentId: string) {
   try {
     const jobs = unwrap<any[]>(await api.get(`/documents/${documentId}/jobs`))
     processing.value[documentId] = aggregateJobs(jobs)
+    syncBatchItemFromJobs(documentId, jobs)
     if (selectedDocument.value?.id === documentId) {
       selectedJobs.value = jobs
     }
@@ -967,11 +1285,11 @@ function aggregateJobs(jobs: any[]): ProgressState {
     progress = Math.max(progress, Math.round(start + ((end - start) * jobProgress) / 100))
   }
   const activeJob = jobs.find((job) => ['pending', 'running'].includes(job.status))
+  const failedJob = jobs.find((job) => job.status === 'failed')
   const latest = activeJob || jobs[0]
-  const failedJob = latest?.status === 'failed' ? latest : null
   return {
     progress: failedJob ? progress : Math.min(progress, 100),
-    message: latest?.message || latest?.error_message || latest?.status || '-',
+    message: failedJob?.error_message || failedJob?.message || latest?.message || latest?.error_message || latest?.status || '-',
     active: Boolean(activeJob),
     jobs
   }
@@ -1028,6 +1346,46 @@ function formatDocumentStatus(doc: any) {
     deleted: '已删除'
   }
   return labels[String(doc?.status || '')] || doc?.status || '-'
+}
+
+function documentRowClass(doc: any) {
+  return {
+    'document-row-failed': Boolean(documentFailureMessage(doc)),
+    'document-row-batch': Boolean(documentBatchBadge(doc))
+  }
+}
+
+function documentFailureMessage(doc: any) {
+  const jobs = processing.value[doc?.id]?.jobs || []
+  const failedJob = jobs.find((job: any) => job.status === 'failed')
+  const message = failedJob?.error_message || failedJob?.message || doc?.error_message || ''
+  return String(message || '').trim()
+}
+
+function documentBatchInfo(doc: any) {
+  const jobs = processing.value[doc?.id]?.jobs || []
+  const job = jobs.find((item: any) => item?.params?.batch_id) || jobs.find((item: any) => item?.params?.task_label)
+  return job?.params || null
+}
+
+function documentBatchBadge(doc: any) {
+  const params = documentBatchInfo(doc)
+  if (!params) return ''
+  const label = String(params.batch_label || params.task_label || batchActionLabel(params.batch_action || params.task_action))
+  const batchId = String(params.batch_id || '')
+  return batchId ? `${label} ${shortBatchId(batchId)}` : label
+}
+
+function documentBatchTitle(doc: any) {
+  const params = documentBatchInfo(doc)
+  if (!params) return ''
+  return [params.batch_label || params.task_label, params.batch_id].filter(Boolean).join(' · ')
+}
+
+function shortBatchId(batchId: string) {
+  const value = String(batchId || '')
+  if (value.length <= 14) return value
+  return value.slice(0, 3) + '-' + value.slice(-6)
 }
 
 function formatKnowledgeBase(doc: any) {

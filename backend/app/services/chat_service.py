@@ -31,6 +31,7 @@ SMALLTALK_WELCOME = (
     "您好，我是学校 RAG 智能问答助手。您可以直接提问校内政策、办事流程、材料要求、联系方式等问题，"
     "我会根据知识库资料为您查找并回答。"
 )
+NO_RELEVANT_CONTEXT_ANSWER = "资料中未找到与该问题匹配的明确依据，暂时无法基于现有知识库回答。请补充相关资料后再提问。"
 
 
 class ChatService:
@@ -271,7 +272,8 @@ class ChatService:
             answer_parts: list[str] = []
             used_fallback = False
             cached_answer = None
-            if not retrieval.get("direct_qa_hit"):
+            no_effective_context = not retrieval.get("direct_qa_hit") and not answer_context
+            if not retrieval.get("direct_qa_hit") and not no_effective_context:
                 cached_answer = await self._get_cached_answer(question, retrieval, history, conversation_summary)
             if cached_answer:
                 answer_parts.append(cached_answer)
@@ -292,6 +294,13 @@ class ChatService:
                     )
                     async for event in self._stream_delta_text(answer):
                         yield event
+            elif no_effective_context:
+                used_fallback = True
+                retrieval["no_match"] = True
+                retrieval["no_match_reason"] = retrieval.get("no_match_reason") or "no_effective_answer_context"
+                answer_parts.append(NO_RELEVANT_CONTEXT_ANSWER)
+                async for event in self._stream_delta_text(NO_RELEVANT_CONTEXT_ANSWER):
+                    yield event
             else:
                 messages = self._build_messages_with_memory(
                     question,
@@ -1592,7 +1601,7 @@ class ChatService:
             for item in contexts
         ]
         payload = {
-            "version": 5,
+            "version": 6,
             "chat_model": self.settings.chat_model,
             "question": question,
             "context": context_payload,
