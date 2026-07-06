@@ -354,7 +354,7 @@ class DocumentPipeline:
                 )
             )
         await db.flush()
-        # 父子切片：按 section_path 分组，同一章节的多个子切片生成一个父级摘要切片
+        # 父子切片：按章节路径分组，同一章节的多个子切片生成一个父级摘要切片
         await self._build_parent_chunks(db, document_id)
         await db.execute(
             text(
@@ -458,7 +458,7 @@ class DocumentPipeline:
             {"document_id": document_id},
         )
         child_chunks = [dict(row._mapping) for row in rows]
-        # 按 section_path 分组
+        # 按章节路径分组
         groups: dict[str, list[dict]] = {}
         for item in child_chunks:
             path = str(item["section_path"])
@@ -494,7 +494,7 @@ class DocumentPipeline:
             )
             db.add(parent_chunk)
             await db.flush()
-            # 更新子切片的 parent_chunk_id
+            # 更新子切片的父级分块编号
             child_ids = [str(item["id"]) for item in items]
             for child_id in child_ids:
                 await db.execute(

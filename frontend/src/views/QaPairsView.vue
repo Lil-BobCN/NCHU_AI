@@ -249,7 +249,7 @@ watch(
 
 function routeTagFilter() {
   const rawTag = route.query.tag
-  // 智能对话里的标签 chip 会通过 /qa-pairs?tag=xxx 跳转过来；这里做一次规整，确保刷新页面和同页跳转都能直接进入对应筛选结果。
+  // 智能对话里的标签块会通过问答列表地址携带标签参数跳转过来；这里做一次规整，确保刷新页面和同页跳转都能直接进入对应筛选结果。
   if (Array.isArray(rawTag)) return rawTag[0] || ''
   return typeof rawTag === 'string' ? rawTag : ''
 }
@@ -280,7 +280,7 @@ function parseTagText(value: string) {
 }
 
 function parseTagPreview(value: string): TagPreviewItem[] {
-  // 预览项保留原始分段位置，删除某个 chip 时可以精准移除输入框里对应的那一段文本。
+  // 预览项保留原始分段位置，删除某个标签块时可以精准移除输入框里对应的那一段文本。
   return value
     .split(',')
     .map((segment, segmentIndex) => ({ value: segment.trim(), segmentIndex }))

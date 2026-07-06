@@ -632,7 +632,7 @@ class RetrievalService:
         )
         text_results = [self._normalize_result({**dict(row._mapping), "source": "qa_text"}) for row in text_rows]
 
-        # 向量 + 文本 RRF 融合
+        # 向量 + 文本倒数排名融合
         return self._rrf([vector_results, text_results])
 
     def _rrf(self, result_sets: list[list[dict]]) -> list[dict]:
@@ -1034,7 +1034,7 @@ class RetrievalService:
                 reverse=True,
             )[: max(1, min(len(annotated), 3))]
         elif stage in {"recall", "rerank"} and len(kept) < min(3, len(annotated)):
-            # Keep a tiny low-confidence tail before rerank so narrowly named documents still have a chance.
+            # 重排前保留少量低置信度候选，避免名称很窄的文档完全失去机会。
             supplemental = [
                 item
                 for item in removed
@@ -1644,7 +1644,7 @@ class RetrievalService:
         if not selected_indexes:
             selected_indexes.add(ranked[0][0])
 
-        # Keep neighboring expansion chunks only for documents that passed the high-confidence filter.
+        # 只为通过高置信度过滤的文档保留相邻扩展分块。
         selected_doc_set = {str(results[index].get("document_id")) for index in selected_indexes}
         for index, item in scored:
             if len(selected_indexes) >= max_chunks:
@@ -2182,7 +2182,7 @@ class RetrievalService:
             piece = piece.strip("年月日的一二三四五六七八九十")
             if len(piece) >= 4:
                 terms.append(piece)
-        # Add a short suffix because contract questions often name the distinctive project at the end.
+        # 合同问题经常把有区分度的项目名放在末尾，因此补充一个短后缀。
         if len(project) > 8:
             terms.append(project[-8:])
         return terms
@@ -2225,7 +2225,7 @@ class RetrievalService:
             document_id = item.get("document_id")
             qa_pair_id = item.get("qa_pair_id")
             tags = item.get("tags") or []
-            # QA 问答对可以不绑定来源文档，此时 document_id/url 都可能为空；仍需保留 citation，前端才能在问答详情里展示绑定标签。
+            # 问答对可以不绑定来源文档，此时来源文档编号和链接都可能为空；仍需保留引用，前端才能在问答详情里展示绑定标签。
             if not document_id and not qa_pair_id:
                 continue
             url = item.get("url") or ("/qa-pairs" if qa_pair_id else None)
@@ -2305,7 +2305,7 @@ class RetrievalService:
         return bool(self.LEGACY_URL_ENCODED_NAME_RE.search(file_name))
 
     def _citation_key(self, item: dict) -> str:
-        # QA citation 按问答记录去重，避免同一来源文档下多条 QA 被合并后丢失各自绑定标签。
+        # 问答引用按问答记录去重，避免同一来源文档下多条问答被合并后丢失各自绑定标签。
         if item.get("qa_pair_id"):
             return f"qa:{item.get('qa_pair_id')}"
         return f"document:{item.get('document_id')}"

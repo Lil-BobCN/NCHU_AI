@@ -228,7 +228,7 @@
                 <button
                   type="button"
                   class="message-action-button action-copy"
-                  :disabled="messageActionsDisabled(message)"
+                  :disabled="messageActionDisabled(message)"
                   :data-message-action-key="messageActionKey(message, 'copy')"
                   aria-label="复制"
                   @mouseleave="clearMessageActionState(message, 'copy')"
@@ -243,7 +243,7 @@
                 <button
                   type="button"
                   class="message-action-button action-quote"
-                  :disabled="messageActionsDisabled(message)"
+                  :disabled="messageActionDisabled(message)"
                   :data-message-action-key="messageActionKey(message, 'quote')"
                   aria-label="引用"
                   @mouseleave="clearMessageActionState(message, 'quote')"
@@ -259,7 +259,7 @@
                   type="button"
                   class="message-action-button action-feedback"
                   :class="{ active: message.feedback_status === 'open' }"
-                  :disabled="messageActionsDisabled(message) || feedbackCancelSubmitting"
+                  :disabled="messageActionDisabled(message) || feedbackCancelSubmitting"
                   :aria-label="message.feedback_status === 'open' ? '取消异常反馈' : '回答有误'"
                   @click="handleFeedbackAction(message)"
                 >
@@ -272,7 +272,7 @@
                 <button
                   type="button"
                   class="message-action-button action-delete"
-                  :disabled="messageActionsDisabled(message) || deletingMessageId === message.id"
+                  :disabled="messageDeleteDisabled(message)"
                   aria-label="删除"
                   @click="requestMessageDelete(message)"
                 >
@@ -285,7 +285,7 @@
                 <button
                   type="button"
                   class="message-action-button action-copy"
-                  :disabled="messageActionsDisabled(message)"
+                  :disabled="messageActionDisabled(message)"
                   :data-message-action-key="messageActionKey(message, 'copy')"
                   aria-label="复制"
                   @mouseleave="clearMessageActionState(message, 'copy')"
@@ -300,7 +300,7 @@
                 <button
                   type="button"
                   class="message-action-button action-quote"
-                  :disabled="messageActionsDisabled(message)"
+                  :disabled="messageActionDisabled(message)"
                   :data-message-action-key="messageActionKey(message, 'quote')"
                   aria-label="引用"
                   @mouseleave="clearMessageActionState(message, 'quote')"
@@ -315,7 +315,7 @@
                 <button
                   type="button"
                   class="message-action-button action-delete"
-                  :disabled="messageActionsDisabled(message) || deletingMessageId === message.id"
+                  :disabled="messageDeleteDisabled(message)"
                   aria-label="删除"
                   @click="requestMessageDelete(message)"
                 >
@@ -586,6 +586,14 @@ watch(messages, () => {
   if (nextActionKeys.size !== confirmedMessageActionKeys.value.size) confirmedMessageActionKeys.value = nextActionKeys
 })
 
+watch(conversationId, () => {
+  // 反馈弹窗持有具体消息引用。切换会话时关闭弹窗，
+  // 避免旧弹窗对新会话提交或取消反馈。
+  if (!feedbackSubmitting.value) feedbackTarget.value = null
+  if (!feedbackCancelSubmitting.value) feedbackCancelTarget.value = null
+  feedbackError.value = ''
+})
+
 watch(conversationSearch, (value) => {
   if (conversationSearchTimer) window.clearTimeout(conversationSearchTimer)
   conversationSearchTimer = window.setTimeout(() => {
@@ -664,7 +672,7 @@ async function confirmConversationDelete() {
 }
 
 function requestMessageDelete(message: Message) {
-  if (messageActionsDisabled(message) || deletingMessageId.value) return
+  if (messageDeleteDisabled(message) || deletingMessageId.value) return
   messageDeleteTarget.value = message
 }
 
@@ -685,15 +693,20 @@ async function confirmMessageDelete() {
   }
 }
 
-function messageActionsDisabled(message: Message) {
+function messageActionDisabled(message: Message) {
+  // 非删除操作只在消息未完成或无法持久化时禁用。
+  // 流式生成期间，历史气泡仍可复制和引用。
   return (
-    loading.value ||
-    stoppingGeneration.value ||
     chatStore.isActiveAssistantMessage(message) ||
-    chatStore.isActiveUserMessage(message) ||
     !message.id ||
     !message.content
   )
+}
+
+function messageDeleteDisabled(message: Message) {
+  // 删除会改变持久化历史，因此在回答生成或停止生成期间全局禁用；
+  // 即使其他气泡操作可用，也不能删除消息。
+  return loading.value || stoppingGeneration.value || deletingMessageId.value === message.id || messageActionDisabled(message)
 }
 
 function messageActionKey(message: Message, action: 'copy' | 'quote') {
@@ -728,7 +741,7 @@ function handleMessageActionPointerMove(event: MouseEvent | PointerEvent) {
 }
 
 async function copyMessage(message: Message) {
-  if (messageActionsDisabled(message)) return
+  if (messageActionDisabled(message)) return
   setMessageActionConfirmed(message, 'copy')
   try {
     await writeClipboardText(message.content)
@@ -739,7 +752,7 @@ async function copyMessage(message: Message) {
 }
 
 function quoteMessage(message: Message) {
-  if (messageActionsDisabled(message)) return
+  if (messageActionDisabled(message)) return
   chatStore.quoteMessage(message)
   setMessageActionConfirmed(message, 'quote')
   showFeedbackToast('已引用到输入框')
@@ -852,6 +865,8 @@ function findLastSentenceBoundary(text: string) {
 }
 
 function handleFeedbackAction(message: Message) {
+  // 反馈按钮是双状态控件：已有有效反馈时进入取消确认，
+  // 否则打开可编辑、可预填的提交表单。
   if (message.feedback_status === 'open') {
     feedbackCancelTarget.value = message
     return
@@ -963,7 +978,7 @@ function qaCitationTags(message: Message) {
     const sourceTags = citationTags(source)
     if (!source.qa_pair_id || !sourceTags.length) continue
     for (const tag of sourceTags) {
-      // QA 命中不再混入普通“参考来源”行，标签本身作为可跳转引用入口，避免无文档来源时显示“暂未找到明确资料”。
+      // 问答命中不再混入普通“参考来源”行，标签本身作为可跳转引用入口，避免无文档来源时显示“暂未找到明确资料”。
       const key = `${source.qa_pair_id}:${tag}`
       if (!tags.has(key)) tags.set(key, { key, tag })
     }
@@ -973,7 +988,7 @@ function qaCitationTags(message: Message) {
 
 function documentCitations(message: Message) {
   return (message.citations || []).filter((source) => {
-    // 带 qa_pair_id 且有 tags 的 citation 代表单条 QA 命中，按需求展示到“标签”区域；普通文档仍保留参考来源模板。
+    // 带问答记录编号且有标签的引用代表单条问答命中，按需求展示到“标签”区域；普通文档仍保留参考来源模板。
     return !(source.qa_pair_id && citationTags(source).length)
   })
 }

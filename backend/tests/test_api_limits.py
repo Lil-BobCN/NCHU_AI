@@ -15,7 +15,13 @@ from sqlalchemy.dialects import postgresql  # noqa: E402
 
 from app.api.v1.chat import ChatRequest  # noqa: E402
 from app.api.v1.conversations import conversation_message_delete_filters, conversation_message_list_filters  # noqa: E402
-from app.api.v1.qa_pairs import QaPairCreate, QaPairUpdate, qa_pair_duplicate_question_filters, qa_pair_list_filters  # noqa: E402
+from app.api.v1.qa_pairs import (  # noqa: E402
+    QaPairCreate,
+    QaPairUpdate,
+    qa_pair_duplicate_question_filters,
+    qa_pair_list_filters,
+    qa_pair_list_ordering,
+)
 from app.api.v1.retrieval import SearchRequest  # noqa: E402
 from app.core.config import get_settings  # noqa: E402
 from app.db.models import ConversationMessage, QaPair  # noqa: E402
@@ -72,6 +78,13 @@ class ApiLimitTests(unittest.TestCase):
 
         self.assertIn("qa_pairs.tags @>", compiled)
         self.assertIn("qa_pairs.deleted_at IS NULL", compiled)
+
+    def test_qa_pair_list_ordering_has_stable_tie_breakers(self) -> None:
+        statement = select(QaPair).order_by(*qa_pair_list_ordering())
+
+        compiled = str(statement.compile(dialect=postgresql.dialect()))
+
+        self.assertIn("ORDER BY qa_pairs.updated_at DESC, qa_pairs.created_at DESC, qa_pairs.id DESC", compiled)
 
     def test_qa_pair_duplicate_question_filter_uses_exact_question_match(self) -> None:
         statement = select(QaPair).where(*qa_pair_duplicate_question_filters("完全一致的问题"))

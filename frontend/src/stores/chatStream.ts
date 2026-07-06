@@ -6,6 +6,9 @@ import { createLocalId } from '../utils/id'
 export type Message = {
   id?: string
   localId?: string
+  // 后端按会话管理反馈和删除。每条消息保留会话编号后，
+  // 操作处理器就能在会话切换后拒绝旧消息。
+  conversation_id?: string
   role: 'user' | 'assistant'
   content: string
   citations?: any[]
@@ -56,7 +59,7 @@ type ActiveTurn = {
 
 const TYPEWRITER_DELAY_MS = 15
 const SCROLL_BOTTOM_EPSILON_PX = 1
-// 与后端 settings.chat_max_question_chars 保持一致，先在前端拦截超长输入，避免用户看到泛化的请求失败。
+// 与后端聊天问题最大字符数配置保持一致，先在前端拦截超长输入，避免用户看到泛化的请求失败。
 export const CHAT_MAX_QUESTION_CHARS = 2000
 const ACTIVE_CONVERSATION_STORAGE_KEY = 'rag_active_conversation_id'
 let conversationSearchRequestId = 0
@@ -219,11 +222,18 @@ export const useChatStreamStore = defineStore('chatStream', () => {
   }
 
   async function submitAnswerFeedback(message: Message, errorType: string, description: string) {
+    // 反馈弹窗可能在快速切换会话后仍未关闭。
+    // 提交前必须比较消息归属会话和当前会话。
     if (!message.id || message.role !== 'assistant') throw new Error('无法定位要反馈的回答')
+    const targetConversationId = message.conversation_id || conversationId.value
+    if (!targetConversationId || targetConversationId !== conversationId.value) {
+      throw new Error('反馈消息不属于当前会话，请刷新后重试')
+    }
     let data: any
     try {
       data = unwrap<any>(
         await api.post('/feedback/answers', {
+          conversation_id: targetConversationId,
           assistant_message_id: message.id,
           error_type: errorType,
           // 补充说明允许为空，后端会保存为空字符串而不是阻断提交。
@@ -248,10 +258,20 @@ export const useChatStreamStore = defineStore('chatStream', () => {
   }
 
   async function cancelAnswerFeedback(message: Message) {
+    // 取消反馈和提交反馈使用同一套归属校验，
+    // 否则旧的“已标记”状态可能会取消另一个会话里的反馈。
     if (!message.id || message.role !== 'assistant') throw new Error('鏃犳硶瀹氫綅瑕佸彇娑堢殑鍙嶉')
+    const targetConversationId = message.conversation_id || conversationId.value
+    if (!targetConversationId || targetConversationId !== conversationId.value) {
+      throw new Error('反馈消息不属于当前会话，请刷新后重试')
+    }
     let data: any
     try {
-      data = unwrap<any>(await api.patch(`/feedback/answers/${message.id}/cancel`))
+      data = unwrap<any>(
+        await api.patch(`/feedback/answers/${message.id}/cancel`, null, {
+          params: { conversation_id: targetConversationId }
+        })
+      )
     } catch (error) {
       throw new Error(apiErrorMessage(error, '鍙栨秷鍙嶉澶辫触锛岃绋嶅悗閲嶈瘯'))
     }
@@ -402,11 +422,16 @@ export const useChatStreamStore = defineStore('chatStream', () => {
         last_message_at: data.last_message_at
       })
       if (turn) {
+        // 流式输出一开始就把后端编号写回两条乐观消息。
+        // 后续复制、引用、删除、反馈等操作才能绑定真实会话，
+        // 而不是绑定临时的本地轮次。
         turn.conversationId = data.conversation_id
         turn.userMessageId = data.user_message_id
         turn.assistantMessageId = data.assistant_message_id
         turn.userMessage.id = data.user_message_id
+        turn.userMessage.conversation_id = data.conversation_id
         turn.assistantMessage.id = data.assistant_message_id
+        turn.assistantMessage.conversation_id = data.conversation_id
       }
       const memoryParts = []
       if (data.has_summary) memoryParts.push('会话摘要')
@@ -422,7 +447,7 @@ export const useChatStreamStore = defineStore('chatStream', () => {
       assistant.status = '生成回答中'
     }
     if (event === 'retrieval_done') {
-      // 最终是否“找到资料”只能由 citations 事件里的真实引用决定；这里清空检索过程文案，避免把候选召回误说成已找到依据。
+      // 最终是否“找到资料”只能由引用事件里的真实引用决定；这里清空检索过程文案，避免把候选召回误说成已找到依据。
       assistant.retrieval = ''
       assistant.status = '生成回答中'
     }
@@ -499,8 +524,10 @@ export const useChatStreamStore = defineStore('chatStream', () => {
   }
 
   function isActiveAssistantMessage(message: Message) {
+    // 只有正在流式生成的回答才视为活跃消息。
+    // 生成期间历史消息仍可操作，未完成的回答则禁止反馈、复制、引用等动作。
     const turn = activeTurn.value
-    return Boolean(turn && loading.value && !stoppingGeneration.value && turn.assistantMessage === message)
+    return Boolean(turn && loading.value && turn.assistantMessage === message)
   }
 
   function ensureActiveTurnVisible(turn: ActiveTurn) {
@@ -596,7 +623,7 @@ export const useChatStreamStore = defineStore('chatStream', () => {
     if (!target) return
     const isAtBottom = isScrollAtBottom()
     const isScrollingUp = target.scrollTop < lastMessagesScrollTop
-    // AI 输出期间用户只要向上滚动查看历史内容，就暂停自动跟随，避免后续 delta 抢回滚动条。
+    // 模型输出期间用户只要向上滚动查看历史内容，就暂停自动跟随，避免后续增量内容抢回滚动条。
     if (loading.value && isScrollingUp && !isAtBottom) {
       autoFollowOutput.value = false
     } else if (isAtBottom) {

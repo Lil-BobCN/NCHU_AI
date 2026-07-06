@@ -10,6 +10,7 @@ from tempfile import TemporaryDirectory
 from typing import Any
 
 from app.core.config import get_settings
+from app.services.archive_import_service import normalize_zip_entry_name
 from app.services.ocr_service import OcrResult, PaddleOcrService
 
 
@@ -79,7 +80,7 @@ class ParseService:
         cleaned: list[str] = []
         page_footer_patterns = [
             r"^\d+\s*/\s*\d+$",           # "1 / 10"
-            r"^\d+\s*of\s*\d+$",           # "1 of 10"
+            r"^\d+\s*of\s*\d+$",           # 英文页码格式
             r"^第\s*\d+\s*页$",            # "第 1 页"
             r"^-\s*\d+\s*-$",              # "- 1 -"
             r"^--+\s*第\s*\d+\s*页\s*--+$", # "----第1页----"
@@ -807,7 +808,7 @@ class ParseService:
             try:
                 with zipfile.ZipFile(self._bytes_io(data)) as archive:
                     for info in archive.infolist()[:200]:
-                        entry_name = info.filename
+                        entry_name = normalize_zip_entry_name(info)
                         if self._unsafe_archive_name(entry_name):
                             unsafe_entries.append(entry_name)
                         entries.append(

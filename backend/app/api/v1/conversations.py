@@ -79,6 +79,8 @@ async def list_messages(
     db: AsyncSession = Depends(get_db),
     _: Admin = Depends(get_current_admin),
 ):
+    # 加载当前会话的完整反馈历史，让消息列表可以用用户上次提交的内容预填反馈表单。
+    # 只有有效反馈记录才表示该消息当前处于“已标记有误”的有效状态。
     feedback_history_rows = await db.execute(
         select(AnswerFeedback)
         .where(AnswerFeedback.conversation_id == conversation_id)
@@ -121,10 +123,14 @@ async def delete_message(
         raise HTTPException(status_code=404, detail="消息不存在或不支持删除")
 
     now = datetime.now(timezone.utc)
+    # 对消息执行软删除：普通会话接口会隐藏它，但数据库行保留删除时间和删除人，
+    # 后台审计视图仍可查看这次删除动作。
     message.deleted_at = now
     message.deleted_by = str(admin.id)
     await db.flush()
 
+    # 会话计数只描述前端可见的聊天时间线。
+    # 软删除后重新计算，确保侧边栏数量与页面展示保持一致。
     visible_count = await db.scalar(
         select(func.count())
         .select_from(ConversationMessage)
@@ -263,6 +269,8 @@ def conversation_list_filters(search: str | None = None, feedback_only: bool = F
 
 
 def conversation_message_list_filters(conversation_id: str) -> list:
+    # 普通聊天历史隐藏软删除消息；数据库行仍保留删除时间和删除人，
+    # 供后台审计检查。
     return [
         ConversationMessage.conversation_id == conversation_id,
         ConversationMessage.deleted_at.is_(None),

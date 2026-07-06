@@ -317,8 +317,8 @@ class ChatService:
             answer = self._sanitize_answer(answer)
             if answer and not cached_answer and not used_fallback and not retrieval.get("direct_qa_hit"):
                 await self._set_cached_answer(question, retrieval, history, conversation_summary, answer)
-            # QA 直答的证据就是命中的 QA 记录本身；它可能没有 document_id，
-            # 不能再交给按文档来源二次筛选的 citations_for_answer，否则会把标签引用清空。
+            # 问答直答的证据就是命中的问答记录本身；它可能没有来源文档编号，
+            # 不能再交给按文档来源二次筛选的回答引用集合，否则会把标签引用清空。
             if retrieval.get("direct_qa_hit"):
                 citations = to_jsonable(retrieval.get("citations") or [])
             else:
@@ -1345,7 +1345,7 @@ class ChatService:
         ]
         if not recent_history:
             return clean_question
-        # 用 LLM 将追问改写成独立检索问题
+        # 用大模型将追问改写成独立检索问题
         try:
             history_text = "\n".join(
                 f"{'用户' if item['role'] == 'user' else '助手'}：{self._clip(item['content'], 500)}"
@@ -1372,7 +1372,7 @@ class ChatService:
                 return rewritten
         except Exception:
             pass
-        # LLM 改写失败时回退到拼接方案
+        # 大模型改写失败时回退到拼接方案
         recent_user_questions = [
             item["content"]
             for item in history
@@ -1414,8 +1414,8 @@ class ChatService:
         if not any(marker in compact for marker in underspecified_markers):
             return False
 
-        # Only short, underspecified questions should borrow history. A question
-        # with a concrete topic such as "差旅网上审批流程" must search as-is.
+        # 只有短且指代不明确的问题才需要借用历史上下文。
+        # 像“差旅网上审批流程”这类主题明确的问题必须按原问题检索。
         topic_markers = (
             "流程",
             "操作",

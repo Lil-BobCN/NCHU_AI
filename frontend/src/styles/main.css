@@ -621,12 +621,12 @@ textarea:focus {
   margin-top: 8px;
 }
 
-/* QA 引用命中时没有传统文档页码来源，单独复用引用区外观展示可点击标签，和“参考来源”形成清晰区分。 */
+/* 问答引用命中时没有传统文档页码来源，单独复用引用区外观展示可点击标签，和“参考来源”形成清晰区分。 */
 .qa-citation-section {
   gap: 10px;
 }
 
-/* 标签需要像引用链接一样可点击，但视觉上保持 chip 水平排列，避免长标签把对话卡片撑乱。 */
+/* 标签需要像引用链接一样可点击，但视觉上保持标签块水平排列，避免长标签把对话卡片撑乱。 */
 .qa-citation-tag-row {
   display: flex;
   flex-wrap: wrap;
@@ -2022,7 +2022,7 @@ button.danger:hover {
 }
 
 .document-detail-main {
-  /* 左侧任务列表可能很高，右侧详情独立纵向排列，避免外层 Grid 行高撑出大空白。 */
+  /* 左侧任务列表可能很高，右侧详情独立纵向排列，避免外层网格行高撑出大空白。 */
   display: grid;
   align-content: start;
   gap: 18px;

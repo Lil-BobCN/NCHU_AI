@@ -139,7 +139,7 @@ class RetrievalServiceParameterTests(unittest.IsolatedAsyncioTestCase):
             }
         ])
 
-        # 纯手工维护的 QA 可能没有绑定文档；citation 仍要保留标签，否则智能对话详情只能显示“暂未找到明确资料”。
+        # 纯手工维护的问答可能没有绑定文档；引用仍要保留标签，否则智能对话详情只能显示“暂未找到明确资料”。
         self.assertEqual(len(citations), 1)
         self.assertIsNone(citations[0]["document_id"])
         self.assertEqual(citations[0]["qa_pair_id"], "11111111-1111-1111-1111-111111111111")

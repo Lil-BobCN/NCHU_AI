@@ -1,16 +1,77 @@
 from __future__ import annotations
 
 from pathlib import Path
+import struct
 import sys
 import unittest
+import zlib
 
 
 BACKEND_ROOT = Path(__file__).resolve().parents[1]
 if str(BACKEND_ROOT) not in sys.path:
     sys.path.insert(0, str(BACKEND_ROOT))
 
+from app.services.archive_import_service import ArchiveImportService  # noqa: E402
 from app.services.chunk_service import ChunkService  # noqa: E402
 from app.services.parse_service import ParseService  # noqa: E402
+
+
+def gbk_named_zip(entry_name: str, data: bytes = b"demo") -> bytes:
+    name_bytes = entry_name.encode("gbk")
+    crc = zlib.crc32(data) & 0xFFFFFFFF
+    local_header = (
+        struct.pack(
+            "<IHHHHHIIIHH",
+            0x04034B50,
+            20,
+            0,
+            0,
+            0,
+            0,
+            crc,
+            len(data),
+            len(data),
+            len(name_bytes),
+            0,
+        )
+        + name_bytes
+        + data
+    )
+    central_directory = (
+        struct.pack(
+            "<IHHHHHHIIIHHHHHII",
+            0x02014B50,
+            20,
+            20,
+            0,
+            0,
+            0,
+            0,
+            crc,
+            len(data),
+            len(data),
+            len(name_bytes),
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+        )
+        + name_bytes
+    )
+    end_record = struct.pack(
+        "<IHHHHIIH",
+        0x06054B50,
+        0,
+        0,
+        1,
+        1,
+        len(central_directory),
+        len(local_header),
+        0,
+    )
+    return local_header + central_directory + end_record
 
 
 class LargeTableIndexingTests(unittest.TestCase):
@@ -75,6 +136,26 @@ class LargeTableIndexingTests(unittest.TestCase):
         self.assertGreaterEqual(len(chunks), 2)
         self.assertIn("参赛要求", chunks[1].content)
         self.assertIn("（1）以学院为单位组成各参赛队伍", chunks[1].content)
+
+
+class ArchiveFilenameEncodingTests(unittest.TestCase):
+    def test_parse_preview_decodes_gbk_zip_entry_name(self) -> None:
+        entry_name = "南昌航空大学学生日常管理规定.docx"
+        archive = gbk_named_zip(entry_name)
+
+        parsed = ParseService().parse("资料.zip", archive)
+
+        self.assertIn(entry_name, parsed.text)
+        self.assertEqual(parsed.meta["entries_preview"][0]["name"], entry_name)
+
+    def test_archive_import_decodes_gbk_zip_entry_name(self) -> None:
+        entry_name = "南昌航空大学学生日常管理规定.docx"
+        archive = gbk_named_zip(entry_name)
+
+        result = ArchiveImportService().extract_supported_entries("资料.zip", archive)
+
+        self.assertEqual(result.entries[0].name, entry_name)
+        self.assertEqual(result.entries[0].file_name, entry_name)
 
 
 if __name__ == "__main__":

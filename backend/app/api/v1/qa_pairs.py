@@ -71,7 +71,7 @@ async def list_qa_pairs(
     count_query = select(func.count()).select_from(QaPair).where(*filters)
     total = await db.scalar(count_query)
     rows = await db.execute(
-        query.order_by(QaPair.updated_at.desc()).offset((page - 1) * page_size).limit(page_size)
+        query.order_by(*qa_pair_list_ordering()).offset((page - 1) * page_size).limit(page_size)
     )
     # 标签筛选下拉要覆盖当前查询范围内的全部标签，不能只从当前页聚合，否则分页后会漏选项。
     available_tags = await list_available_qa_tags(db, keyword=keyword, status=status, document_id=document_id)
@@ -201,6 +201,13 @@ def qa_pair_list_filters(
     if document_id:
         filters.append(QaPair.source_document_id == document_id)
     return filters
+
+
+def qa_pair_list_ordering() -> list:
+    # 批量启用/停用问答时保持排序稳定。
+    # 自动生成的记录可能拥有相近时间戳，因此用创建时间和主键作为兜底排序，
+    # 避免状态刷新后列表位置跳动。
+    return [QaPair.updated_at.desc(), QaPair.created_at.desc(), QaPair.id.desc()]
 
 
 def qa_pair_duplicate_question_filters(question: str):
