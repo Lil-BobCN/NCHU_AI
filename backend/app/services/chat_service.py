@@ -50,59 +50,85 @@ class ChatService:
         rerank_top_k: int | None = None,
         document_ids: list[str] | None = None,
         enable_rewrite: bool = True,
+        user_question: str | None = None,
+        quoted_content: str | None = None,
+        quoted_message_id: str | None = None,
     ) -> AsyncGenerator[str, None]:
         started = time.perf_counter()
+        display_question = (user_question or question).strip()
+        # quoted_content 是被引用 AI 回复的快照，和用户追加问题分开保存、分开参与提示词。
+        # 这样用户消息入库、会话标题、审计记录仍然只体现用户真正输入的内容。
+        quote_text = (quoted_content or "").strip()
         conversation: Conversation | None = None
         user_message: ConversationMessage | None = None
         assistant_message: ConversationMessage | None = None
         try:
-            conversation = await self._get_or_create_conversation(db, conversation_id, question)
-            await self._auto_title_conversation_if_needed(db, conversation, question)
+            conversation = await self._get_or_create_conversation(db, conversation_id, display_question)
+            await self._auto_title_conversation_if_needed(db, conversation, display_question)
             conversation_summary = (conversation.summary or "").strip()
             context_state = self._normalize_context_state(getattr(conversation, "context_state", None))
             summary_seed = []
             if not conversation_summary:
                 summary_seed = await self._load_summary_seed(db, str(conversation.id))
             history = await self._load_recent_history(db, str(conversation.id))
-            is_smalltalk = self._is_smalltalk_greeting(question)
+            # 只要本轮带引用，就把引用看作显式指定的上下文。
+            # 此时“这个/上述内容/它”必须指向引用卡片，而不是最近一轮 active topic 或 pending 任务。
+            has_quote_context = bool(quote_text)
+            context_question = (
+                self._build_quoted_followup_query(display_question, quote_text)
+                if has_quote_context
+                else display_question
+            )
+            # 引用追问要隔离最近会话记忆，否则“细说一下这个”会被历史主题改写到另一个话题。
+            # 普通追问仍保留原来的历史摘要和 context_state 逻辑。
+            resolution_history = [] if has_quote_context else history
+            resolution_summary = "" if has_quote_context else conversation_summary
+            resolution_state = {} if has_quote_context else context_state
+            is_smalltalk = not has_quote_context and self._is_smalltalk_greeting(display_question)
             context_resolution = (
-                self._smalltalk_context_resolution(question)
+                self._smalltalk_context_resolution(display_question)
                 if is_smalltalk
                 else await self._resolve_context(
-                question,
-                history,
-                conversation_summary,
-                context_state,
+                context_question,
+                resolution_history,
+                resolution_summary,
+                resolution_state,
                 enable_rewrite=enable_rewrite,
                 )
             )
             resolved_query = context_resolution["resolved_query"]
             retrieval_query = self._build_contextual_retrieval_query(
-                question,
+                context_question,
                 resolved_query,
-                context_state,
+                resolution_state,
                 context_resolution,
             )
             retrieval_reinforced = retrieval_query != resolved_query
             retrieval_constraints = self._build_retrieval_constraints(
-                question,
+                context_question,
                 resolved_query,
                 retrieval_query,
-                context_state,
+                resolution_state,
                 context_resolution,
             )
             context_resolution = {
                 **context_resolution,
+                # 给调试和前端事件保留标记，方便判断本轮是否走了“引用上下文优先”的分支。
+                "uses_quoted_context": has_quote_context,
+                "quoted_user_question": display_question if has_quote_context else "",
                 "retrieval_query": retrieval_query,
                 "retrieval_query_reinforced": retrieval_reinforced,
                 "retrieval_constraints": retrieval_constraints,
             }
             uses_history = bool(context_resolution.get("uses_history"))
-            rewritten_with_history = retrieval_query != question.strip()
+            rewritten_with_history = retrieval_query != context_question.strip()
             user_message = ConversationMessage(
                 conversation_id=conversation.id,
                 role="user",
-                content=question,
+                content=display_question,
+                # 引用编号和引用文本只记录在用户消息上，便于前端重载历史时展示引用气泡。
+                quoted_message_id=quoted_message_id if quote_text else None,
+                quoted_message_content=quote_text,
                 rewritten_query=retrieval_query,
             )
             db.add(user_message)
@@ -163,7 +189,7 @@ class ChatService:
                     RetrievalLog(
                         conversation_id=conversation.id,
                         message_id=user_message.id,
-                        raw_query=question,
+                        raw_query=display_question,
                         rewritten_query=retrieval_query,
                         recall_results=[],
                         rerank_results=[],
@@ -272,7 +298,8 @@ class ChatService:
             used_fallback = False
             cached_answer = None
             if not retrieval.get("direct_qa_hit"):
-                cached_answer = await self._get_cached_answer(question, retrieval, history, conversation_summary)
+                cache_question = self._build_answer_cache_question(display_question, quote_text)
+                cached_answer = await self._get_cached_answer(cache_question, retrieval, history, conversation_summary)
             if cached_answer:
                 answer_parts.append(cached_answer)
                 yield self._sse("answer_cache", {"hit": True})
@@ -294,12 +321,14 @@ class ChatService:
                         yield event
             else:
                 messages = self._build_messages_with_memory(
-                    question,
+                    display_question,
                     answer_context,
-                    history,
-                    conversation_summary,
-                    context_state,
+                    # 引用追问的最终生成阶段也不注入最近历史，避免模型被上一轮话题带偏。
+                    [] if has_quote_context else history,
+                    "" if has_quote_context else conversation_summary,
+                    {} if has_quote_context else context_state,
                     context_resolution,
+                    quoted_content=quote_text,
                 )
                 try:
                     async for delta in self.model_service.stream_answer(messages):
@@ -316,7 +345,8 @@ class ChatService:
             answer = "".join(answer_parts).strip()
             answer = self._sanitize_answer(answer)
             if answer and not cached_answer and not used_fallback and not retrieval.get("direct_qa_hit"):
-                await self._set_cached_answer(question, retrieval, history, conversation_summary, answer)
+                cache_question = self._build_answer_cache_question(display_question, quote_text)
+                await self._set_cached_answer(cache_question, retrieval, history, conversation_summary, answer)
             # 问答直答的证据就是命中的问答记录本身；它可能没有来源文档编号，
             # 不能再交给按文档来源二次筛选的回答引用集合，否则会把标签引用清空。
             if retrieval.get("direct_qa_hit"):
@@ -343,12 +373,12 @@ class ChatService:
             updated_summary = await self._refresh_conversation_summary(
                 conversation_summary,
                 summary_seed,
-                question,
+                display_question,
                 answer,
             )
             updated_context_state = self._refresh_context_state(
                 context_state,
-                question,
+                display_question,
                 resolved_query,
                 answer,
                 answer_context,
@@ -358,7 +388,7 @@ class ChatService:
                 RetrievalLog(
                     conversation_id=conversation.id,
                     message_id=user_message.id,
-                    raw_query=question,
+                    raw_query=display_question,
                     rewritten_query=retrieval_query,
                     recall_results=to_jsonable(retrieval["recall_results"]),
                     rerank_results=to_jsonable(retrieval["rerank_results"]),
@@ -406,6 +436,9 @@ class ChatService:
         rerank_top_k: int | None = None,
         document_ids: list[str] | None = None,
         enable_rewrite: bool = True,
+        user_question: str | None = None,
+        quoted_content: str | None = None,
+        quoted_message_id: str | None = None,
     ) -> dict:
         answer = ""
         citations = []
@@ -421,6 +454,9 @@ class ChatService:
             rerank_top_k,
             document_ids,
             enable_rewrite,
+            user_question,
+            quoted_content,
+            quoted_message_id,
         ):
             if event.startswith("event: delta"):
                 payload = json.loads(event.split("data: ", 1)[1])
@@ -1092,6 +1128,7 @@ class ChatService:
         conversation_summary: str,
         context_state: dict | None = None,
         context_resolution: dict | None = None,
+        quoted_content: str | None = None,
     ) -> list[dict]:
         context_text = "\n\n".join(
             [
@@ -1143,6 +1180,21 @@ class ChatService:
                     "role": "system",
                     "content": context_packet,
                 }
+        )
+        quote_text = (quoted_content or "").strip()
+        if quote_text:
+            # 引用内容作为独立 system 消息进入模型上下文，优先级高于普通历史但不冒充用户问题。
+            # 这能让“细说一下这个”中的“这个”稳定指向被引用回复。
+            messages.append(
+                {
+                    "role": "system",
+                    "content": (
+                        "用户本轮引用了一条此前的 AI 回复。引用内容只用于补充上下文和指代对象，"
+                        "不要把引用内容本身当成用户的新问题，也不要只复述引用。"
+                        "必须优先回答本轮【用户追加问题】；只有当引用内容与追加问题相关时才使用它。\n\n"
+                        f"【被引用的 AI 回复】\n{self._clip(quote_text, 6000)}"
+                    ),
+                }
             )
         if conversation_summary:
             messages.append(
@@ -1154,8 +1206,33 @@ class ChatService:
         for item in history[-RECENT_HISTORY_MESSAGE_LIMIT:]:
             messages.append({"role": item["role"], "content": self._clip(item["content"], HISTORY_ITEM_CHAR_LIMIT)})
         user = f"检索资料：\n{context_text or '无可用资料'}\n\n当前用户问题：{question}"
+        user_label = "用户追加问题" if quote_text else "当前用户问题"
+        user = f"检索资料：\n{context_text or '无可用资料'}\n\n{user_label}：{question}"
+        # 有引用时，上面构造的 user 内容会把用户输入标成“追加问题”；
+        # 模型应回答追加问题，而不是把引用文本或历史主题当作本轮问题。
         messages.append({"role": "user", "content": user})
         return messages
+
+    def _build_answer_cache_question(self, question: str, quoted_content: str) -> str:
+        # 同一个追加问题引用不同 AI 回复时，答案不应共用缓存。
+        # 因此缓存 key 把引用摘要纳入问题指纹，但只截取一段，避免超长引用拖大 Redis key 计算负担。
+        quote_text = quoted_content.strip()
+        if not quote_text:
+            return question
+        return f"引用内容：{self._clip(quote_text, 1200)}\n用户追加问题：{question}"
+
+    def _build_quoted_followup_query(self, question: str, quoted_content: str) -> str:
+        # 构造给上下文解析和检索使用的“引用追问意图”。
+        # 这里显式写入“不要沿用最近话题”，是为了修复引用跨话题时被 active_task/pending_action 拉偏的问题。
+        quote_text = quoted_content.strip()
+        if not quote_text:
+            return question.strip()
+        return (
+            "本轮用户引用了一条此前的 AI 回复，并围绕该引用继续追问。"
+            "请把引用内容作为“这个/上述内容/它”的指代对象，不要沿用最近会话中的其他话题。\n"
+            f"被引用 AI 回复：{self._clip(quote_text, 1600)}\n"
+            f"用户追加问题：{question.strip()}"
+        )
 
     def _format_answer_context_packet(self, context_state: dict, context_resolution: dict) -> str:
         state_text = self._format_context_state(context_state)

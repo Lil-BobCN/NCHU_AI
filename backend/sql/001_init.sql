@@ -180,6 +180,9 @@ CREATE TABLE IF NOT EXISTS conversation_messages (
   conversation_id uuid NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
   role varchar(32) NOT NULL,
   content text NOT NULL,
+  -- 引用元数据只挂在用户消息上：编号用于定位原 AI 回复，内容快照用于历史展示和审计。
+  quoted_message_id uuid NULL REFERENCES conversation_messages(id) ON DELETE SET NULL,
+  quoted_message_content text NOT NULL DEFAULT '',
   rewritten_query text NULL,
   retrieval_trace jsonb NOT NULL DEFAULT '{}',
   citations jsonb NOT NULL DEFAULT '[]',
@@ -190,6 +193,9 @@ CREATE TABLE IF NOT EXISTS conversation_messages (
   deleted_at timestamptz NULL,
   deleted_by uuid NULL
 );
+-- 兼容已初始化过的数据库，部署更新时补齐引用字段，不依赖重建数据卷。
+ALTER TABLE conversation_messages ADD COLUMN IF NOT EXISTS quoted_message_id uuid NULL REFERENCES conversation_messages(id) ON DELETE SET NULL;
+ALTER TABLE conversation_messages ADD COLUMN IF NOT EXISTS quoted_message_content text NOT NULL DEFAULT '';
 ALTER TABLE conversation_messages ADD COLUMN IF NOT EXISTS deleted_at timestamptz NULL;
 ALTER TABLE conversation_messages ADD COLUMN IF NOT EXISTS deleted_by uuid NULL;
 CREATE INDEX IF NOT EXISTS idx_messages_conversation_id ON conversation_messages(conversation_id, created_at);

@@ -325,6 +325,9 @@ def serialize_message(item: ConversationMessage, feedback: dict | None = None) -
         "conversation_id": str(item.conversation_id),
         "role": item.role,
         "content": item.content,
+        # 用户消息如果带引用，需要把引用编号和快照一并返回，前端才能在历史气泡里还原引用卡片。
+        "quoted_message_id": str(item.quoted_message_id) if item.quoted_message_id else None,
+        "quoted_message_content": item.quoted_message_content or "",
         "rewritten_query": item.rewritten_query,
         "retrieval_trace": item.retrieval_trace,
         "citations": item.citations,

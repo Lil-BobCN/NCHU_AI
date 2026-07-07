@@ -148,10 +148,32 @@
           <article
             v-for="message in messages"
             :key="message.localId || message.id"
-            :class="['message', message.role, { 'feedback-open': message.role === 'assistant' && message.feedback_status === 'open' }]"
+            :data-message-key="messageKey(message)"
+            :data-message-id="message.id || undefined"
+            :class="[
+              'message',
+              message.role,
+              {
+                'feedback-open': message.role === 'assistant' && message.feedback_status === 'open',
+                'has-quote': hasQuotedMessage(message)
+              }
+            ]"
           >
             <div class="message-stack">
               <div class="bubble">
+              <!-- 带引用的用户消息需要在发送后仍能看出“这条问题基于哪条 AI 回复”。 -->
+              <!-- 点击引用摘要会滚动回被引用的 AI 消息，方便用户核对上下文。 -->
+              <button
+                v-if="hasQuotedMessage(message)"
+                type="button"
+                class="message-quote-preview"
+                title="定位引用消息"
+                aria-label="定位引用消息"
+                @click="locateMessageQuote(message)"
+              >
+                <Quote :size="15" />
+                <span>{{ summarizeQuotedMessage(message.quoted_message_content || '') }}</span>
+              </button>
               <template v-if="message.content && message.role === 'assistant'">
                 <div
                   class="markdown-content"
@@ -170,7 +192,7 @@
                   </button>
                 </div>
               </template>
-              <p v-else-if="message.content">{{ message.content }}</p>
+              <p v-else-if="message.content">{{ displayMessageContent(message) }}</p>
               <p v-else-if="message.status" class="stream-status">{{ message.status }}</p>
 
               <div v-if="message.retrieval" class="retrieval-state">
@@ -259,7 +281,7 @@
                   type="button"
                   class="message-action-button action-feedback"
                   :class="{ active: message.feedback_status === 'open' }"
-                  :disabled="messageActionDisabled(message) || feedbackCancelSubmitting"
+                  :disabled="messageFeedbackDisabled(message) || feedbackCancelSubmitting"
                   :aria-label="message.feedback_status === 'open' ? '取消异常反馈' : '回答有误'"
                   @click="handleFeedbackAction(message)"
                 >
@@ -297,21 +319,7 @@
                   <Copy v-else :size="15" />
                   <span class="message-action-tooltip">复制</span>
                 </button>
-                <button
-                  type="button"
-                  class="message-action-button action-quote"
-                  :disabled="messageActionDisabled(message)"
-                  :data-message-action-key="messageActionKey(message, 'quote')"
-                  aria-label="引用"
-                  @mouseleave="clearMessageActionState(message, 'quote')"
-                  @pointerleave="clearMessageActionState(message, 'quote')"
-                  @blur="clearMessageActionState(message, 'quote')"
-                  @click="quoteMessage(message)"
-                >
-                  <Check v-if="isMessageActionConfirmed(message, 'quote')" :size="15" />
-                  <Quote v-else :size="15" />
-                  <span class="message-action-tooltip">引用</span>
-                </button>
+
                 <button
                   type="button"
                   class="message-action-button action-delete"
@@ -328,8 +336,31 @@
           </article>
         </div>
 
-        <form class="composer" @submit.prevent="chatStore.ask(question)">
+        <form class="composer" @submit.prevent="submitComposer">
           <div class="composer-field">
+            <div
+              v-if="quotedMessage"
+              class="composer-quote-card"
+              role="button"
+              tabindex="0"
+              title="定位引用消息"
+              aria-label="定位引用消息"
+              @click="locateQuotedMessage"
+              @keydown.enter.prevent="locateQuotedMessage"
+              @keydown.space.prevent="locateQuotedMessage"
+            >
+              <Quote :size="15" />
+              <span class="composer-quote-content">{{ quotedMessageSummary }}</span>
+              <!-- 取消引用按钮使用 CSS 绘制红叉，避免图标字体加载或颜色继承导致圆形按钮空白。 -->
+              <button
+                type="button"
+                class="composer-quote-close"
+                aria-label="取消引用"
+                @click.stop="chatStore.clearQuotedMessage()"
+              >
+                <span aria-hidden="true"></span>
+              </button>
+            </div>
             <textarea
               v-model="question"
               rows="2"
@@ -495,6 +526,7 @@ const {
   conversationId,
   messages,
   question,
+  quotedMessage,
   loading,
   stoppingGeneration,
   deletingConversationId,
@@ -531,6 +563,7 @@ const feedbackTypeOptions = [
 const composerCharCount = computed(() => Array.from(question.value.trim()).length)
 const isComposerLimitReached = computed(() => composerCharCount.value >= CHAT_MAX_QUESTION_CHARS)
 const isComposerOverLimit = computed(() => composerCharCount.value > CHAT_MAX_QUESTION_CHARS)
+const quotedMessageSummary = computed(() => summarizeQuotedMessage(quotedMessage.value?.content || ''))
 const conversationListSummary = computed(() => {
   const countText = hasConversationSearch.value || hasConversationFeedbackFilter.value
     ? `匹配 ${conversations.value.length} 条`
@@ -580,7 +613,7 @@ watch(messages, () => {
   const validActionKeys = new Set<string>()
   for (const message of messages.value) {
     validActionKeys.add(messageActionKey(message, 'copy'))
-    validActionKeys.add(messageActionKey(message, 'quote'))
+    if (message.role === 'assistant') validActionKeys.add(messageActionKey(message, 'quote'))
   }
   const nextActionKeys = new Set([...confirmedMessageActionKeys.value].filter((key) => validActionKeys.has(key)))
   if (nextActionKeys.size !== confirmedMessageActionKeys.value.size) confirmedMessageActionKeys.value = nextActionKeys
@@ -604,7 +637,15 @@ watch(conversationSearch, (value) => {
 function handleComposerEnter(event: KeyboardEvent) {
   if (event.shiftKey || event.isComposing) return
   event.preventDefault()
-  void chatStore.ask(question.value)
+  void submitComposer()
+}
+
+async function submitComposer() {
+  if (!question.value.trim()) {
+    if (quotedMessage.value) showFeedbackToast('请输入追加内容后再发送')
+    return
+  }
+  await chatStore.ask(question.value)
 }
 
 function handleComposerInput(event: Event) {
@@ -703,10 +744,23 @@ function messageActionDisabled(message: Message) {
   )
 }
 
+function messageFeedbackDisabled(message: Message) {
+  // 反馈操作只要求 AI 消息已经入库；即使回答内容为空，也允许用户标记异常。
+  // 这样刷新或切换会话留下的空 AI 气泡仍能被反馈，不会被普通复制/引用的内容校验误伤。
+  return message.role !== 'assistant' || chatStore.isActiveAssistantMessage(message) || !message.id
+}
+
 function messageDeleteDisabled(message: Message) {
   // 删除会改变持久化历史，因此在回答生成或停止生成期间全局禁用；
   // 即使其他气泡操作可用，也不能删除消息。
-  return loading.value || stoppingGeneration.value || deletingMessageId.value === message.id || messageActionDisabled(message)
+  // 删除只要求消息已经入库；空内容脏气泡也必须允许删除，避免用户无法清理历史脏记录。
+  return (
+    loading.value ||
+    stoppingGeneration.value ||
+    deletingMessageId.value === message.id ||
+    chatStore.isActiveAssistantMessage(message) ||
+    !message.id
+  )
 }
 
 function messageActionKey(message: Message, action: 'copy' | 'quote') {
@@ -744,7 +798,7 @@ async function copyMessage(message: Message) {
   if (messageActionDisabled(message)) return
   setMessageActionConfirmed(message, 'copy')
   try {
-    await writeClipboardText(message.content)
+    await writeClipboardText(displayMessageContent(message))
     showFeedbackToast('复制成功')
   } catch (error) {
     showFeedbackToast(apiErrorMessage(error, '复制失败，请手动选择文本复制'))
@@ -752,12 +806,62 @@ async function copyMessage(message: Message) {
 }
 
 function quoteMessage(message: Message) {
-  if (messageActionDisabled(message)) return
+  // 引用按钮只对已完成的 AI 回复生效；正在生成的回复没有稳定内容，不允许引用。
+  if (message.role !== 'assistant' || messageActionDisabled(message)) return
   chatStore.quoteMessage(message)
   setMessageActionConfirmed(message, 'quote')
-  showFeedbackToast('已引用到输入框')
+  showFeedbackToast('已添加引用')
 }
 
+function summarizeQuotedMessage(content: string) {
+  // 引用卡片只展示摘要，完整文本保存在 store/后端字段里参与提问上下文。
+  // 使用 Array.from 按字符截断，避免中文或 emoji 被半截切开。
+  const normalized = content.replace(/\s+/g, ' ').trim()
+  const chars = Array.from(normalized)
+  if (chars.length <= 56) return normalized
+  return `${chars.slice(0, 56).join('')}...`
+}
+
+function locateQuotedMessage() {
+  // 输入框里的引用卡片定位当前页面中的被引用 AI 回复。
+  // 未入库的乐观消息依赖 localId，已入库消息依赖后端 id。
+  const key = quotedMessage.value?.key
+  if (!key || !messagesEl.value) return
+  const target = messagesEl.value.querySelector(`[data-message-key="${cssEscape(key)}"]`) as HTMLElement | null
+  if (!target) return
+  target.scrollIntoView({ behavior: 'smooth', block: 'center' })
+}
+
+function hasQuotedMessage(message: Message) {
+  // 历史消息从后端拿 quoted_message_content；乐观消息发送时也会填这个字段。
+  // 只在用户消息上展示引用预览，AI 回复自己的引用关系不在气泡内展示。
+  return message.role === 'user' && Boolean(message.quoted_message_content?.trim())
+}
+
+function displayMessageContent(message: Message) {
+  if (!hasQuotedMessage(message)) return message.content
+  const marker = '用户追加问题：'
+  const content = message.content || ''
+  const markerIndex = content.lastIndexOf(marker)
+  if (!content.startsWith('引用内容：') || markerIndex < 0) return content
+  return content.slice(markerIndex + marker.length).trim()
+}
+
+function locateMessageQuote(message: Message) {
+  // 用户消息气泡内的引用预览只拿后端消息 id 定位。
+  // 如果被引用消息已被删除或旧数据没有引用 id，则保持静默，不打断用户阅读。
+  const messageId = message.quoted_message_id
+  if (!messageId || !messagesEl.value) return
+  const target = messagesEl.value.querySelector(`[data-message-id="${cssEscape(messageId)}"]`) as HTMLElement | null
+  if (!target) return
+  target.scrollIntoView({ behavior: 'smooth', block: 'center' })
+}
+
+function cssEscape(value: string) {
+  // data 属性查询需要转义消息 id/localId，避免特殊字符破坏 CSS selector。
+  if (window.CSS?.escape) return window.CSS.escape(value)
+  return value.replace(/["\\]/g, '\\$&')
+}
 async function writeClipboardText(text: string) {
   if (navigator.clipboard?.writeText) {
     await navigator.clipboard.writeText(text)
@@ -865,6 +969,7 @@ function findLastSentenceBoundary(text: string) {
 }
 
 function handleFeedbackAction(message: Message) {
+  if (messageFeedbackDisabled(message) || feedbackCancelSubmitting.value) return
   // 反馈按钮是双状态控件：已有有效反馈时进入取消确认，
   // 否则打开可编辑、可预填的提交表单。
   if (message.feedback_status === 'open') {

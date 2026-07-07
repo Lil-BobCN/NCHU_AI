@@ -20,6 +20,11 @@ router = APIRouter(prefix="/chat", tags=["chat"])
 class ChatRequest(BaseModel):
     conversation_id: str | None = None
     question: str = Field(min_length=1)
+    # 被引用 AI 回复的消息编号只用于记录和前端定位，不能直接作为用户问题参与检索。
+    quoted_message_id: str | None = None
+    # 被引用 AI 回复的全文快照单独传输，由 ChatService 决定如何作为上下文使用。
+    # 不把它拼进 question，可以保持用户输入 2000 字限制只约束真实追加问题。
+    quoted_content: str | None = Field(default=None, max_length=12000)
     top_k: int = Field(default=8, ge=1)
     rerank_top_k: int = Field(default=5, ge=1)
     document_ids: list[str] | None = None
@@ -34,6 +39,13 @@ class ChatRequest(BaseModel):
         if len(value) > settings.chat_max_question_chars:
             raise ValueError(f"问题长度不能超过 {settings.chat_max_question_chars} 字符")
         return value
+
+    @field_validator("quoted_content")
+    @classmethod
+    def normalize_quoted_content(cls, value: str | None) -> str | None:
+        # 空白引用等同于未引用，避免后续链路误判为“有引用上下文”。
+        normalized = (value or "").strip()
+        return normalized or None
 
     @field_validator("top_k")
     @classmethod
@@ -86,6 +98,10 @@ async def stream_chat(
                 payload.rerank_top_k,
                 payload.document_ids,
                 payload.enable_rewrite,
+                user_question=payload.question,
+                # 引用相关字段分开传给服务层：question 仍是用户追加问题，quoted_content 才是上下文。
+                quoted_content=payload.quoted_content,
+                quoted_message_id=payload.quoted_message_id,
             )
         ),
         media_type="text/event-stream",
@@ -130,6 +146,10 @@ async def chat(
             payload.rerank_top_k,
             payload.document_ids,
             payload.enable_rewrite,
+            user_question=payload.question,
+            # 非流式接口和流式接口保持同一套引用语义，避免不同入口行为不一致。
+            quoted_content=payload.quoted_content,
+            quoted_message_id=payload.quoted_message_id,
         )
         return ok(result)
     finally:

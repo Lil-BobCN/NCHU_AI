@@ -50,6 +50,34 @@ class ChatServiceFollowupTests(unittest.TestCase):
             self.assertIn("不要把多个主步骤都写成 1", prompt)
             self.assertIn("引用法规条文、原文序号、年份、金额、页码时必须保留原样", prompt)
 
+    def test_quote_followup_query_uses_quoted_topic_instead_of_recent_topic(self) -> None:
+        service = ChatService()
+
+        query = service._build_quoted_followup_query(
+            "细说一下这个",
+            "通讯教育选修课相关事项，通讯教育选修课是学校人才培养方案的重要组成部分。",
+        )
+
+        self.assertIn("通讯教育选修课", query)
+        self.assertIn("细说一下这个", query)
+        self.assertIn("不要沿用最近会话中的其他话题", query)
+
+    def test_answer_prompt_marks_quote_as_context_and_question_as_followup(self) -> None:
+        service = ChatService()
+
+        messages = service._build_messages_with_memory(
+            "细说一下这个",
+            [],
+            [],
+            "",
+            quoted_content="通讯教育选修课相关事项，通讯教育选修课是学校人才培养方案的重要组成部分。",
+        )
+
+        contents = "\n".join(item["content"] for item in messages)
+        self.assertIn("被引用的 AI 回复", contents)
+        self.assertIn("用户追加问题：细说一下这个", contents)
+        self.assertIn("不要把引用内容本身当成用户的新问题", contents)
+
     def test_concrete_new_topic_is_not_rewritten_with_history(self) -> None:
         service = ChatService()
 

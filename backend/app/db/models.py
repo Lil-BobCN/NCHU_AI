@@ -173,6 +173,14 @@ class ConversationMessage(Base):
     conversation_id: Mapped[str] = mapped_column(UUID(as_uuid=False), ForeignKey("conversations.id", ondelete="CASCADE"), nullable=False)
     role: Mapped[str] = mapped_column(String(32), nullable=False)
     content: Mapped[str] = mapped_column(Text, nullable=False)
+    # 用户消息引用某条 AI 回复时，保存被引用回复的消息编号，用于前端点击引用摘要后定位原消息。
+    # 被引用消息被软删除或物理清理时，这里允许置空；引用快照仍由 quoted_message_content 保留。
+    quoted_message_id: Mapped[str | None] = mapped_column(
+        UUID(as_uuid=False), ForeignKey("conversation_messages.id", ondelete="SET NULL"), nullable=True
+    )
+    # 保存引用当时的 AI 回复文本快照，确保历史会话刷新后仍能展示“本条用户消息引用了什么”。
+    # 该字段不替代用户真实输入，用户真实输入仍只放在 content 中，避免污染会话标题和审计记录。
+    quoted_message_content: Mapped[str] = mapped_column(Text, nullable=False, server_default="")
     rewritten_query: Mapped[str | None] = mapped_column(Text, nullable=True)
     retrieval_trace: Mapped[dict] = mapped_column(JSONB, nullable=False, server_default="{}")
     citations: Mapped[list] = mapped_column(JSONB, nullable=False, server_default="[]")

@@ -1046,6 +1046,54 @@ textarea:focus {
   border-color: transparent;
 }
 
+.message.user.has-quote .bubble {
+  /* 带引用的用户消息改为白底卡片，避免蓝色正文和引用摘要抢层级。 */
+  display: grid;
+  gap: 12px;
+  color: #172033;
+  background: #fff;
+  border-color: #e2e8f0;
+}
+
+.message-quote-preview {
+  /* 用户消息内的引用摘要模拟“引用块”：左侧竖线提示上下文来源，整块可点击定位原 AI 回复。 */
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: 8px;
+  width: 100%;
+  min-height: 44px;
+  padding: 0 0 0 12px;
+  border: 0;
+  border-left: 3px solid #cbd5e1;
+  border-radius: 0;
+  background: transparent;
+  color: #334155;
+  box-shadow: none;
+  text-align: left;
+}
+
+.message-quote-preview:hover,
+.message-quote-preview:focus-visible {
+  border-left-color: #0d7cf8;
+  background: #f8fbff;
+  outline: none;
+}
+
+.message-quote-preview svg {
+  margin-top: 3px;
+  color: #64748b;
+}
+
+.message-quote-preview span {
+  min-width: 0;
+  overflow: hidden;
+  color: #334155;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.55;
+}
+
 .bubble p,
 .markdown-content p {
   white-space: pre-wrap;
@@ -1558,6 +1606,93 @@ textarea:focus {
   display: grid;
   gap: 6px;
   min-width: 0;
+}
+
+.composer-quote-card {
+  /* 输入区引用卡片只承载“当前将随下一条消息发送的引用”，不把引用文本写入 textarea。 */
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  width: min(520px, 100%);
+  min-height: 42px;
+  padding: 8px 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #f1f5f9;
+  color: #1f2937;
+  cursor: pointer;
+}
+
+.composer-quote-card:hover,
+.composer-quote-card:focus-visible {
+  border-color: #bfdbfe;
+  background: #eef6ff;
+  outline: none;
+}
+
+.composer-quote-content {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.composer-quote-close {
+  /* 取消引用按钮固定为红色圆形叉号，避免图标组件渲染异常时出现空白圆。 */
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  padding: 0;
+  border: 1px solid #fecaca;
+  border-radius: 50%;
+  background: #fff5f5;
+  color: #dc2626;
+  cursor: pointer;
+}
+
+.composer-quote-close span,
+.composer-quote-close span::before,
+.composer-quote-close span::after {
+  /* 红叉用伪元素绘制，两条线都以按钮圆心为中心旋转，保证视觉中心不偏移。 */
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: block;
+  width: 11px;
+  height: 2px;
+  border-radius: 999px;
+  background: currentColor;
+  content: "";
+  transform-origin: center;
+}
+
+.composer-quote-close span {
+  width: 0;
+  height: 0;
+  background: transparent;
+  transform: translate(-50%, -50%);
+}
+
+.composer-quote-close span::before {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.composer-quote-close span::after {
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+.composer-quote-close:hover,
+.composer-quote-close:focus-visible {
+  border-color: #ef4444;
+  background: #fee2e2;
+  color: #b91c1c;
+  outline: none;
 }
 
 .composer textarea {
