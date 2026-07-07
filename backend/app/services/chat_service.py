@@ -53,6 +53,7 @@ class ChatService:
         enable_rewrite: bool = True,
         created_by: str | None = None,
         context_created_by: str | None = None,
+        hot_answer: str | None = None,
     ) -> AsyncGenerator[str, None]:
         started = time.perf_counter()
         conversation: Conversation | None = None
@@ -63,7 +64,17 @@ class ChatService:
                 db, conversation_id, question, created_by, context_created_by
             )
             await self._auto_title_conversation_if_needed(db, conversation, question)
+
+            # 高频问题命中：直接使用 Java 传入的预设答案，跳过 RAG 检索与模型生成
+            if hot_answer is not None and hot_answer.strip():
+                async for event in self._stream_hot_answer(
+                    db, conversation, question, hot_answer, started
+                ):
+                    yield event
+                return
+
             conversation_summary = (conversation.summary or "").strip()
+
             context_state = self._normalize_context_state(getattr(conversation, "context_state", None))
             summary_seed = []
             if not conversation_summary:
@@ -414,6 +425,7 @@ class ChatService:
         enable_rewrite: bool = True,
         created_by: str | None = None,
         context_created_by: str | None = None,
+        hot_answer: str | None = None,
     ) -> dict:
         answer = ""
         citations = []
@@ -431,7 +443,9 @@ class ChatService:
             enable_rewrite,
             created_by,
             context_created_by,
+            hot_answer,
         ):
+
             if event.startswith("event: delta"):
                 payload = json.loads(event.split("data: ", 1)[1])
                 answer += payload.get("content", "")
@@ -579,6 +593,111 @@ class ChatService:
         await db.commit()
         await db.refresh(conversation)
         return conversation
+
+    async def _stream_hot_answer(
+        self,
+        db: AsyncSession,
+        conversation: Conversation,
+        question: str,
+        hot_answer: str,
+        started: float,
+    ) -> AsyncGenerator[str, None]:
+        """高频问题命中：直接返回答案，只写入会话/消息，不检索、不调模型。"""
+        answer = self._sanitize_answer(hot_answer)
+        user_message = ConversationMessage(
+            conversation_id=conversation.id,
+            role="user",
+            content=question,
+            rewritten_query=question,
+        )
+        db.add(user_message)
+        await db.commit()
+        await db.refresh(user_message)
+
+        assistant_message = ConversationMessage(
+            conversation_id=conversation.id,
+            role="assistant",
+            content=answer,
+            model_name=self.settings.chat_model,
+        )
+        db.add(assistant_message)
+        await db.commit()
+        await db.refresh(assistant_message)
+
+        yield self._sse(
+            "message_start",
+            {
+                "conversation_id": str(conversation.id),
+                "conversation_title": conversation.title,
+                "user_message_id": str(user_message.id),
+                "assistant_message_id": str(assistant_message.id),
+                "history_count": 0,
+                "history_rounds": 0,
+                "has_summary": bool((conversation.summary or "").strip()),
+                "context_resolution": {
+                    "intent": "hot_question",
+                    "resolved_query": question,
+                    "uses_history": False,
+                    "reason": "hot question preset answer",
+                },
+            },
+        )
+        yield self._sse("answer_cache", {"hit": True, "type": "hot_question"})
+        async for event in self._stream_delta_text(answer):
+            yield event
+
+        yield self._sse("citations", {"citations": []})
+        yield self._sse("suggested_questions", {"questions": []})
+
+        latency_ms = int((time.perf_counter() - started) * 1000)
+        assistant_message.latency_ms = latency_ms
+        retrieval = {
+            "raw_query": question,
+            "original_query": question,
+            "resolved_query": question,
+            "retrieval_query": question,
+            "recall_results": [],
+            "rerank_results": [],
+            "final_context": [],
+            "answer_context": [],
+            "citations": [],
+            "retrieval_options": {"hot_question": True},
+            "direct_qa_hit": False,
+            "hot_question_hit": True,
+        }
+        assistant_message.retrieval_trace = to_jsonable(retrieval)
+        assistant_message.citations = []
+        assistant_message.suggested_questions = []
+        db.add(
+            RetrievalLog(
+                conversation_id=conversation.id,
+                message_id=user_message.id,
+                raw_query=question,
+                rewritten_query=question,
+                recall_results=[],
+                rerank_results=[],
+                final_context=[],
+                citations=[],
+                suggested_questions=[],
+                answer=answer,
+                model_name=self.settings.chat_model,
+                embedding_model=self.settings.embedding_model,
+                rerank_model=self.settings.rerank_model,
+                latency_ms=latency_ms,
+            )
+        )
+        now = datetime.now(timezone.utc)
+        await db.execute(
+            update(Conversation)
+            .where(Conversation.id == conversation.id)
+            .values(
+                message_count=Conversation.message_count + 2,
+                last_message_at=now,
+                updated_at=now,
+            )
+        )
+        await db.commit()
+        yield self._sse("message_end", {"message_id": str(assistant_message.id), "latency_ms": latency_ms})
 
     async def _ensure_owner_context(
         self,

@@ -117,6 +117,8 @@ class InternalChatRequest(BaseModel):
     user_context: UserContext
     access_scope: AccessScope
     options: ChatOptions = Field(default_factory=ChatOptions)
+    hot_answer: str | None = Field(default=None, description="高频问题预设答案，命中时直接返回，不再走 RAG 检索")
+
 
     @field_validator("question")
     @classmethod
@@ -367,11 +369,13 @@ async def stream_chat(
                 enable_rewrite=payload.options.enable_rewrite,
                 created_by=_conversation_owner_id(current_user),
                 context_created_by=current_user.user_id,
+                hot_answer=payload.hot_answer,
             )
         ),
         media_type="text/event-stream",
         headers={"Cache-Control": "no-cache, no-transform", "Connection": "keep-alive", "X-Accel-Buffering": "no"},
     )
+
 
 
 @router.post("/chat")
@@ -393,6 +397,7 @@ async def chat(
         enable_rewrite=payload.options.enable_rewrite,
         created_by=_conversation_owner_id(current_user),
         context_created_by=current_user.user_id,
+        hot_answer=payload.hot_answer,
     )
     return ok(result)
 
@@ -641,7 +646,10 @@ def _can_access_conversation(conversation: Conversation, current_user: CurrentUs
 
 
 def _conversation_owner_id(current_user: CurrentUser) -> str:
-    return current_user.id
+    # 与 Java 后管用户表关联时，必须使用 Java 侧的 user_id（Sa-Token JWT 中的 userId），
+    # 而不是 Python 为当前登录会话生成的 uuid5 id。
+    return current_user.user_id
+
 
 
 def _serialize_conversation(item: Conversation, open_feedback_count: int = 0) -> dict:
