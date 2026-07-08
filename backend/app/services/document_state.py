@@ -2,7 +2,7 @@ from typing import Any
 
 
 LEGACY_OFFICE_EXTENSIONS = {".doc", ".xls"}
-ARCHIVE_EXTENSIONS = {".zip", ".rar"}
+ARCHIVE_EXTENSIONS = {".zip"}
 BLOCKED_INDEX_STATUSES = {
     "needs_conversion",
     "needs_extraction",

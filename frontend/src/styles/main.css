@@ -1941,20 +1941,68 @@ textarea:focus {
 
 .feedback-options {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(136px, 1fr));
-  gap: 8px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .feedback-options label {
   display: flex;
   align-items: center;
+  justify-content: flex-start;
   gap: 8px;
-  min-height: 38px;
-  padding: 8px 10px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  height: 46px;
+  min-height: 46px;
+  max-height: 46px;
+  padding: 0 10px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: #f8fbff;
   font-weight: 700;
+  line-height: 1.2;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.feedback-options input {
+  appearance: auto;
+  flex: 0 0 auto;
+  width: 16px;
+  min-width: 16px;
+  max-width: 16px;
+  height: 16px;
+  min-height: 16px;
+  max-height: 16px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  box-shadow: none;
+  accent-color: var(--primary);
+}
+
+.feedback-options label span {
+  display: block;
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 100%;
+  color: #172033;
+  font-size: 13px;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: normal;
+}
+
+@media (max-width: 640px) {
+  .feedback-options {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 .feedback-description {
@@ -3130,6 +3178,17 @@ button.danger:hover {
   color: #0e7490;
   font-size: 12px;
   font-weight: 800;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.archive-source-note {
+  display: block;
+  max-width: 260px;
+  color: #1d4ed8;
+  font-size: 12px;
+  font-weight: 700;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

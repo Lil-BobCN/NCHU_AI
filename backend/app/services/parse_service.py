@@ -32,7 +32,7 @@ class ParsedDocument:
 
 class ParseService:
     IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".bmp", ".tif", ".tiff"}
-    CONTAINER_EXTENSIONS = {".zip", ".rar"}
+    CONTAINER_EXTENSIONS = {".zip"}
 
     def __init__(self) -> None:
         self.settings = get_settings()

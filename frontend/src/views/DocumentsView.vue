@@ -145,6 +145,9 @@
                       {{ documentBatchBadge(doc) }}
                     </span>
                   </div>
+                  <small v-if="archiveSourceLabel(doc)" class="archive-source-note" :title="archiveSourceTitle(doc)">
+                    {{ archiveSourceLabel(doc) }}
+                  </small>
                 </div>
               </td>
               <td>{{ doc.parse_quality_score || '-' }}</td>
@@ -283,6 +286,7 @@
           <div class="batch-summary-grid">
             <span>成功 {{ batchSummary.succeeded }}</span>
             <span>失败 {{ batchSummary.failed }}</span>
+            <span>处理中 {{ batchSummary.active }}</span>
             <span>跳过 {{ batchSummary.skipped }}</span>
           </div>
           <footer>
@@ -515,6 +519,7 @@ type BatchTaskItem = {
   documentId: string
   title: string
   fileName: string
+  documentStatus: string
   status: BatchItemStatus
   progress: number
   message: string
@@ -537,6 +542,7 @@ type BatchSummary = {
   label: string
   succeeded: number
   failed: number
+  active: number
   skipped: number
 }
 
@@ -593,11 +599,10 @@ const SUPPORTED_UPLOAD_EXTENSIONS = [
   '.bmp',
   '.tif',
   '.tiff',
-  '.zip',
-  '.rar'
+  '.zip'
 ]
 const uploadAccept = SUPPORTED_UPLOAD_EXTENSIONS.join(',')
-const supportedUploadFormatText = 'PDF、Word、Excel、TXT、Markdown、图片（JPG/PNG/BMP/TIF/TIFF）、ZIP/RAR'
+const supportedUploadFormatText = 'PDF、Word、Excel、TXT、Markdown、图片（JPG/PNG/BMP/TIF/TIFF）、ZIP'
 
 const documentStatusOptions = [
   { value: 'uploaded', label: '已上传' },
@@ -1068,10 +1073,12 @@ function openBatchTask(data: any, fallbackAction: string) {
       documentId: String(item.document_id || ''),
       title: String(item.title || item.file_name || item.document_id || ''),
       fileName: String(item.file_name || ''),
+      documentStatus: String(item.document_status || ''),
       status: normalizeBatchItemStatus(item.status || 'queued'),
       progress: item.status === 'skipped' ? 100 : 0,
       message: String(item.message || '等待后台调度'),
-      errorMessage: String(item.error_message || '')
+      errorMessage: String(item.error_message || ''),
+      jobType: String(item.job_type || '')
     })).filter((item: BatchTaskItem) => item.documentId)
   }
   batchSummary.value = null
@@ -1092,7 +1099,7 @@ function syncBatchItemFromJobs(documentId: string, jobs: any[]) {
   if (!item) return
   const relevant = jobs.filter((job) => job?.params?.batch_id === batch.id)
   if (!relevant.length) return
-  const primaryType = batch.action === 'batch_reparse' ? 'parse' : batch.action === 'batch_rechunk' ? 'chunk' : ''
+  const primaryType = item.jobType || (batch.action === 'batch_reparse' ? 'parse' : batch.action === 'batch_rechunk' ? 'chunk' : '')
   const primary = relevant.find((job) => job.status === 'failed') ||
     relevant.find((job) => job.job_type === primaryType) ||
     relevant[0]
@@ -1116,6 +1123,7 @@ function updateBatchCompletion() {
     label: batch.label,
     succeeded: counts.succeeded,
     failed: counts.failed,
+    active: counts.active,
     skipped: counts.skipped
   }
 }
@@ -1127,12 +1135,19 @@ function isBatchComplete(batch: BatchTask) {
 function summarizeBatch(batch: BatchTask | null) {
   const counts = { succeeded: 0, failed: 0, skipped: 0, active: 0 }
   for (const item of batch?.items || []) {
-    if (item.status === 'succeeded') counts.succeeded += 1
+    // 旧任务里压缩包可能只有“待解压”的 parse succeeded，前端统计不能把这种占位解析算作批量成功。
+    if (isBatchItemSemanticSuccess(item)) counts.succeeded += 1
     else if (item.status === 'failed') counts.failed += 1
     else if (item.status === 'skipped') counts.skipped += 1
     else counts.active += 1
   }
   return counts
+}
+
+function isBatchItemSemanticSuccess(item: BatchTaskItem) {
+  if (item.status !== 'succeeded') return false
+  if (item.jobType === 'parse' && item.documentStatus === 'needs_extraction') return false
+  return true
 }
 
 function filterBatchDocuments(batch: BatchTask, status = '') {
@@ -1471,6 +1486,27 @@ function documentBatchTitle(doc: any) {
   return [params.batch_label || params.task_label, params.batch_id].filter(Boolean).join(' · ')
 }
 
+function archiveSourceName(doc: any) {
+  const source = String(doc?.source_url || '')
+  if (!source.startsWith('archive://')) return ''
+  const name = source.slice('archive://'.length)
+  // 后端用 archive:// 作为“由压缩包解压导入”的轻量标记；这里仅提取原压缩包名称用于列表展示。
+  try {
+    return decodeURIComponent(name).trim()
+  } catch {
+    return name.trim()
+  }
+}
+
+function archiveSourceLabel(doc: any) {
+  const name = archiveSourceName(doc)
+  return name ? `通过解压导入：${name}` : ''
+}
+
+function archiveSourceTitle(doc: any) {
+  return archiveSourceLabel(doc)
+}
+
 function shortBatchId(batchId: string) {
   const value = String(batchId || '')
   if (value.length <= 14) return value
@@ -1526,7 +1562,7 @@ function canConvertDocument(doc: any) {
 
 function canExtractDocument(doc: any) {
   const ext = String(doc?.file_ext || '').toLowerCase()
-  return ['.zip', '.rar'].includes(ext) && ['needs_extraction', 'failed'].includes(String(doc?.status || ''))
+  return ext === '.zip' && ['uploaded', 'needs_extraction', 'failed'].includes(String(doc?.status || ''))
 }
 
 function uploadFileExtension(fileName: string) {
@@ -1558,6 +1594,7 @@ function clearUnsupportedUploadNotice() {
 
 function uploadStatusLabel(doc: any) {
   const status = String(doc?.status || '')
+  if (status === 'uploaded' && isArchiveDocument(doc)) return '已上传'
   if (status === 'indexed') return '处理完成'
   if (status === 'failed') return '处理失败'
   if (status === 'needs_conversion') return '待转换'
@@ -1569,6 +1606,7 @@ function uploadStatusLabel(doc: any) {
 }
 
 function isFinalUploadStatus(doc: any) {
+  if (String(doc?.status || '') === 'uploaded') return isArchiveDocument(doc)
   return [
     'indexed',
     'failed',
@@ -1578,6 +1616,10 @@ function isFinalUploadStatus(doc: any) {
     'converted',
     'extracted'
   ].includes(String(doc?.status || ''))
+}
+
+function isArchiveDocument(doc: any) {
+  return String(doc?.file_ext || '').toLowerCase() === '.zip'
 }
 
 function syncUploadStatuses() {
