@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, Field, field_validator
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -49,6 +49,25 @@ class QaTagUpdate(BaseModel):
         if value not in {"enabled", "disabled"}:
             raise ValueError("标签状态不正确")
         return value
+
+
+class QaTagBatchDelete(BaseModel):
+    tag_ids: list[str] = Field(min_length=1, max_length=200)
+
+    @field_validator("tag_ids")
+    @classmethod
+    def dedupe_tag_ids(cls, value: list[str]) -> list[str]:
+        ids: list[str] = []
+        seen: set[str] = set()
+        for item in value:
+            tag_id = str(item or "").strip()
+            if not tag_id or tag_id in seen:
+                continue
+            seen.add(tag_id)
+            ids.append(tag_id)
+        if not ids:
+            raise ValueError("请选择要删除的标签")
+        return ids
 
 
 @router.get("")
@@ -154,6 +173,27 @@ async def update_qa_tag_status(
     return ok(serialize_qa_tag(tag, usage_counts.get(tag.name, 0)))
 
 
+@router.post("/batch/delete")
+async def batch_delete_qa_tags(
+    payload: QaTagBatchDelete,
+    db: AsyncSession = Depends(get_db),
+    _: Admin = Depends(get_current_admin),
+):
+    rows = await db.execute(select(QaTag).where(QaTag.id.in_(payload.tag_ids)))
+    tags = list(rows.scalars())
+    found_ids = {str(tag.id) for tag in tags}
+    missing_ids = [tag_id for tag_id in payload.tag_ids if tag_id not in found_ids]
+    if missing_ids:
+        raise HTTPException(status_code=404, detail=f"标签不存在：{', '.join(missing_ids[:3])}")
+    tag_names = [tag.name for tag in tags]
+    # 批量删除必须和单个删除保持一致：删除标签库记录时，同步清理 QA 对上的标签引用。
+    await remove_tags_from_qa_pairs(db, tag_names)
+    for tag in tags:
+        await db.delete(tag)
+    await db.commit()
+    return ok({"ids": payload.tag_ids, "count": len(payload.tag_ids), "names": tag_names})
+
+
 @router.delete("/{tag_id}")
 async def delete_qa_tag(
     tag_id: str,
@@ -205,11 +245,18 @@ async def rename_tag_in_qa_pairs(db: AsyncSession, old_name: str, new_name: str)
 
 
 async def remove_tag_from_qa_pairs(db: AsyncSession, tag_name: str) -> None:
+    await remove_tags_from_qa_pairs(db, [tag_name])
+
+
+async def remove_tags_from_qa_pairs(db: AsyncSession, tag_names: list[str]) -> None:
+    remove_names = {name for name in tag_names if name}
+    if not remove_names:
+        return
     rows = await db.execute(
-        select(QaPair).where(QaPair.deleted_at.is_(None), QaPair.tags.contains([tag_name]))
+        select(QaPair).where(QaPair.deleted_at.is_(None), QaPair.tags.overlap(list(remove_names)))
     )
     for qa in rows.scalars():
-        qa.tags = [tag for tag in qa.tags or [] if tag != tag_name]
+        qa.tags = [tag for tag in qa.tags or [] if tag not in remove_names]
 
 
 def serialize_qa_tag(tag: QaTag, usage_count: int = 0) -> dict:

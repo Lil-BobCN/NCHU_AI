@@ -220,9 +220,27 @@
             </div>
 
             <p v-if="tagManagerError" class="error">{{ tagManagerError }}</p>
+            <div class="qa-tag-batch-bar">
+              <span>已选 {{ selectedManagedTagCount }} 个标签</span>
+              <button type="button" :disabled="!selectedManagedTagCount || tagSaving" @click="requestBatchRemoveTags">
+                批量删除
+              </button>
+              <button type="button" :disabled="!selectedManagedTagCount || tagSaving" @click="clearManagedTagSelection">
+                清空选择
+              </button>
+            </div>
 
             <div class="qa-tag-table" role="table" aria-label="标签管理列表">
               <div class="qa-tag-table-head" role="row">
+                <span class="qa-tag-select-cell">
+                  <input
+                    type="checkbox"
+                    :checked="allFilteredTagsSelected"
+                    :disabled="!filteredTagLibrary.length || tagSaving"
+                    aria-label="选择当前筛选结果中的全部标签"
+                    @change="toggleAllFilteredTags"
+                  />
+                </span>
                 <span>标签名称</span>
                 <button type="button" class="qa-sort-title" @click="toggleUsageSort">
                   使用次数 <span>{{ usageSortArrow }}</span>
@@ -233,6 +251,15 @@
                 <span>操作</span>
               </div>
               <div v-for="tag in filteredTagLibrary" :key="tag.id" class="qa-tag-table-row" role="row">
+                <span class="qa-tag-select-cell">
+                  <input
+                    type="checkbox"
+                    :checked="isManagedTagSelected(tag.id)"
+                    :disabled="tagSaving"
+                    :aria-label="`选择标签 ${tag.name}`"
+                    @change="toggleManagedTagSelection(tag.id)"
+                  />
+                </span>
                 <span>
                   <input
                     v-if="editingTagId === tag.id"
@@ -272,6 +299,19 @@
         :busy="tagSaving"
         @cancel="cancelRemoveTag"
         @confirm="confirmRemoveTag"
+      />
+
+      <ConfirmDialog
+        v-if="tagBatchDeleteConfirm"
+        title="确认批量删除标签"
+        :message="`将删除已选 ${selectedManagedTagCount} 个标签，并从已有问答对中同步移除这些标签。`"
+        :subject-label="`${selectedManagedTagCount} 个标签`"
+        :detail="batchDeleteTagDetail"
+        prompt="请确认是否继续批量删除"
+        confirm-text="确认批量删除"
+        :busy="tagSaving"
+        @cancel="cancelBatchRemoveTags"
+        @confirm="confirmBatchRemoveTags"
       />
     </div>
   </AppShell>
@@ -421,11 +461,29 @@ const tagSaving = ref(false)
 const editingTagId = ref('')
 const editingTagName = ref('')
 const tagDeleteTarget = ref<QaTag | null>(null)
+const selectedManagedTagIds = ref<Set<string>>(new Set())
+const tagBatchDeleteConfirm = ref(false)
 const usageSortDirection = ref<SortDirection>('asc')
 const timeSortDirection = ref<SortDirection>('desc')
 
 const usageSortArrow = computed(() => (usageSortDirection.value === 'asc' ? '↑' : '↓'))
 const timeSortArrow = computed(() => (timeSortDirection.value === 'asc' ? '↑' : '↓'))
+const selectedManagedTagCount = computed(() => selectedManagedTagIds.value.size)
+const selectedManagedTags = computed(() =>
+  tagLibrary.value.filter((tag) => selectedManagedTagIds.value.has(tag.id))
+)
+const allFilteredTagsSelected = computed(
+  () =>
+    filteredTagLibrary.value.length > 0 &&
+    filteredTagLibrary.value.every((tag) => selectedManagedTagIds.value.has(tag.id))
+)
+const batchDeleteTagDetail = computed(() => {
+  const names = selectedManagedTags.value.map((tag) => tag.name)
+  if (!names.length) return '取消不会影响当前标签；确认删除后，标签库和已关联问答对会同步更新。'
+  const preview = names.slice(0, 8).join('、')
+  const suffix = names.length > 8 ? ` 等 ${names.length} 个标签` : ''
+  return `将删除：${preview}${suffix}。取消不会影响当前标签；确认删除后不可恢复。`
+})
 
 const filteredTagLibrary = computed(() => {
   // 标签管理弹窗先按搜索关键字过滤，再执行“使用次数 + 创建时间”的组合排序。
@@ -494,6 +552,7 @@ async function load() {
 async function loadTagLibrary() {
   try {
     tagLibrary.value = unwrap<QaTag[]>(await api.get('/qa-tags'))
+    reconcileManagedTagSelection()
   } catch (err) {
     tagManagerError.value = apiErrorMessage(err, '加载标签失败')
   }
@@ -718,6 +777,8 @@ function closeTagManager() {
   tagSearchDraft.value = ''
   newTagName.value = ''
   tagManagerError.value = ''
+  clearManagedTagSelection()
+  tagBatchDeleteConfirm.value = false
   cancelTagEdit()
 }
 
@@ -764,6 +825,53 @@ function cancelRemoveTag() {
   tagDeleteTarget.value = null
 }
 
+function isManagedTagSelected(tagId: string) {
+  return selectedManagedTagIds.value.has(tagId)
+}
+
+function setManagedTagSelection(ids: string[]) {
+  selectedManagedTagIds.value = new Set(ids)
+}
+
+function toggleManagedTagSelection(tagId: string) {
+  const next = new Set(selectedManagedTagIds.value)
+  if (next.has(tagId)) next.delete(tagId)
+  else next.add(tagId)
+  selectedManagedTagIds.value = next
+}
+
+function toggleAllFilteredTags() {
+  const visibleIds = filteredTagLibrary.value.map((tag) => tag.id)
+  if (!visibleIds.length) return
+  const next = new Set(selectedManagedTagIds.value)
+  if (allFilteredTagsSelected.value) {
+    for (const id of visibleIds) next.delete(id)
+  } else {
+    for (const id of visibleIds) next.add(id)
+  }
+  selectedManagedTagIds.value = next
+}
+
+function clearManagedTagSelection() {
+  setManagedTagSelection([])
+}
+
+function reconcileManagedTagSelection() {
+  const availableIds = new Set(tagLibrary.value.map((tag) => tag.id))
+  setManagedTagSelection([...selectedManagedTagIds.value].filter((id) => availableIds.has(id)))
+}
+
+function requestBatchRemoveTags() {
+  if (!selectedManagedTagCount.value || tagSaving.value) return
+  tagBatchDeleteConfirm.value = true
+  tagManagerError.value = ''
+}
+
+function cancelBatchRemoveTags() {
+  if (tagSaving.value) return
+  tagBatchDeleteConfirm.value = false
+}
+
 async function saveTagName(tag: QaTag) {
   const name = normalizeTagName(editingTagName.value)
   if (!name || tagSaving.value) return
@@ -798,6 +906,24 @@ async function confirmRemoveTag() {
   }
 }
 
+async function confirmBatchRemoveTags() {
+  const tags = selectedManagedTags.value
+  if (!tags.length || tagSaving.value) return
+  tagSaving.value = true
+  tagManagerError.value = ''
+  try {
+    await api.post('/qa-tags/batch/delete', { tag_ids: tags.map((tag) => tag.id) })
+    removeSelectedTagNames(tags.map((tag) => tag.name))
+    tagBatchDeleteConfirm.value = false
+    clearManagedTagSelection()
+    await refreshTagsAfterManagerChange()
+  } catch (err) {
+    tagManagerError.value = apiErrorMessage(err, '批量删除标签失败')
+  } finally {
+    tagSaving.value = false
+  }
+}
+
 function replaceSelectedTagName(oldName: string, newName: string) {
   // 标签重命名成功后，同步修正当前新增/编辑表单中的已选标签，避免界面继续显示旧名称。
   const replace = (tags: string[]) => normalizeSelectedTags(tags.map((tag) => (tag === oldName ? newName : tag)))
@@ -807,7 +933,13 @@ function replaceSelectedTagName(oldName: string, newName: string) {
 
 function removeSelectedTagName(name: string) {
   // 标签删除成功后，当前未提交表单中的同名已选标签也要立即移除，保持界面状态和标签库一致。
-  const remove = (tags: string[]) => tags.filter((tag) => tag !== name)
+  removeSelectedTagNames([name])
+}
+
+function removeSelectedTagNames(names: string[]) {
+  // 批量删除和单个删除共用前端清理逻辑，避免表单里继续残留已不存在的标签。
+  const removeNames = new Set(names)
+  const remove = (tags: string[]) => tags.filter((tag) => !removeNames.has(tag))
   selectedTags.value = remove(selectedTags.value)
   if (editDialog.value) editDialog.value.selectedTags = remove(editDialog.value.selectedTags)
 }

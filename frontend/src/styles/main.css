@@ -817,6 +817,33 @@ textarea:focus {
   font-weight: 800;
 }
 
+.qa-tag-batch-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  color: #52627a;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.qa-tag-batch-bar button {
+  min-height: 34px;
+  padding: 6px 10px;
+  font-size: 13px;
+}
+
+.qa-tag-batch-bar button:first-of-type {
+  border-color: #ffd0ca;
+  background: #fff7f6;
+  color: #b42318;
+}
+
+.qa-tag-batch-bar button:first-of-type:hover:not(:disabled) {
+  border-color: #ffb4aa;
+  background: #fff1ef;
+}
+
 .qa-tag-create {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -834,10 +861,10 @@ textarea:focus {
 .qa-tag-table-head,
 .qa-tag-table-row {
   display: grid;
-  grid-template-columns: minmax(180px, 1fr) 112px 168px 150px;
+  grid-template-columns: 34px minmax(180px, 1fr) 112px 168px 150px;
   gap: 10px;
   align-items: center;
-  min-width: 640px;
+  min-width: 700px;
   padding: 10px 12px;
 }
 
@@ -878,6 +905,20 @@ textarea:focus {
   color: var(--primary);
   font-size: 14px;
   line-height: 1;
+}
+
+.qa-tag-select-cell {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.qa-tag-select-cell input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  padding: 0;
+  flex: none;
 }
 
 .qa-tag-table-row {
