@@ -407,8 +407,132 @@ textarea:focus {
   white-space: nowrap;
 }
 
+.qa-create-button {
+  min-width: 118px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  line-height: 1.2;
+}
+
 .qa-tag-field {
   align-content: start;
+}
+
+.qa-tag-field-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.qa-tag-field-head strong {
+  color: #172033;
+}
+
+.qa-tag-field-head button {
+  min-height: 32px;
+  padding: 6px 10px;
+  color: var(--primary);
+  border-color: #cfe6ff;
+  background: #f4f9ff;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.qa-tag-selector {
+  display: grid;
+  gap: 10px;
+}
+
+.qa-tag-selected-block,
+.qa-tag-option-block {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid var(--line-soft);
+  border-radius: 8px;
+  background: #f8fbff;
+}
+
+.qa-tag-selected-block > strong,
+.qa-tag-option-block > strong {
+  color: #52627a;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.qa-tag-option-search {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+
+.qa-tag-option-search input {
+  min-height: 34px;
+  padding: 7px 10px;
+}
+
+.qa-tag-option-search button {
+  min-height: 34px;
+  padding: 7px 12px;
+  color: var(--primary);
+  border-color: #cfe6ff;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.qa-tag-checkbox-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
+  gap: 8px 10px;
+}
+
+.qa-tag-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  min-height: 30px;
+  padding: 4px 8px;
+  border: 1px solid #dbeafe;
+  border-radius: 8px;
+  background: #fff;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.qa-edit-body .qa-tag-checkbox,
+.qa-tag-checkbox {
+  grid-template-columns: none;
+  display: inline-flex;
+}
+
+.qa-tag-checkbox:hover {
+  border-color: #9bc8ff;
+  background: #f4f9ff;
+}
+
+.qa-tag-checkbox input {
+  width: 15px;
+  height: 15px;
+  padding: 0;
+  flex: none;
+  accent-color: var(--primary);
+}
+
+.qa-tag-checkbox span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .tag-preview {
@@ -496,7 +620,8 @@ textarea:focus {
 .qa-toolbar {
   display: flex;
   justify-content: flex-end;
-  align-items: end;
+  align-items: center;
+  gap: 14px;
   margin-left: auto;
 }
 
@@ -508,7 +633,6 @@ textarea:focus {
   font-weight: 700;
 }
 
-.qa-toolbar select,
 .qa-edit-body input,
 .qa-edit-body select,
 .qa-edit-body textarea {
@@ -521,8 +645,128 @@ textarea:focus {
   outline: 0;
 }
 
-.qa-toolbar select {
-  min-width: 180px;
+.qa-filter-field {
+  display: grid;
+  gap: 0;
+  min-width: 188px;
+  color: #172033;
+  font-weight: 700;
+}
+
+.qa-filter-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.qa-filter-select {
+  position: relative;
+  min-width: 188px;
+}
+
+.qa-filter-trigger {
+  width: 100%;
+  min-height: 42px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border: 1px solid #cfe6ff;
+  border-radius: 8px;
+  background: #fff;
+  color: #172033;
+  box-shadow: none;
+  font-weight: 700;
+  text-align: left;
+}
+
+.qa-filter-trigger:hover,
+.qa-filter-trigger[aria-expanded="true"] {
+  border-color: #8fc1ff;
+  background: #f8fbff;
+  box-shadow: 0 0 0 4px rgba(13, 124, 248, 0.08);
+}
+
+.qa-filter-trigger span:first-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.qa-filter-caret {
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid var(--primary);
+  border-bottom: 2px solid var(--primary);
+  transform: translateY(-2px) rotate(45deg);
+  transition: transform 0.15s ease;
+}
+
+.qa-filter-trigger[aria-expanded="true"] .qa-filter-caret {
+  transform: translateY(2px) rotate(225deg);
+}
+
+.qa-filter-menu {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 20;
+  max-height: 260px;
+  overflow: auto;
+  padding: 6px;
+  border: 1px solid #cfe6ff;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.14);
+}
+
+.qa-filter-option {
+  width: 100%;
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 7px 10px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #172033;
+  box-shadow: none;
+  font-weight: 700;
+  text-align: left;
+}
+
+.qa-filter-option:hover {
+  background: #f4f9ff;
+  color: var(--primary);
+}
+
+.qa-filter-option.active {
+  background: var(--primary);
+  color: #fff;
+}
+
+.qa-toolbar-manage {
+  min-height: 42px;
+  padding: 10px 16px;
+  border-color: #cfe6ff;
+  background: #f4f9ff;
+  color: var(--primary);
+  font-weight: 800;
+}
+
+.qa-edit-body .qa-tag-checkbox input {
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  flex: none;
+  border-radius: 4px;
 }
 
 .qa-edit-dialog {
@@ -539,6 +783,162 @@ textarea:focus {
 
 .qa-edit-body {
   gap: 14px;
+}
+
+.qa-tag-manager {
+  width: min(980px, 100%);
+  max-height: min(760px, calc(100vh - 44px));
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.22);
+}
+
+.qa-tag-manager-body {
+  gap: 12px;
+}
+
+.qa-tag-manager-tools {
+  display: grid;
+  grid-template-columns: minmax(180px, 260px) auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+}
+
+.qa-tag-manager-search {
+  min-height: 42px;
+  padding: 9px 18px;
+  color: var(--primary);
+  border-color: #cfe6ff;
+  background: #fff;
+  font-weight: 800;
+}
+
+.qa-tag-create {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+
+.qa-tag-table {
+  min-width: 0;
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.qa-tag-table-head,
+.qa-tag-table-row {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) 112px 168px 150px;
+  gap: 10px;
+  align-items: center;
+  min-width: 640px;
+  padding: 10px 12px;
+}
+
+.qa-tag-table-head {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  color: #52627a;
+  background: #f6faff;
+  border-bottom: 1px solid var(--line);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.qa-sort-title {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 4px;
+  min-height: auto;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: #52627a;
+  font-size: 13px;
+  font-weight: 800;
+  text-align: left;
+}
+
+.qa-sort-title:hover {
+  color: var(--primary);
+  background: transparent;
+}
+
+.qa-sort-title span {
+  color: var(--primary);
+  font-size: 14px;
+  line-height: 1;
+}
+
+.qa-tag-table-row {
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.qa-tag-table-row:last-child {
+  border-bottom: 0;
+}
+
+.qa-tag-table-row:hover {
+  background: #f8fbff;
+}
+
+.qa-tag-table-row > span {
+  min-width: 0;
+}
+
+.qa-tag-table-row strong {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  color: #172033;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.qa-tag-edit-input {
+  height: 36px;
+  padding: 7px 9px;
+}
+
+.qa-tag-row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 6px;
+}
+
+.qa-tag-row-actions button {
+  min-height: 32px;
+  padding: 6px 9px;
+  font-size: 13px;
+}
+
+.qa-tag-row-actions .success {
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+  color: #15803d;
+}
+
+.qa-tag-row-actions .success:hover {
+  border-color: #86efac;
+  background: #dcfce7;
+  color: #166534;
+}
+
+.qa-tag-row-actions .danger {
+  border-color: #ffd0ca;
+  background: #fff7f6;
+  color: #b42318;
 }
 
 .qa-list-panel {
@@ -2931,6 +3331,13 @@ button.danger:hover {
   .qa-toolbar label,
   .qa-actions {
     width: 100%;
+  }
+
+  .qa-filter-field,
+  .qa-filter-select,
+  .qa-toolbar-manage {
+    width: 100%;
+    min-width: 0;
   }
 
   .qa-actions {

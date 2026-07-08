@@ -149,6 +149,27 @@ CREATE INDEX IF NOT EXISTS idx_qa_pairs_status ON qa_pairs(status);
 CREATE INDEX IF NOT EXISTS idx_qa_pairs_source_document_id ON qa_pairs(source_document_id);
 CREATE INDEX IF NOT EXISTS idx_qa_pairs_question_trgm ON qa_pairs USING GIN(question gin_trgm_ops);
 
+CREATE TABLE IF NOT EXISTS qa_tags (
+  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  name varchar(64) NOT NULL,
+  normalized_name varchar(64) NOT NULL UNIQUE,
+  status varchar(32) NOT NULL DEFAULT 'enabled',
+  created_by uuid NULL,
+  updated_by uuid NULL,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_qa_tags_status ON qa_tags(status);
+INSERT INTO qa_tags(name, normalized_name, status)
+SELECT tag, lower(tag), 'enabled'
+FROM (
+  SELECT DISTINCT btrim(unnest(tags)) AS tag
+  FROM qa_pairs
+  WHERE deleted_at IS NULL AND tags IS NOT NULL
+) existing_tags
+WHERE tag <> ''
+ON CONFLICT (normalized_name) DO NOTHING;
+
 CREATE TABLE IF NOT EXISTS qa_pair_embeddings (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
   qa_pair_id uuid NOT NULL UNIQUE REFERENCES qa_pairs(id) ON DELETE CASCADE,

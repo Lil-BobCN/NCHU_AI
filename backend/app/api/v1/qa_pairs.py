@@ -9,6 +9,7 @@ from app.api.deps import get_current_admin
 from app.core.responses import ok
 from app.db.models import Admin, Document, QaPair
 from app.db.session import get_db
+from app.services.qa_tag_service import ensure_qa_tags, list_enabled_qa_tag_names, sync_qa_tags_from_pairs
 from app.services.task_queue_service import TaskQueueService
 
 
@@ -101,6 +102,7 @@ async def create_qa_pair(
         document = await db.scalar(select(Document).where(Document.id == payload.source_document_id))
         if document:
             source_url = document.source_url or document.preview_url or document.download_url
+    tags = await ensure_qa_tags(db, payload.tags, str(admin.id))
     qa = QaPair(
         question=payload.question,
         answer=payload.answer,
@@ -108,7 +110,7 @@ async def create_qa_pair(
         source_document_id=payload.source_document_id,
         source_chunk_ids=payload.source_chunk_ids,
         source_url=source_url,
-        tags=payload.tags,
+        tags=tags,
         created_by=str(admin.id),
         updated_by=str(admin.id),
     )
@@ -128,6 +130,8 @@ async def update_qa_pair(
 ):
     qa = await _get_qa(db, qa_pair_id)
     values = payload.model_dump(exclude_unset=True)
+    if "tags" in payload.model_fields_set:
+        values["tags"] = await ensure_qa_tags(db, payload.tags, str(admin.id))
     values["version"] = qa.version + 1
     values["updated_by"] = str(admin.id)
     values["updated_at"] = datetime.now(timezone.utc)
@@ -221,16 +225,11 @@ async def list_available_qa_tags(
     status: str | None = None,
     document_id: str | None = None,
 ) -> list[str]:
-    filters = qa_pair_list_filters(keyword=keyword, status=status, document_id=document_id)
-    filters.append(QaPair.tags.is_not(None))
-    rows = await db.execute(select(QaPair.tags).where(*filters))
-    tags: set[str] = set()
-    for value in rows.scalars():
-        for tag in value or []:
-            clean_tag = str(tag).strip()
-            if clean_tag:
-                tags.add(clean_tag)
-    return sorted(tags, key=lambda item: item.casefold())
+    # 这里不仅服务列表筛选下拉，也服务新增/编辑弹窗里的可选标签。
+    # 文档管理页 AI 生成 QA 曾经会绕过标签库写入，因此读取可选标签前先从 qa_pairs.tags 回填一次。
+    await sync_qa_tags_from_pairs(db)
+    await db.commit()
+    return await list_enabled_qa_tag_names(db)
 
 
 def serialize_qa(qa: QaPair) -> dict:

@@ -142,6 +142,17 @@ class QaPair(Base, TimestampMixin):
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
 
+class QaTag(Base, TimestampMixin):
+    __tablename__ = "qa_tags"
+
+    id: Mapped[str] = mapped_column(UUID(as_uuid=False), primary_key=True, server_default=func.uuid_generate_v4())
+    name: Mapped[str] = mapped_column(String(64), nullable=False)
+    normalized_name: Mapped[str] = mapped_column(String(64), unique=True, nullable=False)
+    status: Mapped[str] = mapped_column(String(32), nullable=False, server_default="enabled")
+    created_by: Mapped[str | None] = mapped_column(UUID(as_uuid=False), nullable=True)
+    updated_by: Mapped[str | None] = mapped_column(UUID(as_uuid=False), nullable=True)
+
+
 class QaPairEmbedding(Base):
     __tablename__ = "qa_pair_embeddings"
 

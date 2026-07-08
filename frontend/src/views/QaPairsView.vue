@@ -7,7 +7,7 @@
             <h1>QA 问答对</h1>
             <p>维护高频标准问答，作为检索召回的补充来源。</p>
           </div>
-          <button class="primary" @click="save">新增问答</button>
+          <button class="primary qa-create-button" @click="save">新增问答</button>
         </header>
 
         <div class="form-grid">
@@ -19,28 +19,19 @@
             答案
             <textarea v-model="form.answer" rows="6" placeholder="请输入标准答案" />
           </label>
-          <label class="qa-tag-field">
-            标签
-            <input v-model="tagText" placeholder="多个标签用英文逗号分隔" />
-            <div class="tag-preview" aria-label="标签预览">
-              <span class="tag-preview-title">标签预览</span>
-              <div v-if="tagPreview.length" class="tag-list">
-                <span v-for="tag in tagPreview" :key="tag.key" class="tag-chip tag-preview-chip">
-                  <span class="tag-preview-label">{{ tag.value }}</span>
-                  <button
-                    type="button"
-                    class="tag-remove-button"
-                    :aria-label="`删除标签 ${tag.value}`"
-                    :title="`删除标签 ${tag.value}`"
-                    @click.prevent="requestTagDelete('create', tag)"
-                  >
-                    ×
-                  </button>
-                </span>
-              </div>
-              <span v-else class="tag-preview-empty">暂无标签</span>
+          <section class="qa-tag-field" aria-label="问答标签选择">
+            <div class="qa-tag-field-head">
+              <strong>标签</strong>
+              <button type="button" @click="openTagManager">管理标签</button>
             </div>
-          </label>
+            <TagSelector
+              :selected-tags="selectedTags"
+              :tag-options="tagLibrary"
+              empty-text="暂无已选标签"
+              @toggle="toggleCreateTag"
+              @remove="removeCreateTag"
+            />
+          </section>
         </div>
         <p v-if="error" class="error">{{ error }}</p>
       </section>
@@ -52,13 +43,46 @@
             <p>{{ items.length }} 条</p>
           </div>
           <div class="qa-toolbar">
-            <label>
-              标签筛选
-              <select v-model="selectedTag" @change="applyTagFilter">
-                <option value="">全部标签</option>
-                <option v-for="tag in availableTags" :key="tag" :value="tag">{{ tag }}</option>
-              </select>
-            </label>
+            <div class="qa-filter-field">
+              <span class="qa-filter-label">标签筛选</span>
+              <div class="qa-filter-select" @keydown.esc="tagFilterOpen = false">
+                <button
+                  type="button"
+                  class="qa-filter-trigger"
+                  :aria-expanded="tagFilterOpen"
+                  aria-haspopup="listbox"
+                  @click="tagFilterOpen = !tagFilterOpen"
+                >
+                  <span>{{ selectedTag || '全部标签' }}</span>
+                  <span class="qa-filter-caret" aria-hidden="true"></span>
+                </button>
+                <div v-if="tagFilterOpen" class="qa-filter-menu" role="listbox">
+                  <button
+                    type="button"
+                    class="qa-filter-option"
+                    :class="{ active: !selectedTag }"
+                    role="option"
+                    :aria-selected="!selectedTag"
+                    @click="selectTagFilter('')"
+                  >
+                    全部标签
+                  </button>
+                  <button
+                    v-for="tag in availableTags"
+                    :key="tag"
+                    type="button"
+                    class="qa-filter-option"
+                    :class="{ active: selectedTag === tag }"
+                    role="option"
+                    :aria-selected="selectedTag === tag"
+                    @click="selectTagFilter(tag)"
+                  >
+                    {{ tag }}
+                  </button>
+                </div>
+              </div>
+            </div>
+            <button type="button" class="qa-toolbar-manage" @click="openTagManager">标签管理</button>
           </div>
         </header>
 
@@ -122,19 +146,6 @@
         @confirm="closeDuplicateQuestionDialog"
       />
 
-      <ConfirmDialog
-        v-if="tagDeleteTarget"
-        title="确认删除标签"
-        :message="`将从标签输入框中删除“${tagDeleteTarget.value}”。`"
-        subject-label="1 个标签"
-        detail="仅删除当前输入框中的标签文本，不会立即保存问答记录。"
-        prompt="请确认是否继续删除"
-        cancel-text="取消"
-        confirm-text="确认删除"
-        @cancel="cancelTagDelete"
-        @confirm="confirmTagDelete"
-      />
-
       <div v-if="editDialog" class="document-preview-modal" role="dialog" aria-modal="true">
         <form class="qa-edit-dialog" @submit.prevent="saveEditDialog">
           <header class="duplicate-upload-head">
@@ -154,28 +165,19 @@
               答案
               <textarea v-model="editDialog.answer" rows="6" placeholder="请输入标准答案" />
             </label>
-            <label class="qa-tag-field">
-              标签
-              <input v-model="editDialog.tagText" placeholder="多个标签用英文逗号分隔" />
-              <div class="tag-preview" aria-label="标签预览">
-                <span class="tag-preview-title">标签预览</span>
-                <div v-if="editTagPreview.length" class="tag-list">
-                  <span v-for="tag in editTagPreview" :key="tag.key" class="tag-chip tag-preview-chip">
-                    <span class="tag-preview-label">{{ tag.value }}</span>
-                    <button
-                      type="button"
-                      class="tag-remove-button"
-                      :aria-label="`删除标签 ${tag.value}`"
-                      :title="`删除标签 ${tag.value}`"
-                      @click.prevent="requestTagDelete('edit', tag)"
-                    >
-                      ×
-                    </button>
-                  </span>
-                </div>
-                <span v-else class="tag-preview-empty">暂无标签</span>
+            <section class="qa-tag-field" aria-label="编辑问答标签">
+              <div class="qa-tag-field-head">
+                <strong>标签</strong>
+                <button type="button" @click="openTagManager">管理标签</button>
               </div>
-            </label>
+              <TagSelector
+                :selected-tags="editDialog.selectedTags"
+                :tag-options="tagLibrary"
+                empty-text="暂无已选标签"
+                @toggle="toggleEditTag"
+                @remove="removeEditTag"
+              />
+            </section>
             <label>
               状态
               <select v-model="editDialog.status">
@@ -192,50 +194,260 @@
           </footer>
         </form>
       </div>
+
+      <div v-if="tagManagerOpen" class="document-preview-modal" role="dialog" aria-modal="true">
+        <section class="qa-tag-manager">
+          <header class="duplicate-upload-head">
+            <div>
+              <strong>标签管理</strong>
+              <p>维护 QA 问答对可选的标准问题分类标签。</p>
+            </div>
+            <button type="button" class="icon-button" title="关闭" aria-label="关闭" @click="closeTagManager">×</button>
+          </header>
+
+          <div class="duplicate-upload-body qa-tag-manager-body">
+            <div class="qa-tag-manager-tools">
+              <input
+                v-model="tagSearchDraft"
+                placeholder="搜索标签"
+                @keyup.enter="applyTagManagerSearch"
+              />
+              <button type="button" class="qa-tag-manager-search" @click="applyTagManagerSearch">搜索</button>
+              <form class="qa-tag-create" @submit.prevent="createTag">
+                <input v-model="newTagName" placeholder="新增标签" />
+                <button class="primary" type="submit" :disabled="tagSaving">新增标签</button>
+              </form>
+            </div>
+
+            <p v-if="tagManagerError" class="error">{{ tagManagerError }}</p>
+
+            <div class="qa-tag-table" role="table" aria-label="标签管理列表">
+              <div class="qa-tag-table-head" role="row">
+                <span>标签名称</span>
+                <button type="button" class="qa-sort-title" @click="toggleUsageSort">
+                  使用次数 <span>{{ usageSortArrow }}</span>
+                </button>
+                <button type="button" class="qa-sort-title" @click="toggleTimeSort">
+                  创建时间 <span>{{ timeSortArrow }}</span>
+                </button>
+                <span>操作</span>
+              </div>
+              <div v-for="tag in filteredTagLibrary" :key="tag.id" class="qa-tag-table-row" role="row">
+                <span>
+                  <input
+                    v-if="editingTagId === tag.id"
+                    v-model="editingTagName"
+                    class="qa-tag-edit-input"
+                    aria-label="编辑标签名称"
+                  />
+                  <strong v-else>{{ tag.name }}</strong>
+                </span>
+                <span>{{ tag.usage_count }}</span>
+                <span>{{ formatTagTime(tag.created_at) }}</span>
+                <span class="qa-tag-row-actions">
+                  <template v-if="editingTagId === tag.id">
+                    <button type="button" :disabled="tagSaving" @click="saveTagName(tag)">保存</button>
+                    <button type="button" :disabled="tagSaving" @click="cancelTagEdit">取消</button>
+                  </template>
+                  <template v-else>
+                    <button type="button" class="success" @click="startTagEdit(tag)">编辑</button>
+                    <button type="button" class="danger" :disabled="tagSaving" @click="requestRemoveTag(tag)">
+                      删除
+                    </button>
+                  </template>
+                </span>
+              </div>
+            </div>
+            <p v-if="!filteredTagLibrary.length" class="empty-state">暂无标签</p>
+          </div>
+        </section>
+      </div>
+
+      <ConfirmDialog
+        v-if="tagDeleteTarget"
+        title="确认删除标签"
+        :message="`将删除标签“${tagDeleteTarget.name}”，并从已有问答对中移除该标签。`"
+        subject-label="1 个标签"
+        detail="取消不会影响当前标签；确认删除后，标签库记录会被删除，已关联问答对上的该标签也会同步移除。"
+        :busy="tagSaving"
+        @cancel="cancelRemoveTag"
+        @confirm="confirmRemoveTag"
+      />
     </div>
   </AppShell>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { computed, defineComponent, h, onMounted, reactive, ref, watch } from 'vue'
+import type { PropType } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import AppShell from '../components/AppShell.vue'
 import ConfirmDialog from '../components/ConfirmDialog.vue'
 import { api, apiErrorMessage, unwrap } from '../api/client'
 
-type TagInputSource = 'create' | 'edit'
-
-type TagPreviewItem = {
-  key: string
-  value: string
-  segmentIndex: number
+type QaTag = {
+  id: string
+  name: string
+  status: 'enabled' | 'disabled'
+  usage_count: number
+  created_at?: string | null
+  updated_at?: string | null
 }
+
+type SortDirection = 'asc' | 'desc'
+
+type EditDialogState = {
+  id: string
+  question: string
+  answer: string
+  status: string
+  selectedTags: string[]
+}
+
+const TagSelector = defineComponent({
+  name: 'TagSelector',
+  props: {
+    selectedTags: { type: Array as PropType<string[]>, required: true },
+    tagOptions: { type: Array as PropType<QaTag[]>, required: true },
+    emptyText: { type: String, default: '暂无已选标签' }
+  },
+  emits: ['toggle', 'remove'],
+  setup(props, { emit }) {
+    // 搜索框输入先进入草稿值，点击搜索或回车后才真正过滤，避免用户打字时列表频繁跳动。
+    const searchDraft = ref('')
+    const optionKeyword = ref('')
+    // 用规范化后的标签名判断选中状态，避免前后空格导致同名标签无法取消或重复选中。
+    const selectedSet = computed(() => new Set(props.selectedTags.map((tag) => normalizeTagName(tag))))
+    const optionNames = computed(() => new Set(props.tagOptions.map((tag) => normalizeTagName(tag.name))))
+    // 可选项以启用标签库为主；如果历史记录里已有库外标签，只保留在已选区用于展示和移除。
+    const selectableTags = computed(() => [
+      ...props.tagOptions.filter((tag) => tag.status === 'enabled'),
+      ...props.selectedTags
+        .filter((tag) => !optionNames.value.has(normalizeTagName(tag)))
+        .map((tag) => ({ id: `selected-${tag}`, name: tag, status: 'disabled' as const, usage_count: 0 }))
+    ])
+    const filteredSelectableTags = computed(() => {
+      // 全部标签区域的搜索只做前端本地过滤，不改变后端标签库和当前已选标签。
+      const keyword = normalizeTagName(optionKeyword.value)
+      if (!keyword) return selectableTags.value
+      return selectableTags.value.filter((tag) => normalizeTagName(tag.name).includes(keyword))
+    })
+    const applySearch = () => {
+      optionKeyword.value = searchDraft.value
+    }
+
+    return () =>
+      h('div', { class: 'qa-tag-selector' }, [
+        h('div', { class: 'qa-tag-selected-block' }, [
+          h('strong', '已选标签'),
+          props.selectedTags.length
+            ? h(
+                'div',
+                { class: 'tag-list' },
+                props.selectedTags.map((tag) =>
+                  h('span', { class: 'tag-chip tag-preview-chip', key: tag }, [
+                    h('span', { class: 'tag-preview-label' }, tag),
+                    h('button', {
+                      type: 'button',
+                      class: 'tag-remove-button',
+                      title: `取消选择 ${tag}`,
+                      'aria-label': `取消选择 ${tag}`,
+                      onClick: () => emit('remove', tag)
+                    })
+                  ])
+                )
+              )
+            : h('span', { class: 'tag-preview-empty' }, props.emptyText)
+        ]),
+        h('div', { class: 'qa-tag-option-block' }, [
+          h('strong', '全部标签'),
+          h('div', { class: 'qa-tag-option-search' }, [
+            h('input', {
+              value: searchDraft.value,
+              placeholder: '搜索标签',
+              'aria-label': '搜索全部标签',
+              onInput: (event: Event) => {
+                searchDraft.value = (event.target as HTMLInputElement).value
+              },
+              onKeydown: (event: KeyboardEvent) => {
+                if (event.key === 'Enter') applySearch()
+              }
+            }),
+            h('button', { type: 'button', onClick: applySearch }, '搜索')
+          ]),
+          filteredSelectableTags.value.length
+            ? h(
+                'div',
+                { class: 'qa-tag-checkbox-grid' },
+                filteredSelectableTags.value.map((tag) =>
+                  h('label', { key: tag.id || tag.name, class: 'qa-tag-checkbox' }, [
+                    h('input', {
+                      type: 'checkbox',
+                      checked: selectedSet.value.has(normalizeTagName(tag.name)),
+                      disabled: tag.status !== 'enabled' && !selectedSet.value.has(normalizeTagName(tag.name)),
+                      onChange: () => emit('toggle', tag.name)
+                    }),
+                    h('span', tag.name)
+                  ])
+                )
+              )
+            : h('span', { class: 'tag-preview-empty' }, optionKeyword.value ? '没有匹配的标签' : '暂无可选标签')
+        ])
+      ])
+  }
+})
 
 const route = useRoute()
 const router = useRouter()
 const items = ref<any[]>([])
 const availableTags = ref<string[]>([])
-const tagText = ref('')
+const selectedTags = ref<string[]>([])
+const tagLibrary = ref<QaTag[]>([])
 const form = reactive({ question: '', answer: '', status: 'enabled' })
 const error = ref('')
 const editError = ref('')
 const selectedTag = ref(routeTagFilter())
+const tagFilterOpen = ref(false)
 const deleteTarget = ref<any | null>(null)
 const requiredDialog = ref<{ message: string; subject: string } | null>(null)
 const duplicateQuestionDialog = ref(false)
-const tagDeleteTarget = ref<(TagPreviewItem & { source: TagInputSource }) | null>(null)
-// 左侧表单只负责新增；单条记录编辑使用独立弹窗状态，避免新增草稿和编辑内容互相污染。
-const editDialog = ref<{
-  id: string
-  question: string
-  answer: string
-  status: string
-  tagText: string
-} | null>(null)
-const tagPreview = computed(() => parseTagPreview(tagText.value))
-const editTagPreview = computed(() => parseTagPreview(editDialog.value?.tagText || ''))
+const editDialog = ref<EditDialogState | null>(null)
+const tagManagerOpen = ref(false)
+const tagSearch = ref('')
+const tagSearchDraft = ref('')
+const newTagName = ref('')
+const tagManagerError = ref('')
+const tagSaving = ref(false)
+const editingTagId = ref('')
+const editingTagName = ref('')
+const tagDeleteTarget = ref<QaTag | null>(null)
+const usageSortDirection = ref<SortDirection>('asc')
+const timeSortDirection = ref<SortDirection>('desc')
 
-onMounted(load)
+const usageSortArrow = computed(() => (usageSortDirection.value === 'asc' ? '↑' : '↓'))
+const timeSortArrow = computed(() => (timeSortDirection.value === 'asc' ? '↑' : '↓'))
+
+const filteredTagLibrary = computed(() => {
+  // 标签管理弹窗先按搜索关键字过滤，再执行“使用次数 + 创建时间”的组合排序。
+  const keyword = normalizeTagName(tagSearch.value)
+  const filtered = keyword
+    ? tagLibrary.value.filter((tag) => normalizeTagName(tag.name).includes(keyword))
+    : [...tagLibrary.value]
+  const usageDirection = usageSortDirection.value === 'asc' ? 1 : -1
+  const timeDirection = timeSortDirection.value === 'asc' ? 1 : -1
+  return filtered.sort((left, right) => {
+    // 两个排序条件不互斥：先比较使用次数，次数相同再比较创建时间，最后按中文名称兜底保证顺序稳定。
+    return (
+      compareNumber(left.usage_count, right.usage_count, usageDirection) ||
+      compareNumber(tagTimeValue(left.created_at), tagTimeValue(right.created_at), timeDirection) ||
+      left.name.localeCompare(right.name, 'zh-Hans-CN')
+    )
+  })
+})
+
+onMounted(async () => {
+  await Promise.all([load(), loadTagLibrary()])
+})
 
 watch(
   () => route.query.tag,
@@ -262,40 +474,109 @@ async function applyTagFilter() {
   await load()
 }
 
+async function selectTagFilter(tag: string) {
+  selectedTag.value = tag
+  tagFilterOpen.value = false
+  await applyTagFilter()
+}
+
 async function load() {
   try {
     const params = selectedTag.value ? { tag: selectedTag.value } : undefined
     const data = unwrap<any>(await api.get('/qa-pairs', { params }))
     items.value = data.items
-    // 由后端按当前列表范围返回完整标签集合，避免只从当前页数据聚合导致筛选项缺失。
     availableTags.value = data.available_tags || []
   } catch (err) {
     error.value = apiErrorMessage(err, '加载问答对失败')
   }
 }
 
-function parseTagText(value: string) {
-  // 标签预览和提交共用同一套英文逗号分割规则，确保“标签1”和“标签1,”都得到同样的实际标签结果。
-  return value.split(',').map((x) => x.trim()).filter(Boolean)
+async function loadTagLibrary() {
+  try {
+    tagLibrary.value = unwrap<QaTag[]>(await api.get('/qa-tags'))
+  } catch (err) {
+    tagManagerError.value = apiErrorMessage(err, '加载标签失败')
+  }
 }
 
-function parseTagPreview(value: string): TagPreviewItem[] {
-  // 预览项保留原始分段位置，删除某个标签块时可以精准移除输入框里对应的那一段文本。
-  return value
-    .split(',')
-    .map((segment, segmentIndex) => ({ value: segment.trim(), segmentIndex }))
-    .filter((tag) => Boolean(tag.value))
-    .map((tag) => ({ ...tag, key: `${tag.segmentIndex}-${tag.value}` }))
+function normalizeTagName(value: string) {
+  // 前端先做一次轻量规范化，和后端标签清洗规则保持一致，减少重复标签和空标签提交。
+  return String(value || '').trim().replace(/\s+/g, ' ')
 }
 
-function removeTagSegment(value: string, segmentIndex: number) {
-  // 删除后重新按英文逗号拼接有效标签，顺手清理多余空白和尾随逗号，保持输入框内容与预览结果一致。
-  return value
-    .split(',')
-    .filter((_, index) => index !== segmentIndex)
-    .map((segment) => segment.trim())
-    .filter(Boolean)
-    .join(',')
+function normalizeSelectedTags(values: string[]) {
+  // 已选标签在进入请求体前统一去重，保留用户首次看到的展示名称。
+  const result: string[] = []
+  const seen = new Set<string>()
+  for (const value of values) {
+    const tag = normalizeTagName(value)
+    const key = tag.toLocaleLowerCase()
+    if (!tag || seen.has(key)) continue
+    result.push(tag)
+    seen.add(key)
+  }
+  return result
+}
+
+function compareNumber(left: number, right: number, direction: number) {
+  if (left === right) return 0
+  return left > right ? direction : -direction
+}
+
+function tagTimeValue(value?: string | null) {
+  if (!value) return 0
+  const time = new Date(value).getTime()
+  return Number.isFinite(time) ? time : 0
+}
+
+function formatTagTime(value?: string | null) {
+  // 后端返回 ISO 时间；界面展示为本地中文时间，解析失败时降级为短横线。
+  if (!value) return '-'
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return '-'
+  return date.toLocaleString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
+
+function toggleUsageSort() {
+  // 只切换使用次数方向，不重置创建时间方向，避免两个排序条件互相覆盖。
+  usageSortDirection.value = usageSortDirection.value === 'asc' ? 'desc' : 'asc'
+}
+
+function toggleTimeSort() {
+  // 只切换创建时间方向；默认 desc 表示越接近当前时间越靠上。
+  timeSortDirection.value = timeSortDirection.value === 'asc' ? 'desc' : 'asc'
+}
+
+function toggleTag(list: string[], tag: string) {
+  // checkbox 勾选和 chip 删除共用同一套切换逻辑，保证新增/编辑弹窗行为一致。
+  const cleanTag = normalizeTagName(tag)
+  const key = cleanTag.toLocaleLowerCase()
+  const exists = list.some((item) => normalizeTagName(item).toLocaleLowerCase() === key)
+  return exists ? list.filter((item) => normalizeTagName(item).toLocaleLowerCase() !== key) : [...list, cleanTag]
+}
+
+function toggleCreateTag(tag: string) {
+  selectedTags.value = normalizeSelectedTags(toggleTag(selectedTags.value, tag))
+}
+
+function removeCreateTag(tag: string) {
+  selectedTags.value = normalizeSelectedTags(toggleTag(selectedTags.value, tag))
+}
+
+function toggleEditTag(tag: string) {
+  if (!editDialog.value) return
+  editDialog.value.selectedTags = normalizeSelectedTags(toggleTag(editDialog.value.selectedTags, tag))
+}
+
+function removeEditTag(tag: string) {
+  if (!editDialog.value) return
+  editDialog.value.selectedTags = normalizeSelectedTags(toggleTag(editDialog.value.selectedTags, tag))
 }
 
 async function save() {
@@ -314,7 +595,6 @@ async function save() {
     return
   }
   if (items.value.some((item) => item.question === question)) {
-    // 当前列表已加载到完全相同问题时，直接在前端拦截，避免用户等待一次必然失败的新增请求。
     openDuplicateQuestionDialog()
     return
   }
@@ -322,18 +602,17 @@ async function save() {
     question,
     answer,
     status: form.status,
-    tags: parseTagText(tagText.value)
+    tags: normalizeSelectedTags(selectedTags.value)
   }
   try {
     await api.post('/qa-pairs', payload)
     form.question = ''
     form.answer = ''
-    tagText.value = ''
-    await load()
+    selectedTags.value = []
+    await Promise.all([load(), loadTagLibrary()])
   } catch (err) {
     const message = apiErrorMessage(err, '保存问答对失败')
     if (message === '当前已经存在该问答') {
-      // 后端仍是最终权威判重，覆盖分页、筛选或多用户并发导致前端当前列表未命中的重复问题。
       openDuplicateQuestionDialog()
       return
     }
@@ -371,25 +650,6 @@ function closeDuplicateQuestionDialog() {
   duplicateQuestionDialog.value = false
 }
 
-function requestTagDelete(source: TagInputSource, tag: TagPreviewItem) {
-  tagDeleteTarget.value = { ...tag, source }
-}
-
-function cancelTagDelete() {
-  tagDeleteTarget.value = null
-}
-
-function confirmTagDelete() {
-  const target = tagDeleteTarget.value
-  if (!target) return
-  if (target.source === 'create') {
-    tagText.value = removeTagSegment(tagText.value, target.segmentIndex)
-  } else if (editDialog.value) {
-    editDialog.value.tagText = removeTagSegment(editDialog.value.tagText, target.segmentIndex)
-  }
-  tagDeleteTarget.value = null
-}
-
 function openEditDialog(item: any) {
   editError.value = ''
   editDialog.value = {
@@ -397,7 +657,7 @@ function openEditDialog(item: any) {
     question: item.question || '',
     answer: item.answer || '',
     status: item.status || 'enabled',
-    tagText: (item.tags || []).join(',')
+    selectedTags: normalizeSelectedTags(item.tags || [])
   }
 }
 
@@ -424,10 +684,10 @@ async function saveEditDialog() {
       question,
       answer,
       status: editDialog.value.status,
-      tags: parseTagText(editDialog.value.tagText)
+      tags: normalizeSelectedTags(editDialog.value.selectedTags)
     })
     closeEditDialog()
-    await load()
+    await Promise.all([load(), loadTagLibrary()])
   } catch (err) {
     editError.value = apiErrorMessage(err, '保存问答对失败')
   }
@@ -440,9 +700,119 @@ async function confirmRemove() {
   error.value = ''
   try {
     await api.delete(`/qa-pairs/${target.id}`)
-    await load()
+    await Promise.all([load(), loadTagLibrary()])
   } catch (err) {
     error.value = apiErrorMessage(err, '删除问答对失败')
   }
+}
+
+function openTagManager() {
+  tagManagerOpen.value = true
+  tagManagerError.value = ''
+  void loadTagLibrary()
+}
+
+function closeTagManager() {
+  tagManagerOpen.value = false
+  tagSearch.value = ''
+  tagSearchDraft.value = ''
+  newTagName.value = ''
+  tagManagerError.value = ''
+  cancelTagEdit()
+}
+
+function applyTagManagerSearch() {
+  // 标签管理搜索采用显式按钮触发，避免表格在输入过程中不断重新排序和跳动。
+  tagSearch.value = tagSearchDraft.value
+}
+
+async function createTag() {
+  const name = normalizeTagName(newTagName.value)
+  if (!name || tagSaving.value) return
+  tagSaving.value = true
+  tagManagerError.value = ''
+  try {
+    await api.post('/qa-tags', { name })
+    newTagName.value = ''
+    await refreshTagsAfterManagerChange()
+  } catch (err) {
+    tagManagerError.value = apiErrorMessage(err, '新增标签失败')
+  } finally {
+    tagSaving.value = false
+  }
+}
+
+function startTagEdit(tag: QaTag) {
+  editingTagId.value = tag.id
+  editingTagName.value = tag.name
+  tagManagerError.value = ''
+}
+
+function cancelTagEdit() {
+  editingTagId.value = ''
+  editingTagName.value = ''
+}
+
+function requestRemoveTag(tag: QaTag) {
+  // 删除标签会同步影响已有 QA 对，所以先记录目标并交给统一确认弹窗处理。
+  tagDeleteTarget.value = tag
+  tagManagerError.value = ''
+}
+
+function cancelRemoveTag() {
+  if (tagSaving.value) return
+  tagDeleteTarget.value = null
+}
+
+async function saveTagName(tag: QaTag) {
+  const name = normalizeTagName(editingTagName.value)
+  if (!name || tagSaving.value) return
+  tagSaving.value = true
+  tagManagerError.value = ''
+  try {
+    await api.put(`/qa-tags/${tag.id}`, { name })
+    replaceSelectedTagName(tag.name, name)
+    cancelTagEdit()
+    await refreshTagsAfterManagerChange()
+  } catch (err) {
+    tagManagerError.value = apiErrorMessage(err, '保存标签失败')
+  } finally {
+    tagSaving.value = false
+  }
+}
+
+async function confirmRemoveTag() {
+  const tag = tagDeleteTarget.value
+  if (!tag || tagSaving.value) return
+  tagSaving.value = true
+  tagManagerError.value = ''
+  try {
+    await api.delete(`/qa-tags/${tag.id}`)
+    removeSelectedTagName(tag.name)
+    tagDeleteTarget.value = null
+    await refreshTagsAfterManagerChange()
+  } catch (err) {
+    tagManagerError.value = apiErrorMessage(err, '删除标签失败')
+  } finally {
+    tagSaving.value = false
+  }
+}
+
+function replaceSelectedTagName(oldName: string, newName: string) {
+  // 标签重命名成功后，同步修正当前新增/编辑表单中的已选标签，避免界面继续显示旧名称。
+  const replace = (tags: string[]) => normalizeSelectedTags(tags.map((tag) => (tag === oldName ? newName : tag)))
+  selectedTags.value = replace(selectedTags.value)
+  if (editDialog.value) editDialog.value.selectedTags = replace(editDialog.value.selectedTags)
+}
+
+function removeSelectedTagName(name: string) {
+  // 标签删除成功后，当前未提交表单中的同名已选标签也要立即移除，保持界面状态和标签库一致。
+  const remove = (tags: string[]) => tags.filter((tag) => tag !== name)
+  selectedTags.value = remove(selectedTags.value)
+  if (editDialog.value) editDialog.value.selectedTags = remove(editDialog.value.selectedTags)
+}
+
+async function refreshTagsAfterManagerChange() {
+  await Promise.all([loadTagLibrary(), load()])
 }
 </script>

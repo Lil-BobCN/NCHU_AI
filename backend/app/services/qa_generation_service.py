@@ -9,6 +9,7 @@ from app.db.models import Document, DocumentJob, DocumentParseResult, QaPair
 from app.services.document_state import indexing_blocker
 from app.services.model_service import ModelService
 from app.services.qa_embedding_service import QaEmbeddingService
+from app.services.qa_tag_service import ensure_qa_tags
 from app.services.redis_service import RedisService
 
 
@@ -75,13 +76,17 @@ class QaGenerationService:
             pairs = self._parse_pairs(raw)[:count]
             created_pairs: list[QaPair] = []
             for item in pairs:
+                # 文档管理页的 AI 生成任务不会经过 /qa-pairs 新增接口，
+                # 因此这里必须主动同步标签库，否则生成出的标签只会留在 qa_pairs.tags 里，
+                # 标签管理弹窗和可选标签列表都看不到这些新标签。
+                tags = await ensure_qa_tags(db, item.get("tags") or [])
                 qa = QaPair(
                     question=item["question"],
                     answer=item["answer"],
                     status="enabled" if auto_enable else "draft",
                     source_document_id=document_id,
                     source_url=document.source_url or document.preview_url or document.download_url,
-                    tags=item.get("tags") or [],
+                    tags=tags,
                 )
                 db.add(qa)
                 created_pairs.append(qa)
