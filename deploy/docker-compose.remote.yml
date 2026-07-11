@@ -1,0 +1,44 @@
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: rag_java2_redis
+    ports:
+      - "127.0.0.1:16381:6379"
+
+  backend:
+    image: rag-java-internal-backend:reuse
+    build:
+      context: ../backend
+      dockerfile: Dockerfile.reuse
+    container_name: rag_java2_backend
+    env_file:
+      - ../.env
+    environment:
+      REDIS_URL: redis://redis:6379/0
+      OCR_ENABLED: "false"
+      WEB_CONCURRENCY: 2
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - redis
+    ports:
+      - "0.0.0.0:18020:8000"
+
+  worker:
+    image: rag-java-internal-backend:reuse
+    build:
+      context: ../backend
+      dockerfile: Dockerfile.reuse
+    container_name: rag_java2_worker
+    env_file:
+      - ../.env
+    environment:
+      REDIS_URL: redis://redis:6379/0
+      OCR_ENABLED: "false"
+      BACKGROUND_WORKER_CONCURRENCY: 1
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - redis
+    command: ["python", "-m", "app.workers.document_worker"]
+    restart: unless-stopped
