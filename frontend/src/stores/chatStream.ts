@@ -1,3 +1,5 @@
+// 聊天流状态：维护 SSE 消息、引用来源、推荐追问和当前会话状态。
+
 import { defineStore } from 'pinia'
 import { computed, nextTick, reactive, ref } from 'vue'
 import { api, apiErrorMessage, streamApiUrl, unwrap } from '../api/client'
@@ -11,10 +13,6 @@ export type Message = {
   conversation_id?: string
   role: 'user' | 'assistant'
   content: string
-  // 用户消息引用 AI 回复时，这两个字段用于历史展示和定位原回复。
-  // content 始终只保存用户自己的追加输入，避免把引用文本混进用户消息正文。
-  quoted_message_id?: string | null
-  quoted_message_content?: string
   citations?: any[]
   suggested_questions?: any[]
   feedback_status?: string
@@ -61,45 +59,12 @@ type ActiveTurn = {
   discarded: boolean
 }
 
-export type QuotedMessage = {
-  // key 用于前端当前页面滚动定位；id/localId 分别兼容已入库消息和乐观渲染消息。
-  key: string
-  id?: string
-  localId?: string
-  // 保存完整引用文本，发送时传给后端作为本轮上下文，而不是直接插入输入框。
-  content: string
-}
-
 const TYPEWRITER_DELAY_MS = 15
 const SCROLL_BOTTOM_EPSILON_PX = 1
 // 与后端聊天问题最大字符数配置保持一致，先在前端拦截超长输入，避免用户看到泛化的请求失败。
 export const CHAT_MAX_QUESTION_CHARS = 2000
 const ACTIVE_CONVERSATION_STORAGE_KEY = 'rag_active_conversation_id'
 let conversationSearchRequestId = 0
-
-function sliceChars(value: string, maxLength: number) {
-  return Array.from(value).slice(0, Math.max(0, maxLength)).join('')
-}
-
-function buildQuotedRequestQuestion(userQuestion: string, quoteContent: string) {
-  const quote = quoteContent.trim()
-  if (!quote) return userQuestion
-
-  // 发给模型的问题按产品语义拼成“引用内容 + 用户追加问题”。
-  // 后端 question 字段有 2000 字限制，因此优先完整保留用户追加问题，引用过长时只截断引用文本。
-  const header = '引用内容：\n'
-  const separator = '\n\n用户追加问题：\n'
-  const fixedText = `${header}${separator}${userQuestion}`
-  const maxQuoteLength = CHAT_MAX_QUESTION_CHARS - Array.from(fixedText).length
-  if (maxQuoteLength <= 0) return userQuestion
-
-  const quoteChars = Array.from(quote)
-  const clippedQuote =
-    quoteChars.length > maxQuoteLength
-      ? `${sliceChars(quote, Math.max(0, maxQuoteLength - 3))}...`
-      : quote
-  return `${header}${clippedQuote}${separator}${userQuestion}`
-}
 
 export const useChatStreamStore = defineStore('chatStream', () => {
   const conversations = ref<Conversation[]>([])
@@ -109,7 +74,6 @@ export const useChatStreamStore = defineStore('chatStream', () => {
   const conversationId = ref<string | null>(null)
   const messages = ref<Message[]>([])
   const question = ref('')
-  const quotedMessage = ref<QuotedMessage | null>(null)
   const loading = ref(false)
   const stoppingGeneration = ref(false)
   const deletingConversationId = ref<string | null>(null)
@@ -212,7 +176,6 @@ export const useChatStreamStore = defineStore('chatStream', () => {
     conversationId.value = data.id
     localStorage.setItem(ACTIVE_CONVERSATION_STORAGE_KEY, data.id)
     question.value = ''
-    quotedMessage.value = null
     messages.value = []
     await loadConversations()
   }
@@ -234,7 +197,6 @@ export const useChatStreamStore = defineStore('chatStream', () => {
     conversationId.value = id
     localStorage.setItem(ACTIVE_CONVERSATION_STORAGE_KEY, id)
     question.value = ''
-    quotedMessage.value = null
     const active = activeTurn.value
     if (active && active.conversationId === id) {
       ensureActiveTurnVisible(active)
@@ -252,7 +214,6 @@ export const useChatStreamStore = defineStore('chatStream', () => {
       await api.delete(`/conversations/${item.id}`)
       if (conversationId.value === item.id) {
         conversationId.value = null
-        quotedMessage.value = null
         messages.value = []
         localStorage.removeItem(ACTIVE_CONVERSATION_STORAGE_KEY)
       }
@@ -330,27 +291,9 @@ export const useChatStreamStore = defineStore('chatStream', () => {
     return data
   }
 
-  function storeMessageKey(message: Message) {
-    // store 不能依赖 ChatView 内部的 messageKey，因此保留一份轻量 key 生成逻辑。
-    // 优先使用 localId，能让刚生成但尚未拿到后端 id 的消息也可以被定位。
-    return message.localId || message.id || `${message.role}:${message.content.slice(0, 32)}`
-  }
-
   function quoteMessage(message: Message) {
-    // 只有 AI 回复允许被引用；用户消息不再提供引用入口。
-    // 点击新的 AI 引用会直接替换旧引用，满足“同一时间只引用一条消息”的交互规则。
-    if (message.role !== 'assistant' || !message.content) return
-    quotedMessage.value = {
-      key: storeMessageKey(message),
-      id: message.id,
-      localId: message.localId,
-      content: message.content
-    }
-  }
-
-  function clearQuotedMessage() {
-    // 取消引用只清空引用卡片，不影响输入框里已有草稿。
-    quotedMessage.value = null
+    if (!message.content) return
+    question.value = message.content
   }
 
   async function deleteMessage(message: Message) {
@@ -377,20 +320,12 @@ export const useChatStreamStore = defineStore('chatStream', () => {
     const content = text.trim()
     if (!content || loading.value) return
     if (Array.from(content).length > CHAT_MAX_QUESTION_CHARS) return
-    // 先捕获当前引用，再清空输入区状态；后续乐观消息和请求体都使用这份快照。
-    // 这样即使用户发送后马上切换引用，也不会影响已经发出的这一轮。
-    const quote = quotedMessage.value
-    const requestQuestion = buildQuotedRequestQuestion(content, quote?.content || '')
     question.value = ''
-    quotedMessage.value = null
 
     const userMessage = reactive<Message>({
       localId: createLocalId(),
       role: 'user',
-      content,
-      // 乐观渲染阶段就展示引用摘要，不必等后端 message_start 或刷新历史。
-      quoted_message_id: quote?.id || null,
-      quoted_message_content: quote?.content || ''
+      content
     })
     const assistant = reactive<Message>({
       localId: createLocalId(),
@@ -427,10 +362,7 @@ export const useChatStreamStore = defineStore('chatStream', () => {
         },
         body: JSON.stringify({
           conversation_id: conversationId.value,
-          question: requestQuestion,
-          // 引用编号用于入库和历史定位；引用全文用于后端构造本轮上下文。
-          quoted_message_id: quote?.id,
-          quoted_content: quote?.content,
+          question: content,
           enable_suggested_questions: false
         }),
         signal: controller.signal
@@ -728,7 +660,6 @@ export const useChatStreamStore = defineStore('chatStream', () => {
     conversationId,
     messages,
     question,
-    quotedMessage,
     loading,
     stoppingGeneration,
     deletingConversationId,
@@ -749,7 +680,6 @@ export const useChatStreamStore = defineStore('chatStream', () => {
     submitAnswerFeedback,
     cancelAnswerFeedback,
     quoteMessage,
-    clearQuotedMessage,
     deleteMessage,
     ask,
     stopGeneration,

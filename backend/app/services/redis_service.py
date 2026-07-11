@@ -1,3 +1,5 @@
+"""Redis 服务：提供缓存读写、任务进度缓存和连接生命周期管理。"""
+
 import json
 from typing import Any
 from redis.asyncio import Redis

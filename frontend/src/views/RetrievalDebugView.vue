@@ -1,3 +1,5 @@
+<!-- 检索调试页面：展示多路召回、重排结果、引用和检索日志。 -->
+
 <template>
   <AppShell>
     <div class="page">

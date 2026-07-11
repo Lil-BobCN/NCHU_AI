@@ -1,3 +1,5 @@
+"""Rerank 服务：调用远程重排模型并提供失败重试和降级入口。"""
+
 import httpx
 
 from app.core.concurrency import rerank_call_slot

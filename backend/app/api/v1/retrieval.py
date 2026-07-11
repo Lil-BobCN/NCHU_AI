@@ -1,3 +1,5 @@
+"""检索调试接口：暴露召回、重排、引用和检索日志，便于排查 RAG 质量。"""
+
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy import func, select

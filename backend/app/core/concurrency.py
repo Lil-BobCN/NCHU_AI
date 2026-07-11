@@ -1,3 +1,5 @@
+"""并发控制工具：用本地信号量和 Redis 槽位保护模型与聊天接口。"""
+
 import asyncio
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager, suppress

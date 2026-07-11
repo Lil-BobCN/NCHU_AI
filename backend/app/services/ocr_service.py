@@ -1,3 +1,5 @@
+"""OCR 服务：懒加载 PaddleOCR 并把图片或扫描页转换为文本。"""
+
 from dataclasses import dataclass
 import os
 from pathlib import Path

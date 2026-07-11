@@ -1,3 +1,5 @@
+"""评估接口：维护评估样本，并通过后台任务计算检索命中率。"""
+
 import re
 from datetime import datetime, timezone
 

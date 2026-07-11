@@ -1,3 +1,5 @@
+"""RAG 设置服务：读取默认配置、运行时覆盖配置并写入本地缓存。"""
+
 import json
 from pathlib import Path
 from typing import Any

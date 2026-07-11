@@ -1,3 +1,5 @@
+"""文档生命周期服务：处理软删除、索引清理、存储清理和知识库版本变更。"""
+
 from __future__ import annotations
 
 from dataclasses import dataclass

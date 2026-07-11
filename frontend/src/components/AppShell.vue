@@ -1,3 +1,5 @@
+<!-- 应用外壳：统一提供侧边导航、顶部栏和登录退出入口。 -->
+
 <template>
   <div class="shell">
     <aside class="sidebar">

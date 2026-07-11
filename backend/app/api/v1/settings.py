@@ -1,3 +1,5 @@
+"""RAG 设置接口：读取和更新切片、召回、重排等运行参数。"""
+
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 

@@ -1,3 +1,5 @@
+"""文件访问接口：为 MinIO 文件提供后端代理下载和文件名处理。"""
+
 from pathlib import Path
 from urllib.parse import quote, unquote
 

@@ -1,3 +1,5 @@
+<!-- 登录页面：完成管理员登录并保存后端签发的 token。 -->
+
 <template>
   <div class="login-page">
     <img class="login-hero-image" :src="loginHero" alt="" />

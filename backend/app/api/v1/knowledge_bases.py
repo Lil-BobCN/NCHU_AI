@@ -1,3 +1,5 @@
+"""知识库接口：返回可用知识库及其文档数量。"""
+
 from fastapi import APIRouter, Depends
 
 from app.api.deps import get_current_admin

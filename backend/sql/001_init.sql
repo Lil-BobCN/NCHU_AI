@@ -149,27 +149,6 @@ CREATE INDEX IF NOT EXISTS idx_qa_pairs_status ON qa_pairs(status);
 CREATE INDEX IF NOT EXISTS idx_qa_pairs_source_document_id ON qa_pairs(source_document_id);
 CREATE INDEX IF NOT EXISTS idx_qa_pairs_question_trgm ON qa_pairs USING GIN(question gin_trgm_ops);
 
-CREATE TABLE IF NOT EXISTS qa_tags (
-  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-  name varchar(64) NOT NULL,
-  normalized_name varchar(64) NOT NULL UNIQUE,
-  status varchar(32) NOT NULL DEFAULT 'enabled',
-  created_by uuid NULL,
-  updated_by uuid NULL,
-  created_at timestamptz NOT NULL DEFAULT now(),
-  updated_at timestamptz NOT NULL DEFAULT now()
-);
-CREATE INDEX IF NOT EXISTS idx_qa_tags_status ON qa_tags(status);
-INSERT INTO qa_tags(name, normalized_name, status)
-SELECT tag, lower(tag), 'enabled'
-FROM (
-  SELECT DISTINCT btrim(unnest(tags)) AS tag
-  FROM qa_pairs
-  WHERE deleted_at IS NULL AND tags IS NOT NULL
-) existing_tags
-WHERE tag <> ''
-ON CONFLICT (normalized_name) DO NOTHING;
-
 CREATE TABLE IF NOT EXISTS qa_pair_embeddings (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
   qa_pair_id uuid NOT NULL UNIQUE REFERENCES qa_pairs(id) ON DELETE CASCADE,
@@ -201,27 +180,16 @@ CREATE TABLE IF NOT EXISTS conversation_messages (
   conversation_id uuid NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
   role varchar(32) NOT NULL,
   content text NOT NULL,
-  -- 引用元数据只挂在用户消息上：编号用于定位原 AI 回复，内容快照用于历史展示和审计。
-  quoted_message_id uuid NULL REFERENCES conversation_messages(id) ON DELETE SET NULL,
-  quoted_message_content text NOT NULL DEFAULT '',
   rewritten_query text NULL,
   retrieval_trace jsonb NOT NULL DEFAULT '{}',
   citations jsonb NOT NULL DEFAULT '[]',
   suggested_questions jsonb NOT NULL DEFAULT '[]',
   latency_ms integer NULL,
   model_name varchar(128) NULL,
-  created_at timestamptz NOT NULL DEFAULT now(),
-  deleted_at timestamptz NULL,
-  deleted_by uuid NULL
+  created_at timestamptz NOT NULL DEFAULT now()
 );
--- 兼容已初始化过的数据库，部署更新时补齐引用字段，不依赖重建数据卷。
-ALTER TABLE conversation_messages ADD COLUMN IF NOT EXISTS quoted_message_id uuid NULL REFERENCES conversation_messages(id) ON DELETE SET NULL;
-ALTER TABLE conversation_messages ADD COLUMN IF NOT EXISTS quoted_message_content text NOT NULL DEFAULT '';
-ALTER TABLE conversation_messages ADD COLUMN IF NOT EXISTS deleted_at timestamptz NULL;
-ALTER TABLE conversation_messages ADD COLUMN IF NOT EXISTS deleted_by uuid NULL;
 CREATE INDEX IF NOT EXISTS idx_messages_conversation_id ON conversation_messages(conversation_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_messages_created_at ON conversation_messages(created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_messages_visible_conversation_id ON conversation_messages(conversation_id, created_at) WHERE deleted_at IS NULL;
 
 CREATE TABLE IF NOT EXISTS retrieval_logs (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -257,14 +225,10 @@ CREATE TABLE IF NOT EXISTS answer_feedbacks (
   answer_snapshot text NOT NULL DEFAULT '',
   citations_snapshot jsonb NOT NULL DEFAULT '[]',
   status varchar(32) NOT NULL DEFAULT 'open',
-  canceled_at timestamptz NULL,
-  canceled_by uuid NULL,
   created_by uuid NULL,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now()
 );
-ALTER TABLE answer_feedbacks ADD COLUMN IF NOT EXISTS canceled_at timestamptz NULL;
-ALTER TABLE answer_feedbacks ADD COLUMN IF NOT EXISTS canceled_by uuid NULL;
 CREATE INDEX IF NOT EXISTS idx_answer_feedbacks_conversation_status ON answer_feedbacks(conversation_id, status);
 CREATE INDEX IF NOT EXISTS idx_answer_feedbacks_assistant_message ON answer_feedbacks(assistant_message_id);
 CREATE INDEX IF NOT EXISTS idx_answer_feedbacks_created_at ON answer_feedbacks(created_at DESC);

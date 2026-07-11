@@ -136,16 +136,11 @@ class ConversationTitleTests(unittest.TestCase):
 
         data = serialize_message(
             message,
-            {
-                "feedback_status": "open",
-                "feedback_error_type": "answer_wrong",
-                "feedback_description": "previous detail",
-            },
+            {"feedback_status": "open", "feedback_error_type": "answer_wrong"},
         )
 
         self.assertEqual(data["feedback_status"], "open")
         self.assertEqual(data["feedback_error_type"], "answer_wrong")
-        self.assertEqual(data["feedback_description"], "previous detail")
 
 
 class FakeTitleSession:

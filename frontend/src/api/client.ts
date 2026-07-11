@@ -1,3 +1,5 @@
+// API 客户端：集中处理后端地址、JWT 注入、统一响应解包和错误提示。
+
 import axios from 'axios'
 
 function buildApiBaseURL(base?: string): string {

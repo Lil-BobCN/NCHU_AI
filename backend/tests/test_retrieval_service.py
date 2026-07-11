@@ -126,26 +126,6 @@ class RetrievalServiceParameterTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertGreater(penalty, 0)
 
-    async def test_citations_keep_standalone_qa_tags_without_document_source(self) -> None:
-        service = RetrievalService()
-
-        citations = service._citations([
-            {
-                "qa_pair_id": "11111111-1111-1111-1111-111111111111",
-                "qa_question": "奖学金该怎么发放",
-                "qa_answer": "成绩达标，填写书面申请",
-                "tags": ["111"],
-                "source": "qa_direct_exact",
-            }
-        ])
-
-        # 纯手工维护的问答可能没有绑定文档；引用仍要保留标签，否则智能对话详情只能显示“暂未找到明确资料”。
-        self.assertEqual(len(citations), 1)
-        self.assertIsNone(citations[0]["document_id"])
-        self.assertEqual(citations[0]["qa_pair_id"], "11111111-1111-1111-1111-111111111111")
-        self.assertEqual(citations[0]["tags"], ["111"])
-        self.assertEqual(citations[0]["url"], "/qa-pairs")
-
     async def test_scholarship_query_filters_travel_documents_from_context_and_citations(self) -> None:
         service = RetrievalService()
         service.rag_settings = {
@@ -408,6 +388,72 @@ class RetrievalServiceParameterTests(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(all("接口测试" not in item["document_title"] for item in result["answer_context"]))
         self.assertTrue(all("接口测试" not in item["document_title"] for item in result["citations"]))
 
+    async def test_low_score_candidates_are_not_forced_into_answer_context(self) -> None:
+        service = RetrievalService()
+        service.rag_settings = {
+            "vector_top_k": 30,
+            "keyword_top_k": 30,
+            "qa_top_k": 10,
+            "rerank_top_k": 5,
+            "rerank_max_candidates": 10,
+            "rerank_enabled": False,
+            "similarity_threshold": 0.35,
+            "rerank_threshold": 0.45,
+        }
+        service._get_cached_retrieval = AsyncMock(return_value=None)
+        service._set_cached_retrieval = AsyncMock()
+        service._corpus_version = AsyncMock(return_value=_corpus_version())
+
+        async def vector_search(db, query, top_k, document_ids=None):
+            return [
+                {
+                    **_item("vector", 1),
+                    "document_title": "无关公开文档",
+                    "document_name": "unrelated.pdf",
+                    "content": "这是系统架构、任务排期和团队分工说明，不包含学生手册内容。",
+                    "score": 0.12,
+                }
+            ]
+
+        async def empty_search(db, query, top_k, document_ids=None):
+            return []
+
+        async def rerank(query, candidates):
+            return candidates
+
+        service._vector_search = vector_search
+        service._keyword_search = empty_search
+        service._qa_search = empty_search
+        service._rerank = rerank
+
+        result = await service.search(db=None, query="请介绍学生手册有哪些内容", rerank_top_k=5)
+
+        self.assertEqual(result["rerank_results"], [])
+        self.assertEqual(result["answer_context"], [])
+        self.assertEqual(result["citations"], [])
+        self.assertTrue(result["no_match"])
+
+    async def test_answer_context_requires_query_evidence_when_thresholds_enabled(self) -> None:
+        service = RetrievalService()
+        service.rag_settings = {
+            "similarity_threshold": 0.35,
+            "rerank_threshold": 0.45,
+        }
+        contexts = service.select_answer_context(
+            "请介绍学生手册有哪些内容",
+            [
+                {
+                    **_item("vector", 1),
+                    "document_title": "公开技术方案",
+                    "document_name": "public-tech-plan.pdf",
+                    "content": "本方案介绍 PDF、Word、图片接入和 OCR 等技术架构。",
+                    "combined_score": 2.0,
+                }
+            ],
+        )
+
+        self.assertEqual(contexts, [])
+
     async def test_citations_skip_internal_documents(self) -> None:
         service = RetrievalService()
         citations = service._citations(
@@ -556,34 +602,6 @@ class RetrievalServiceParameterTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(citations[0]["page_numbers"], [7, 8])
         self.assertEqual(citations[0]["section_paths"], ["办理说明"])
         self.assertEqual(citations[0]["location_label"], "第 7-8 页")
-
-    async def test_citations_include_qa_tags(self) -> None:
-        service = RetrievalService()
-        item = {
-            **_item("qa_text", 1),
-            "qa_pair_id": "00000000-0000-0000-0000-000000000201",
-            "tags": ["奖学金", "申请材料"],
-        }
-
-        citations = service._citations([item], query="奖学金材料", answer="请准备申请表。")
-
-        self.assertEqual(citations[0]["tags"], ["奖学金", "申请材料"])
-
-    async def test_citations_are_empty_when_answer_says_no_clear_match(self) -> None:
-        service = RetrievalService()
-        item = {
-            **_item("vector", 1),
-            "content": "南昌航空大学学生手册目录页，仅包含页码标记。",
-            "document_title": "南昌航空大学学生学生手册（2025年版）A4-20250725.pdf",
-        }
-
-        citations = service.citations_for_answer(
-            "4242",
-            "当前检索到的资料中没有找到明确的对应信息，因此暂时无法基于资料为您解答。",
-            [item],
-        )
-
-        self.assertEqual(citations, [])
 
 
 if __name__ == "__main__":

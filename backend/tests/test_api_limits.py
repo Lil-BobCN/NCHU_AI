@@ -10,21 +10,10 @@ if str(BACKEND_ROOT) not in sys.path:
     sys.path.insert(0, str(BACKEND_ROOT))
 
 from pydantic import ValidationError  # noqa: E402
-from sqlalchemy import select  # noqa: E402
-from sqlalchemy.dialects import postgresql  # noqa: E402
 
 from app.api.v1.chat import ChatRequest  # noqa: E402
-from app.api.v1.conversations import conversation_message_delete_filters, conversation_message_list_filters  # noqa: E402
-from app.api.v1.qa_pairs import (  # noqa: E402
-    QaPairCreate,
-    QaPairUpdate,
-    qa_pair_duplicate_question_filters,
-    qa_pair_list_filters,
-    qa_pair_list_ordering,
-)
 from app.api.v1.retrieval import SearchRequest  # noqa: E402
 from app.core.config import get_settings  # noqa: E402
-from app.db.models import ConversationMessage, QaPair  # noqa: E402
 
 
 class ApiLimitTests(unittest.TestCase):
@@ -44,71 +33,6 @@ class ApiLimitTests(unittest.TestCase):
 
         with self.assertRaises(ValidationError):
             SearchRequest(query="测试问题", rerank_top_k=settings.retrieval_max_rerank_top_k + 1)
-
-    def test_qa_pair_create_requires_question_and_answer(self) -> None:
-        with self.assertRaises(ValidationError):
-            QaPairCreate(question="   ", answer="有效答案")
-
-        with self.assertRaises(ValidationError):
-            QaPairCreate(question="有效问题", answer="   ")
-
-    def test_qa_pair_create_strips_question_and_answer(self) -> None:
-        payload = QaPairCreate(question="  有效问题  ", answer="  有效答案  ", tags=[])
-
-        self.assertEqual(payload.question, "有效问题")
-        self.assertEqual(payload.answer, "有效答案")
-        self.assertEqual(payload.tags, [])
-
-    def test_qa_pair_update_rejects_blank_question_or_answer(self) -> None:
-        with self.assertRaises(ValidationError):
-            QaPairUpdate(question="   ")
-
-        with self.assertRaises(ValidationError):
-            QaPairUpdate(answer="   ")
-
-    def test_qa_pair_update_allows_optional_tags(self) -> None:
-        payload = QaPairUpdate(tags=[])
-
-        self.assertEqual(payload.tags, [])
-
-    def test_qa_pair_list_filters_use_exact_tag_array_contains(self) -> None:
-        statement = select(QaPair).where(*qa_pair_list_filters(tag=" 奖学金 "))
-
-        compiled = str(statement.compile(dialect=postgresql.dialect()))
-
-        self.assertIn("qa_pairs.tags @>", compiled)
-        self.assertIn("qa_pairs.deleted_at IS NULL", compiled)
-
-    def test_qa_pair_list_ordering_has_stable_tie_breakers(self) -> None:
-        statement = select(QaPair).order_by(*qa_pair_list_ordering())
-
-        compiled = str(statement.compile(dialect=postgresql.dialect()))
-
-        self.assertIn("ORDER BY qa_pairs.updated_at DESC, qa_pairs.created_at DESC, qa_pairs.id DESC", compiled)
-
-    def test_qa_pair_duplicate_question_filter_uses_exact_question_match(self) -> None:
-        statement = select(QaPair).where(*qa_pair_duplicate_question_filters("完全一致的问题"))
-
-        compiled = str(statement.compile(dialect=postgresql.dialect()))
-
-        self.assertIn("qa_pairs.question = ", compiled)
-        self.assertIn("qa_pairs.deleted_at IS NULL", compiled)
-
-    def test_conversation_message_list_filters_exclude_soft_deleted_messages(self) -> None:
-        statement = select(ConversationMessage).where(*conversation_message_list_filters("conversation-1"))
-
-        compiled = str(statement.compile(dialect=postgresql.dialect()))
-
-        self.assertIn("conversation_messages.conversation_id = ", compiled)
-        self.assertIn("conversation_messages.deleted_at IS NULL", compiled)
-
-    def test_conversation_message_delete_filters_allow_user_and_assistant_messages(self) -> None:
-        statement = select(ConversationMessage).where(*conversation_message_delete_filters("conversation-1", "message-1"))
-
-        compiled = str(statement.compile(dialect=postgresql.dialect()))
-
-        self.assertIn("conversation_messages.role IN ", compiled)
-        self.assertIn("conversation_messages.deleted_at IS NULL", compiled)
 
 
 if __name__ == "__main__":

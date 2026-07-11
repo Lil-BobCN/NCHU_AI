@@ -1,3 +1,5 @@
+"""压缩包导入服务：安全解压归档文件并筛选可进入文档流水线的文件。"""
+
 from dataclasses import dataclass
 from io import BytesIO
 from pathlib import Path, PurePosixPath
@@ -22,43 +24,18 @@ class ArchiveExtractResult:
     skipped: list[dict]
 
 
-def normalize_zip_entry_name(info: zipfile.ZipInfo) -> str:
-    if info.flag_bits & 0x800:
-        return info.filename
-    try:
-        raw_name = info.filename.encode("cp437")
-    except UnicodeEncodeError:
-        return info.filename
-    for encoding in ("utf-8", "gbk", "gb2312"):
-        try:
-            candidate = raw_name.decode(encoding)
-        except UnicodeDecodeError:
-            continue
-        if candidate == info.filename:
-            return candidate
-        if _contains_cjk(candidate) and (_looks_like_zip_mojibake(info.filename) or not _contains_cjk(info.filename)):
-            return candidate
-    return info.filename
-
-
-def _contains_cjk(value: str) -> bool:
-    return any("\u4e00" <= char <= "\u9fff" for char in value)
-
-
-def _looks_like_zip_mojibake(value: str) -> bool:
-    return any(0x2500 <= ord(char) <= 0x259F for char in value)
-
-
 class ArchiveImportService:
     MAX_FILES = 50
     MAX_ENTRY_SIZE = 50 * 1024 * 1024
     MAX_TOTAL_SIZE = 100 * 1024 * 1024
-    NESTED_ARCHIVE_EXTENSIONS = {".zip"}
+    NESTED_ARCHIVE_EXTENSIONS = {".zip", ".rar"}
 
     def extract_supported_entries(self, file_name: str, data: bytes) -> ArchiveExtractResult:
         ext = Path(file_name).suffix.lower()
         if ext == ".zip":
             return self._extract_zip(data)
+        if ext == ".rar":
+            return self._extract_rar(data)
         raise ArchiveExtractionError(f"不支持的压缩包类型: {ext}")
 
     def _extract_zip(self, data: bytes) -> ArchiveExtractResult:
@@ -68,11 +45,46 @@ class ArchiveImportService:
         try:
             with zipfile.ZipFile(BytesIO(data)) as archive:
                 for info in archive.infolist():
-                    name = normalize_zip_entry_name(info)
+                    if len(entries) >= self.MAX_FILES:
+                        skipped.append({"name": info.filename, "reason": "超过单次导入文件数量限制"})
+                        continue
+                    if info.is_dir():
+                        continue
+                    reason = self._skip_reason(info.filename, info.file_size, total_size)
+                    if reason:
+                        skipped.append({"name": info.filename, "reason": reason})
+                        continue
+                    file_data = archive.read(info)
+                    total_size += len(file_data)
+                    entries.append(
+                        ArchiveEntry(
+                            name=info.filename,
+                            file_name=self._safe_file_name(info.filename),
+                            data=file_data,
+                            size=len(file_data),
+                        )
+                    )
+        except zipfile.BadZipFile as exc:
+            raise ArchiveExtractionError("ZIP 文件损坏或格式不正确") from exc
+        return ArchiveExtractResult(entries=entries, skipped=skipped)
+
+    def _extract_rar(self, data: bytes) -> ArchiveExtractResult:
+        try:
+            import rarfile
+        except Exception as exc:
+            raise ArchiveExtractionError("RAR 解压需要安装 rarfile，并配置 unrar/unar/bsdtar 解压工具") from exc
+
+        entries: list[ArchiveEntry] = []
+        skipped: list[dict] = []
+        total_size = 0
+        try:
+            with rarfile.RarFile(BytesIO(data)) as archive:
+                for info in archive.infolist():
+                    name = info.filename
                     if len(entries) >= self.MAX_FILES:
                         skipped.append({"name": name, "reason": "超过单次导入文件数量限制"})
                         continue
-                    if info.is_dir():
+                    if info.isdir():
                         continue
                     reason = self._skip_reason(name, info.file_size, total_size)
                     if reason:
@@ -88,8 +100,8 @@ class ArchiveImportService:
                             size=len(file_data),
                         )
                     )
-        except zipfile.BadZipFile as exc:
-            raise ArchiveExtractionError("ZIP 文件损坏或格式不正确") from exc
+        except Exception as exc:
+            raise ArchiveExtractionError(f"RAR 解压失败: {exc}") from exc
         return ArchiveExtractResult(entries=entries, skipped=skipped)
 
     def _skip_reason(self, name: str, size: int, current_total_size: int) -> str | None:

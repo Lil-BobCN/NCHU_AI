@@ -1,3 +1,5 @@
+"""知识库服务：规范知识库名称，汇总知识库列表并校验可用性。"""
+
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any

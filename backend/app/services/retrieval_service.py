@@ -1,3 +1,5 @@
+"""检索服务：实现向量、关键词、QA 多路召回、融合重排和引用生成。"""
+
 import hashlib
 import re
 
@@ -34,6 +36,12 @@ class RetrievalService:
         "保密",
         "AI底座",
         "底座规划",
+        "底座方案",
+        "规划方案",
+        "任务排期",
+        "团队分工",
+        "技术架构",
+        "Demo",
     )
 
     def __init__(self) -> None:
@@ -95,6 +103,7 @@ class RetrievalService:
         options["business_domain"] = query_domain
         corpus_version = await self._corpus_version(db)
         options["corpus_version"] = corpus_version
+        # 检索结果与知识库版本绑定；文档变化后版本变化，旧缓存自然失效。
         cached = await self._get_cached_retrieval(
             query,
             final_top_k,
@@ -104,6 +113,7 @@ class RetrievalService:
         if cached:
             return cached
 
+        # 多路召回：向量处理语义相近，关键词处理精确词/编号/金额，QA 处理标准问答。
         vector_results = (
             await self._vector_search(db, query, top_k=vector_top_k, document_ids=document_ids)
             if enable_vector_recall
@@ -122,11 +132,13 @@ class RetrievalService:
             else []
         )
         qa_results = self._filter_invalid_document_sources(qa_results, stage="qa")
+        # RRF 融合可以降低单一路召回失误的影响，再进入业务域过滤和重排。
         fused = self._rrf([vector_results, keyword_results, qa_results])
         fused = self._filter_invalid_document_sources(fused, stage="recall")
         fused, constraint_filter = self._apply_context_constraints(constraints, fused, stage="recall")
         fused, business_filter = self._filter_by_business_domain(query_domain, fused, stage="recall")
         rerank_candidates = fused[: self._rerank_candidate_count(final_top_k, len(fused))]
+        # 重排后只取少量高相关片段，再扩展相邻上下文，避免回答模型看到孤立片段。
         reranked = await self._rerank(query, rerank_candidates)
         reranked = self._apply_local_rank_adjustments(query, reranked, query_domain=query_domain, context_constraints=constraints)
         reranked, constraint_rerank_filter = self._apply_context_constraints(constraints, reranked, stage="rerank")
@@ -151,6 +163,7 @@ class RetrievalService:
         answer_context, answer_filter = self._filter_by_business_domain(query_domain, answer_context, stage="answer_context")
         answer_context = self._filter_invalid_document_sources(answer_context, stage="answer_context")
         citations = self._citations(answer_context)
+        no_match = not bool(answer_context)
         result = to_jsonable({
             "raw_query": query,
             "rewritten_query": query,
@@ -159,6 +172,8 @@ class RetrievalService:
             "final_context": final_context,
             "answer_context": answer_context,
             "citations": citations,
+            "no_match": no_match,
+            "no_match_reason": "no_effective_answer_context" if no_match else None,
             "business_filter": self._merge_business_filter_stats(
                 business_filter,
                 rerank_filter,
@@ -632,7 +647,7 @@ class RetrievalService:
         )
         text_results = [self._normalize_result({**dict(row._mapping), "source": "qa_text"}) for row in text_rows]
 
-        # 向量 + 文本倒数排名融合
+        # 向量 + 文本 RRF 融合
         return self._rrf([vector_results, text_results])
 
     def _rrf(self, result_sets: list[list[dict]]) -> list[dict]:
@@ -1034,7 +1049,7 @@ class RetrievalService:
                 reverse=True,
             )[: max(1, min(len(annotated), 3))]
         elif stage in {"recall", "rerank"} and len(kept) < min(3, len(annotated)):
-            # 重排前保留少量低置信度候选，避免名称很窄的文档完全失去机会。
+            # Keep a tiny low-confidence tail before rerank so narrowly named documents still have a chance.
             supplemental = [
                 item
                 for item in removed
@@ -1410,7 +1425,7 @@ class RetrievalService:
                 item for item in candidates
                 if self._threshold_score(item) >= similarity_threshold
             ]
-            filtered = fallback or candidates[:1]
+            filtered = fallback
         return filtered
 
     def _policy_coverage_plan(self, query: str, contexts: list[dict]) -> dict:
@@ -1644,7 +1659,7 @@ class RetrievalService:
         if not selected_indexes:
             selected_indexes.add(ranked[0][0])
 
-        # 只为通过高置信度过滤的文档保留相邻扩展分块。
+        # Keep neighboring expansion chunks only for documents that passed the high-confidence filter.
         selected_doc_set = {str(results[index].get("document_id")) for index in selected_indexes}
         for index, item in scored:
             if len(selected_indexes) >= max_chunks:
@@ -1675,11 +1690,36 @@ class RetrievalService:
                         covered.append(facet)
                         break
 
-        return [
+        selected = [
             self._with_answer_context_score(query, item)
             for index, item in enumerate(results)
             if index in selected_indexes
         ]
+        return self._filter_low_relevance_answer_context(query, selected)
+
+    def _filter_low_relevance_answer_context(self, query: str, contexts: list[dict]) -> list[dict]:
+        if not contexts or not self._should_require_query_evidence():
+            return contexts
+        terms = self._meaningful_query_terms(query)
+        if not terms:
+            return contexts
+        kept = []
+        for item in contexts:
+            if str(item.get("source") or "").startswith("qa_direct"):
+                kept.append(item)
+                continue
+            term_hits = int(item.get("answer_term_hits") or self._term_hit_count(terms, self._item_evidence(item)))
+            if term_hits > 0:
+                kept.append(item)
+        return kept
+
+    def _should_require_query_evidence(self) -> bool:
+        try:
+            similarity_threshold = float(self.rag_settings["similarity_threshold"])
+            rerank_threshold = float(self.rag_settings["rerank_threshold"])
+        except (KeyError, TypeError, ValueError):
+            return True
+        return similarity_threshold > 0 or rerank_threshold > 0
 
     def citations_for_answer(self, query: str, answer: str, contexts: list[dict]) -> list[dict]:
         if not contexts or self._answer_declines_evidence(answer):
@@ -1842,9 +1882,6 @@ class RetrievalService:
         markers = (
             "资料中未找到明确依据",
             "未找到明确依据",
-            # 回答已经声明检索资料没有明确对应内容时，不应再给出看似支持答案的参考来源。
-            "没有找到明确的对应信息",
-            "没有找到明确对应信息",
             "没有找到明确资料",
             "暂未找到明确资料",
             "无法确认",
@@ -2182,7 +2219,7 @@ class RetrievalService:
             piece = piece.strip("年月日的一二三四五六七八九十")
             if len(piece) >= 4:
                 terms.append(piece)
-        # 合同问题经常把有区分度的项目名放在末尾，因此补充一个短后缀。
+        # Add a short suffix because contract questions often name the distinctive project at the end.
         if len(project) > 8:
             terms.append(project[-8:])
         return terms
@@ -2223,23 +2260,20 @@ class RetrievalService:
             if self._is_invalid_document_source(item):
                 continue
             document_id = item.get("document_id")
-            qa_pair_id = item.get("qa_pair_id")
-            tags = item.get("tags") or []
-            # 问答对可以不绑定来源文档，此时来源文档编号和链接都可能为空；仍需保留引用，前端才能在问答详情里展示绑定标签。
-            if not document_id and not qa_pair_id:
+            url = item.get("url")
+            if not document_id:
                 continue
-            url = item.get("url") or ("/qa-pairs" if qa_pair_id else None)
             citation_key = self._citation_key(item)
             if citation_key in seen:
                 self._merge_citation_location(seen[citation_key], item)
                 self._merge_citation_images(seen[citation_key], item)
                 continue
             seen[citation_key] = {
-                "document_id": str(document_id) if document_id else None,
+                "document_id": str(document_id),
                 "document_title": self._display_document_title(item),
                 "document_name": self._original_download_name(item) or self._display_document_title(item),
                 "chunk_id": str(item.get("chunk_id")) if item.get("chunk_id") else None,
-                "qa_pair_id": str(qa_pair_id) if qa_pair_id else None,
+                "qa_pair_id": str(item.get("qa_pair_id")) if item.get("qa_pair_id") else None,
                 "page_start": item.get("page_start"),
                 "page_end": item.get("page_end"),
                 "section_path": item.get("section_path"),
@@ -2248,7 +2282,6 @@ class RetrievalService:
                 "section_paths": [],
                 "location_label": "",
                 "url": url,
-                "tags": tags,
                 "images": [],
             }
             self._merge_citation_location(seen[citation_key], item)
@@ -2305,9 +2338,6 @@ class RetrievalService:
         return bool(self.LEGACY_URL_ENCODED_NAME_RE.search(file_name))
 
     def _citation_key(self, item: dict) -> str:
-        # 问答引用按问答记录去重，避免同一来源文档下多条问答被合并后丢失各自绑定标签。
-        if item.get("qa_pair_id"):
-            return f"qa:{item.get('qa_pair_id')}"
         return f"document:{item.get('document_id')}"
 
     def _merge_citation_location(self, citation: dict, item: dict) -> None:
@@ -2567,7 +2597,7 @@ class RetrievalService:
             {
                 "embedding_model": self.settings.embedding_model,
                 "rerank_model": self.settings.rerank_model,
-                "retrieval_logic_version": 13,
+                "retrieval_logic_version": 14,
                 "top_k": top_k,
                 "query": query,
                 "options": options,

@@ -1,3 +1,5 @@
+"""文档接口：上传、重复检测、批量操作、重处理、解析结果和切片查看。"""
+
 import csv
 import io
 from datetime import datetime
@@ -110,15 +112,14 @@ async def upload_document(
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     document = result.document
     jobs = []
-    if auto_process and not _is_archive_document(document):
-        task_type, job_type, task_label = _initial_process_task(document)
+    if auto_process:
         task = await _enqueue_document_task(
-            task_type,
+            "document_full_pipeline",
             str(document.id),
             task_action="initial_parse",
-            task_label=task_label,
+            task_label="初次解析",
         )
-        jobs.append({"job_type": job_type, "status": "queued", "task_id": task["id"]})
+        jobs.append({"job_type": "parse", "status": "queued", "task_id": task["id"]})
     return ok(
         {
             "document": serialize_document(document),
@@ -289,22 +290,12 @@ async def batch_reparse_documents(
     batch = _new_batch("batch_reparse", [str(document.id) for document in documents])
     jobs = []
     for index, document in enumerate(documents, start=1):
-        task_type, job_type, _ = _initial_process_task(document)
         task = await _enqueue_document_task(
-            task_type,
+            "document_full_pipeline",
             str(document.id),
             **_batch_task_params(batch, index),
         )
-        jobs.append(
-            _batch_job_item(
-                document,
-                batch,
-                "queued",
-                task_id=task["id"],
-                job_type=job_type,
-                message="等待后台调度",
-            )
-        )
+        jobs.append(_batch_job_item(document, batch, "queued", task_id=task["id"], message="等待后台调度"))
     return ok({"batch": batch, "jobs": jobs, "count": len(jobs)})
 
 
@@ -390,14 +381,13 @@ async def reparse_document(
     _: Admin = Depends(get_current_admin),
 ):
     document = await _get_document(db, document_id)
-    task_type, job_type, task_label = _initial_process_task(document)
     task = await _enqueue_document_task(
-        task_type,
+        "document_full_pipeline",
         str(document.id),
         task_action="manual_reparse",
-        task_label=task_label if job_type == "extract_import" else "重解析",
+        task_label="重解析",
     )
-    return ok({"document_id": document_id, "job_type": job_type, "status": "queued", "task_id": task["id"]})
+    return ok({"document_id": document_id, "status": "queued", "task_id": task["id"]})
 
 
 @router.post("/{document_id}/rechunk")
@@ -460,12 +450,7 @@ async def extract_archive_document(
     document = await _get_document(db, document_id)
     if str(document.file_ext or "").lower() not in ARCHIVE_EXTENSIONS:
         raise HTTPException(status_code=400, detail="当前文档不是可解压导入的压缩包")
-    task = await _enqueue_document_task(
-        "document_extract_archive",
-        str(document.id),
-        task_action="manual_extract_archive",
-        task_label="解压导入",
-    )
+    task = await _enqueue_document_task("document_extract_archive", str(document.id))
     return ok({"document_id": str(document.id), "job_type": "extract_import", "status": "queued", "task_id": task["id"]})
 
 
@@ -630,17 +615,14 @@ def _batch_job_item(
     status: str,
     *,
     task_id: str | None = None,
-    job_type: str | None = None,
     message: str | None = None,
 ) -> dict:
     return {
         "document_id": str(document.id),
         "title": _display_document_title(document),
         "file_name": document.file_name,
-        "document_status": document.status,
         "status": status,
         "message": message,
-        "job_type": job_type,
         "task_id": task_id,
         "batch_id": batch["id"],
         "batch_action": batch["action"],
@@ -659,17 +641,6 @@ def _batch_document_ids_query(batch_id: str | None, batch_status: str | None = N
     if normalized_status:
         query = query.where(DocumentJob.status == normalized_status)
     return query
-
-
-def _initial_process_task(document: Document) -> tuple[str, str, str]:
-    # 压缩包不能再走普通解析占位流程，否则“待解压”会被误统计为解析成功。
-    if _is_archive_document(document):
-        return "document_extract_archive", "extract_import", "解压导入"
-    return "document_full_pipeline", "parse", "初次解析"
-
-
-def _is_archive_document(document: Document) -> bool:
-    return str(document.file_ext or "").lower() in ARCHIVE_EXTENSIONS
 
 
 def _normalize_document_id(document_id: str) -> str:
@@ -765,7 +736,7 @@ def _display_document_title(document: Document) -> str:
 
 
 def _document_access_url(document: Document, download: bool = False) -> str | None:
-    if document.source_url and not download and not str(document.source_url).startswith("archive://"):
+    if document.source_url and not download:
         return document.source_url
     try:
         return MinioService().proxy_url(

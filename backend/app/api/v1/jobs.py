@@ -1,3 +1,5 @@
+"""任务接口：查询文档处理任务的数据库状态和 Redis 进度缓存。"""
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession

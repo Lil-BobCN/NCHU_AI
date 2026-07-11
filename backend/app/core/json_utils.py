@@ -1,3 +1,5 @@
+"""JSON 转换工具：把数据库和业务对象转换成响应可序列化的基础类型。"""
+
 from collections.abc import Mapping
 from datetime import date, datetime, time
 from decimal import Decimal

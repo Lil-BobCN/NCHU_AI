@@ -1,3 +1,5 @@
+// 前端路由：注册页面路径，并在进入业务页面前检查登录 token。
+
 import { createRouter, createWebHistory } from 'vue-router'
 import LoginView from '../views/LoginView.vue'
 import ChatView from '../views/ChatView.vue'

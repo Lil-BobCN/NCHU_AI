@@ -1,54 +1,38 @@
+<!-- 通用确认弹窗：用于删除、批量操作等需要二次确认的危险动作。 -->
+
 <template>
-  <div class="document-preview-modal confirm-dialog-modal" role="dialog" aria-modal="true">
-    <div class="duplicate-upload-dialog">
-      <header class="duplicate-upload-head">
+  <div class="document-preview-modal confirm-dialog-modal" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+    <section class="confirm-dialog" @click.stop>
+      <header>
         <div>
-          <strong>{{ title }}</strong>
-          <p>{{ message }}</p>
+          <strong id="confirm-title">{{ title }}</strong>
+          <span v-if="subjectLabel">{{ subjectLabel }}</span>
         </div>
-        <button class="icon-button" title="关闭" aria-label="关闭" @click="$emit('cancel')">×</button>
       </header>
 
-      <div class="duplicate-upload-body">
-        <article class="duplicate-match">
-          <div>
-            <strong>{{ prompt }}</strong>
-            <span>{{ subjectLabel }}</span>
-          </div>
-          <small>{{ detail }}</small>
-        </article>
+      <div class="confirm-dialog-body">
+        <p>{{ message }}</p>
+        <p v-if="detail" class="confirm-dialog-detail">{{ detail }}</p>
       </div>
 
-      <footer class="duplicate-upload-actions">
-        <button @click="$emit('cancel')">{{ cancelText }}</button>
-        <button class="danger" :disabled="busy" @click="$emit('confirm')">
-          {{ confirmText }}
+      <footer>
+        <button type="button" :disabled="busy" @click="$emit('cancel')">取消</button>
+        <button type="button" class="danger" :disabled="busy" @click="$emit('confirm')">
+          {{ busy ? '处理中' : '确认' }}
         </button>
       </footer>
-    </div>
+    </section>
   </div>
 </template>
 
 <script setup lang="ts">
-withDefaults(
-  defineProps<{
-    title: string
-    message: string
-    subjectLabel: string
-    detail?: string
-    prompt?: string
-    cancelText?: string
-    confirmText?: string
-    busy?: boolean
-  }>(),
-  {
-    detail: '取消不会影响当前选择，确认后将执行删除操作。',
-    prompt: '请确认是否继续删除',
-    cancelText: '取消',
-    confirmText: '确认删除',
-    busy: false
-  }
-)
+defineProps<{
+  title: string
+  message: string
+  subjectLabel?: string
+  detail?: string
+  busy?: boolean
+}>()
 
 defineEmits<{
   cancel: []

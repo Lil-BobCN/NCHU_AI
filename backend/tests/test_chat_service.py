@@ -12,7 +12,7 @@ BACKEND_ROOT = Path(__file__).resolve().parents[1]
 if str(BACKEND_ROOT) not in sys.path:
     sys.path.insert(0, str(BACKEND_ROOT))
 
-from app.services.chat_service import ChatService, SMALLTALK_WELCOME  # noqa: E402
+from app.services.chat_service import ChatService, NO_RELEVANT_CONTEXT_ANSWER, SMALLTALK_WELCOME  # noqa: E402
 
 
 class ChatServiceFollowupTests(unittest.TestCase):
@@ -49,34 +49,6 @@ class ChatServiceFollowupTests(unittest.TestCase):
             self.assertIn("流程步骤编号规则", prompt)
             self.assertIn("不要把多个主步骤都写成 1", prompt)
             self.assertIn("引用法规条文、原文序号、年份、金额、页码时必须保留原样", prompt)
-
-    def test_quote_followup_query_uses_quoted_topic_instead_of_recent_topic(self) -> None:
-        service = ChatService()
-
-        query = service._build_quoted_followup_query(
-            "细说一下这个",
-            "通讯教育选修课相关事项，通讯教育选修课是学校人才培养方案的重要组成部分。",
-        )
-
-        self.assertIn("通讯教育选修课", query)
-        self.assertIn("细说一下这个", query)
-        self.assertIn("不要沿用最近会话中的其他话题", query)
-
-    def test_answer_prompt_marks_quote_as_context_and_question_as_followup(self) -> None:
-        service = ChatService()
-
-        messages = service._build_messages_with_memory(
-            "细说一下这个",
-            [],
-            [],
-            "",
-            quoted_content="通讯教育选修课相关事项，通讯教育选修课是学校人才培养方案的重要组成部分。",
-        )
-
-        contents = "\n".join(item["content"] for item in messages)
-        self.assertIn("被引用的 AI 回复", contents)
-        self.assertIn("用户追加问题：细说一下这个", contents)
-        self.assertIn("不要把引用内容本身当成用户的新问题", contents)
 
     def test_concrete_new_topic_is_not_rewritten_with_history(self) -> None:
         service = ChatService()
@@ -281,19 +253,14 @@ class ChatServiceFollowupTests(unittest.TestCase):
         events = asyncio.run(consume())
         answer = ""
         direct_payload = None
-        citations = None
         for event in events:
             if event.startswith("event: answer_cache"):
                 direct_payload = json.loads(event.split("data: ", 1)[1])
             if event.startswith("event: delta"):
                 answer += json.loads(event.split("data: ", 1)[1]).get("content", "")
-            if event.startswith("event: citations"):
-                citations = json.loads(event.split("data: ", 1)[1]).get("citations")
 
         self.assertEqual(answer, "标准答案：准备申请表、成绩证明和家庭经济困难说明。")
         self.assertEqual(direct_payload["type"], "direct_qa")
-        self.assertEqual(citations[0]["qa_pair_id"], "qa-1")
-        self.assertEqual(citations[0]["tags"], ["奖学金"])
         self.assertFalse(service.model_service.stream_called)
         self.assertTrue(db.retrieval_logs)
         self.assertTrue(db.retrieval_logs[0].answer.startswith("标准答案"))
@@ -333,6 +300,39 @@ class ChatServiceFollowupTests(unittest.TestCase):
         self.assertFalse(service.model_service.stream_called)
         self.assertTrue(db.retrieval_logs)
         self.assertEqual(db.retrieval_logs[0].recall_results, [])
+        self.assertEqual(db.retrieval_logs[0].citations, [])
+
+    def test_no_effective_context_uses_standard_fallback_without_citations(self) -> None:
+        service = ChatService()
+        service.retrieval_service = FakeEmptyRetrievalService()
+        service.model_service = FakeNoModelService()
+        db = FakeChatStreamSession()
+
+        async def consume() -> list[str]:
+            events = []
+            async for event in service.stream_chat(
+                db,
+                "请介绍学生手册有哪些内容",
+                None,
+                enable_suggested_questions=False,
+            ):
+                events.append(event)
+            return events
+
+        events = asyncio.run(consume())
+        answer = ""
+        citations = None
+        for event in events:
+            if event.startswith("event: delta"):
+                answer += json.loads(event.split("data: ", 1)[1]).get("content", "")
+            if event.startswith("event: citations"):
+                citations = json.loads(event.split("data: ", 1)[1]).get("citations")
+
+        self.assertEqual(answer, NO_RELEVANT_CONTEXT_ANSWER)
+        self.assertEqual(citations, [])
+        self.assertFalse(service.model_service.stream_called)
+        self.assertTrue(db.retrieval_logs)
+        self.assertEqual(db.retrieval_logs[0].final_context, [])
         self.assertEqual(db.retrieval_logs[0].citations, [])
 
 
@@ -449,14 +449,13 @@ class FakeDirectQaRetrievalService:
             "qa_pair_id": "qa-1",
             "qa_question": "申请奖学金需要准备哪些材料",
             "qa_answer": "标准答案：准备申请表、成绩证明和家庭经济困难说明。",
-            "document_id": None,
-            "document_title": None,
-            "document_name": None,
+            "document_id": "00000000-0000-0000-0000-000000000001",
+            "document_title": "奖学金申报说明文档",
+            "document_name": "奖学金申报说明文档.pdf",
             "section_path": "QA问答对",
             "page_start": None,
             "page_end": None,
             "url": "http://example.local/qa",
-            "tags": ["奖学金"],
             "source": "qa_direct_exact",
             "score": 1.0,
         }
@@ -467,24 +466,22 @@ class FakeDirectQaRetrievalService:
     def _citations(self, results):
         return [
             {
-                "document_id": str(item["document_id"]) if item.get("document_id") else None,
+                "document_id": str(item["document_id"]),
                 "document_title": item["document_title"],
                 "document_name": item["document_name"],
                 "chunk_id": None,
-                "qa_pair_id": item.get("qa_pair_id"),
                 "page_start": None,
                 "page_end": None,
                 "section_path": item["section_path"],
                 "url": item["url"],
-                "tags": item.get("tags") or [],
                 "images": [],
             }
             for item in results
-            if item.get("document_id") or item.get("qa_pair_id")
+            if item.get("document_id")
         ]
 
     def citations_for_answer(self, query, answer, contexts):
-        return []
+        return self._citations(contexts)
 
 
 class FakeNoRetrievalService:
@@ -496,6 +493,30 @@ class FakeNoRetrievalService:
 
     def citations_for_answer(self, *args, **kwargs):
         raise AssertionError("smalltalk should skip citations")
+
+
+class FakeEmptyRetrievalService:
+    async def find_direct_qa_answer(self, *args, **kwargs):
+        return None
+
+    async def search(self, *args, **kwargs):
+        return {
+            "raw_query": "请介绍学生手册有哪些内容",
+            "rewritten_query": "请介绍学生手册有哪些内容",
+            "recall_results": [],
+            "rerank_results": [],
+            "final_context": [],
+            "answer_context": [],
+            "citations": [],
+            "no_match": True,
+            "no_match_reason": "no_effective_answer_context",
+            "retrieval_options": {},
+            "effective_settings": {},
+            "corpus_version": {"knowledge_base_version": 1},
+        }
+
+    def citations_for_answer(self, query, answer, contexts):
+        return []
 
 
 class FakeChatStreamSession:

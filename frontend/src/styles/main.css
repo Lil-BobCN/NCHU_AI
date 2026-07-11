@@ -1,3 +1,5 @@
+/* 全局样式：定义布局、组件、页面、弹窗和响应式展示规则。 */
+
 :root {
   font-family: Inter, "Microsoft YaHei", system-ui, sans-serif;
   color: #172033;
@@ -407,132 +409,8 @@ textarea:focus {
   white-space: nowrap;
 }
 
-.qa-create-button {
-  min-width: 118px;
-  min-height: 44px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  white-space: nowrap;
-  line-height: 1.2;
-}
-
 .qa-tag-field {
   align-content: start;
-}
-
-.qa-tag-field-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 8px;
-}
-
-.qa-tag-field-head strong {
-  color: #172033;
-}
-
-.qa-tag-field-head button {
-  min-height: 32px;
-  padding: 6px 10px;
-  color: var(--primary);
-  border-color: #cfe6ff;
-  background: #f4f9ff;
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.qa-tag-selector {
-  display: grid;
-  gap: 10px;
-}
-
-.qa-tag-selected-block,
-.qa-tag-option-block {
-  display: grid;
-  gap: 8px;
-  min-width: 0;
-  padding: 10px;
-  border: 1px solid var(--line-soft);
-  border-radius: 8px;
-  background: #f8fbff;
-}
-
-.qa-tag-selected-block > strong,
-.qa-tag-option-block > strong {
-  color: #52627a;
-  font-size: 12px;
-  font-weight: 800;
-}
-
-.qa-tag-option-search {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 8px;
-}
-
-.qa-tag-option-search input {
-  min-height: 34px;
-  padding: 7px 10px;
-}
-
-.qa-tag-option-search button {
-  min-height: 34px;
-  padding: 7px 12px;
-  color: var(--primary);
-  border-color: #cfe6ff;
-  background: #fff;
-  font-size: 13px;
-  font-weight: 800;
-}
-
-.qa-tag-checkbox-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
-  gap: 8px 10px;
-}
-
-.qa-tag-checkbox {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  min-width: 0;
-  min-height: 30px;
-  padding: 4px 8px;
-  border: 1px solid #dbeafe;
-  border-radius: 8px;
-  background: #fff;
-  color: #334155;
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.qa-edit-body .qa-tag-checkbox,
-.qa-tag-checkbox {
-  grid-template-columns: none;
-  display: inline-flex;
-}
-
-.qa-tag-checkbox:hover {
-  border-color: #9bc8ff;
-  background: #f4f9ff;
-}
-
-.qa-tag-checkbox input {
-  width: 15px;
-  height: 15px;
-  padding: 0;
-  flex: none;
-  accent-color: var(--primary);
-}
-
-.qa-tag-checkbox span {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .tag-preview {
@@ -620,8 +498,7 @@ textarea:focus {
 .qa-toolbar {
   display: flex;
   justify-content: flex-end;
-  align-items: center;
-  gap: 14px;
+  align-items: end;
   margin-left: auto;
 }
 
@@ -633,6 +510,7 @@ textarea:focus {
   font-weight: 700;
 }
 
+.qa-toolbar select,
 .qa-edit-body input,
 .qa-edit-body select,
 .qa-edit-body textarea {
@@ -645,128 +523,8 @@ textarea:focus {
   outline: 0;
 }
 
-.qa-filter-field {
-  display: grid;
-  gap: 0;
-  min-width: 188px;
-  color: #172033;
-  font-weight: 700;
-}
-
-.qa-filter-label {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  white-space: nowrap;
-}
-
-.qa-filter-select {
-  position: relative;
-  min-width: 188px;
-}
-
-.qa-filter-trigger {
-  width: 100%;
-  min-height: 42px;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 14px;
-  border: 1px solid #cfe6ff;
-  border-radius: 8px;
-  background: #fff;
-  color: #172033;
-  box-shadow: none;
-  font-weight: 700;
-  text-align: left;
-}
-
-.qa-filter-trigger:hover,
-.qa-filter-trigger[aria-expanded="true"] {
-  border-color: #8fc1ff;
-  background: #f8fbff;
-  box-shadow: 0 0 0 4px rgba(13, 124, 248, 0.08);
-}
-
-.qa-filter-trigger span:first-child {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.qa-filter-caret {
-  width: 8px;
-  height: 8px;
-  border-right: 2px solid var(--primary);
-  border-bottom: 2px solid var(--primary);
-  transform: translateY(-2px) rotate(45deg);
-  transition: transform 0.15s ease;
-}
-
-.qa-filter-trigger[aria-expanded="true"] .qa-filter-caret {
-  transform: translateY(2px) rotate(225deg);
-}
-
-.qa-filter-menu {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: calc(100% + 6px);
-  z-index: 20;
-  max-height: 260px;
-  overflow: auto;
-  padding: 6px;
-  border: 1px solid #cfe6ff;
-  border-radius: 8px;
-  background: #fff;
-  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.14);
-}
-
-.qa-filter-option {
-  width: 100%;
-  min-height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  padding: 7px 10px;
-  border: 0;
-  border-radius: 6px;
-  background: transparent;
-  color: #172033;
-  box-shadow: none;
-  font-weight: 700;
-  text-align: left;
-}
-
-.qa-filter-option:hover {
-  background: #f4f9ff;
-  color: var(--primary);
-}
-
-.qa-filter-option.active {
-  background: var(--primary);
-  color: #fff;
-}
-
-.qa-toolbar-manage {
-  min-height: 42px;
-  padding: 10px 16px;
-  border-color: #cfe6ff;
-  background: #f4f9ff;
-  color: var(--primary);
-  font-weight: 800;
-}
-
-.qa-edit-body .qa-tag-checkbox input {
-  width: 18px;
-  height: 18px;
-  padding: 0;
-  flex: none;
-  border-radius: 4px;
+.qa-toolbar select {
+  min-width: 180px;
 }
 
 .qa-edit-dialog {
@@ -783,203 +541,6 @@ textarea:focus {
 
 .qa-edit-body {
   gap: 14px;
-}
-
-.qa-tag-manager {
-  width: min(980px, 100%);
-  max-height: min(760px, calc(100vh - 44px));
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
-  overflow: hidden;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: #fff;
-  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.22);
-}
-
-.qa-tag-manager-body {
-  gap: 12px;
-}
-
-.qa-tag-manager-tools {
-  display: grid;
-  grid-template-columns: minmax(180px, 260px) auto minmax(0, 1fr);
-  gap: 10px;
-  align-items: center;
-}
-
-.qa-tag-manager-search {
-  min-height: 42px;
-  padding: 9px 18px;
-  color: var(--primary);
-  border-color: #cfe6ff;
-  background: #fff;
-  font-weight: 800;
-}
-
-.qa-tag-batch-bar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-  color: #52627a;
-  font-size: 13px;
-  font-weight: 800;
-}
-
-.qa-tag-batch-bar button {
-  min-height: 34px;
-  padding: 6px 10px;
-  font-size: 13px;
-}
-
-.qa-tag-batch-bar button:first-of-type {
-  border-color: #ffd0ca;
-  background: #fff7f6;
-  color: #b42318;
-}
-
-.qa-tag-batch-bar button:first-of-type:hover:not(:disabled) {
-  border-color: #ffb4aa;
-  background: #fff1ef;
-}
-
-.qa-tag-create {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 8px;
-}
-
-.qa-tag-table {
-  min-width: 0;
-  overflow: auto;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: #fff;
-}
-
-.qa-tag-table-head,
-.qa-tag-table-row {
-  display: grid;
-  grid-template-columns: 34px minmax(180px, 1fr) 112px 168px 150px;
-  gap: 10px;
-  align-items: center;
-  min-width: 700px;
-  padding: 10px 12px;
-}
-
-.qa-tag-table-head {
-  position: sticky;
-  top: 0;
-  z-index: 1;
-  color: #52627a;
-  background: #f6faff;
-  border-bottom: 1px solid var(--line);
-  font-size: 13px;
-  font-weight: 800;
-}
-
-.qa-sort-title {
-  display: inline-flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 4px;
-  min-height: auto;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  box-shadow: none;
-  color: #52627a;
-  font-size: 13px;
-  font-weight: 800;
-  text-align: left;
-}
-
-.qa-sort-title:hover {
-  color: var(--primary);
-  background: transparent;
-}
-
-.qa-sort-title span {
-  color: var(--primary);
-  font-size: 14px;
-  line-height: 1;
-}
-
-.qa-tag-select-cell {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.qa-tag-select-cell input {
-  width: 16px;
-  height: 16px;
-  margin: 0;
-  padding: 0;
-  flex: none;
-}
-
-.qa-tag-table-row {
-  border-bottom: 1px solid var(--line-soft);
-}
-
-.qa-tag-table-row:last-child {
-  border-bottom: 0;
-}
-
-.qa-tag-table-row:hover {
-  background: #f8fbff;
-}
-
-.qa-tag-table-row > span {
-  min-width: 0;
-}
-
-.qa-tag-table-row strong {
-  display: block;
-  min-width: 0;
-  overflow: hidden;
-  color: #172033;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.qa-tag-edit-input {
-  height: 36px;
-  padding: 7px 9px;
-}
-
-.qa-tag-row-actions {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-start;
-  gap: 6px;
-}
-
-.qa-tag-row-actions button {
-  min-height: 32px;
-  padding: 6px 9px;
-  font-size: 13px;
-}
-
-.qa-tag-row-actions .success {
-  border-color: #bbf7d0;
-  background: #f0fdf4;
-  color: #15803d;
-}
-
-.qa-tag-row-actions .success:hover {
-  border-color: #86efac;
-  background: #dcfce7;
-  color: #166534;
-}
-
-.qa-tag-row-actions .danger {
-  border-color: #ffd0ca;
-  background: #fff7f6;
-  color: #b42318;
 }
 
 .qa-list-panel {
@@ -1487,54 +1048,6 @@ textarea:focus {
   border-color: transparent;
 }
 
-.message.user.has-quote .bubble {
-  /* 带引用的用户消息改为白底卡片，避免蓝色正文和引用摘要抢层级。 */
-  display: grid;
-  gap: 12px;
-  color: #172033;
-  background: #fff;
-  border-color: #e2e8f0;
-}
-
-.message-quote-preview {
-  /* 用户消息内的引用摘要模拟“引用块”：左侧竖线提示上下文来源，整块可点击定位原 AI 回复。 */
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  align-items: start;
-  gap: 8px;
-  width: 100%;
-  min-height: 44px;
-  padding: 0 0 0 12px;
-  border: 0;
-  border-left: 3px solid #cbd5e1;
-  border-radius: 0;
-  background: transparent;
-  color: #334155;
-  box-shadow: none;
-  text-align: left;
-}
-
-.message-quote-preview:hover,
-.message-quote-preview:focus-visible {
-  border-left-color: #0d7cf8;
-  background: #f8fbff;
-  outline: none;
-}
-
-.message-quote-preview svg {
-  margin-top: 3px;
-  color: #64748b;
-}
-
-.message-quote-preview span {
-  min-width: 0;
-  overflow: hidden;
-  color: #334155;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  line-height: 1.55;
-}
-
 .bubble p,
 .markdown-content p {
   white-space: pre-wrap;
@@ -1982,68 +1495,20 @@ textarea:focus {
 
 .feedback-options {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-  max-width: 100%;
-  overflow: hidden;
+  grid-template-columns: repeat(auto-fit, minmax(136px, 1fr));
+  gap: 8px;
 }
 
 .feedback-options label {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
   gap: 8px;
-  width: 100%;
-  max-width: 100%;
-  min-width: 0;
-  height: 46px;
-  min-height: 46px;
-  max-height: 46px;
-  padding: 0 10px;
+  min-height: 38px;
+  padding: 8px 10px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: #f8fbff;
   font-weight: 700;
-  line-height: 1.2;
-  overflow: hidden;
-  cursor: pointer;
-}
-
-.feedback-options input {
-  appearance: auto;
-  flex: 0 0 auto;
-  width: 16px;
-  min-width: 16px;
-  max-width: 16px;
-  height: 16px;
-  min-height: 16px;
-  max-height: 16px;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  border-radius: 50%;
-  box-shadow: none;
-  accent-color: var(--primary);
-}
-
-.feedback-options label span {
-  display: block;
-  flex: 1 1 auto;
-  min-width: 0;
-  max-width: 100%;
-  color: #172033;
-  font-size: 13px;
-  text-align: left;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  word-break: normal;
-}
-
-@media (max-width: 640px) {
-  .feedback-options {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 }
 
 .feedback-description {
@@ -2095,93 +1560,6 @@ textarea:focus {
   display: grid;
   gap: 6px;
   min-width: 0;
-}
-
-.composer-quote-card {
-  /* 输入区引用卡片只承载“当前将随下一条消息发送的引用”，不把引用文本写入 textarea。 */
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 8px;
-  width: min(520px, 100%);
-  min-height: 42px;
-  padding: 8px 10px;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  background: #f1f5f9;
-  color: #1f2937;
-  cursor: pointer;
-}
-
-.composer-quote-card:hover,
-.composer-quote-card:focus-visible {
-  border-color: #bfdbfe;
-  background: #eef6ff;
-  outline: none;
-}
-
-.composer-quote-content {
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  font-size: 14px;
-  line-height: 1.5;
-}
-
-.composer-quote-close {
-  /* 取消引用按钮固定为红色圆形叉号，避免图标组件渲染异常时出现空白圆。 */
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  min-width: 24px;
-  padding: 0;
-  border: 1px solid #fecaca;
-  border-radius: 50%;
-  background: #fff5f5;
-  color: #dc2626;
-  cursor: pointer;
-}
-
-.composer-quote-close span,
-.composer-quote-close span::before,
-.composer-quote-close span::after {
-  /* 红叉用伪元素绘制，两条线都以按钮圆心为中心旋转，保证视觉中心不偏移。 */
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  display: block;
-  width: 11px;
-  height: 2px;
-  border-radius: 999px;
-  background: currentColor;
-  content: "";
-  transform-origin: center;
-}
-
-.composer-quote-close span {
-  width: 0;
-  height: 0;
-  background: transparent;
-  transform: translate(-50%, -50%);
-}
-
-.composer-quote-close span::before {
-  transform: translate(-50%, -50%) rotate(45deg);
-}
-
-.composer-quote-close span::after {
-  transform: translate(-50%, -50%) rotate(-45deg);
-}
-
-.composer-quote-close:hover,
-.composer-quote-close:focus-visible {
-  border-color: #ef4444;
-  background: #fee2e2;
-  color: #b91c1c;
-  outline: none;
 }
 
 .composer textarea {
@@ -2726,6 +2104,60 @@ button.danger:hover {
   z-index: 90;
 }
 
+.confirm-dialog {
+  width: min(420px, 100%);
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.22);
+}
+
+.confirm-dialog header,
+.confirm-dialog footer {
+  padding: 16px 18px;
+}
+
+.confirm-dialog header {
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.confirm-dialog header > div {
+  display: grid;
+  gap: 5px;
+}
+
+.confirm-dialog header strong {
+  color: #172033;
+  font-size: 17px;
+}
+
+.confirm-dialog header span,
+.confirm-dialog-detail {
+  color: #607089;
+  font-size: 13px;
+}
+
+.confirm-dialog-body {
+  display: grid;
+  gap: 10px;
+  padding: 18px;
+}
+
+.confirm-dialog-body p {
+  margin: 0;
+  color: #24324a;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.confirm-dialog footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  border-top: 1px solid var(--line-soft);
+}
+
 .document-preview-dialog {
   width: min(1120px, 100%);
   height: min(780px, calc(100vh - 44px));
@@ -3224,17 +2656,6 @@ button.danger:hover {
   white-space: nowrap;
 }
 
-.archive-source-note {
-  display: block;
-  max-width: 260px;
-  color: #1d4ed8;
-  font-size: 12px;
-  font-weight: 700;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .document-row-failed .task-batch-badge {
   background: #ffedd5;
   color: #c2410c;
@@ -3431,13 +2852,6 @@ button.danger:hover {
   .qa-toolbar label,
   .qa-actions {
     width: 100%;
-  }
-
-  .qa-filter-field,
-  .qa-filter-select,
-  .qa-toolbar-manage {
-    width: 100%;
-    min-width: 0;
   }
 
   .qa-actions {

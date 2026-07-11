@@ -1,3 +1,5 @@
+"""全局配置中心：从环境变量读取数据库、模型、检索、OCR 和对象存储配置。"""
+
 from functools import lru_cache
 from pathlib import Path
 
@@ -108,6 +110,7 @@ class Settings(BaseSettings):
     retrieval_cache_ttl_seconds: int = 1800
     retrieval_blacklist_keywords: str = (
         "接口测试,API接口,API 接口,接口设计,测试文档,内部文档,内部资料,涉密,保密,AI底座,底座规划"
+        ",底座方案,规划方案,任务排期,团队分工,技术架构,Demo"
     )
     answer_cache_enabled: bool = True
     answer_cache_ttl_seconds: int = 3600

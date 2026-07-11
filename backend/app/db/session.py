@@ -1,3 +1,5 @@
+"""数据库会话：创建异步 engine、session 工厂和 FastAPI 注入依赖。"""
+
 from collections.abc import AsyncGenerator
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 

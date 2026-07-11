@@ -1,3 +1,5 @@
+"""后台任务 worker：消费 Redis 队列并分发文档处理、QA 和评估任务。"""
+
 import asyncio
 import logging
 
@@ -43,7 +45,7 @@ async def dispatch_task(task: dict) -> None:
             await DocumentPipeline().run_convert_office(db, str(payload["document_id"]))
             return
         if task_type == "document_extract_archive":
-            await DocumentPipeline().run_extract_archive(db, str(payload["document_id"]), job_params)
+            await DocumentPipeline().run_extract_archive(db, str(payload["document_id"]))
             return
         if task_type == "document_qa_generate":
             await QaGenerationService().generate_from_document(

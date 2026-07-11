@@ -1,3 +1,5 @@
+"""模型服务：封装问答模型和 embedding 模型的 OpenAI-compatible 调用。"""
+
 from collections.abc import AsyncGenerator
 import hashlib
 

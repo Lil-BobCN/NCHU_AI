@@ -1,3 +1,5 @@
+"""FastAPI 应用入口：注册全局中间件、v1 路由和应用关闭时的资源清理。"""
+
 from contextlib import asynccontextmanager, suppress
 
 from fastapi import FastAPI

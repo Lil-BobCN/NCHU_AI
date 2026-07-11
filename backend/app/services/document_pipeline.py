@@ -1,3 +1,5 @@
+"""文档处理流水线：统一执行解析、切片、向量化、转换和压缩包导入。"""
+
 import asyncio
 from datetime import datetime, timezone
 import mimetypes
@@ -51,6 +53,7 @@ class DocumentPipeline:
     async def run_full_pipeline(
         self, db: AsyncSession, document_id: str, file_bytes: bytes, job_params: dict | None = None
     ) -> None:
+        # 阶段 1：解析原始文件并保存解析产物。后续切片和检索都依赖这里的 Markdown/纯文本结果。
         parse_job = await self._create_job(db, document_id, "parse", job_params)
         parse_job_id = str(parse_job.id)
         try:
@@ -98,6 +101,7 @@ class DocumentPipeline:
             await self._fail(db, document_id, parse_job_id, exc)
             return
 
+        # 阶段 2：基于解析结果生成可检索 chunk，并标记知识库版本发生变化。
         chunk_job = await self._create_job(db, document_id, "chunk", job_params)
         chunk_job_id = str(chunk_job.id)
         try:
@@ -119,6 +123,7 @@ class DocumentPipeline:
             await self._fail(db, document_id, chunk_job_id, exc)
             return
 
+        # 阶段 3：调用 embedding 模型写入 pgvector，成功后文档才进入 indexed 可问答状态。
         embed_job = await self._create_job(db, document_id, "embed", job_params)
         embed_job_id = str(embed_job.id)
         try:
@@ -257,10 +262,8 @@ class DocumentPipeline:
         except Exception as exc:
             await self._fail(db, document_id, job_id, exc, document_status="needs_conversion")
 
-    async def run_extract_archive(
-        self, db: AsyncSession, document_id: str, job_params: dict | None = None
-    ) -> None:
-        job = await self._create_job(db, document_id, "extract_import", job_params)
+    async def run_extract_archive(self, db: AsyncSession, document_id: str) -> None:
+        job = await self._create_job(db, document_id, "extract_import")
         job_id = str(job.id)
         try:
             await self._set_job(db, job_id, "running", 5, "开始安全解压压缩包")
@@ -291,8 +294,7 @@ class DocumentPipeline:
                     parent=document,
                     file_name=entry.file_name,
                     data=entry.data,
-                    title=entry.file_name,
-                    source_url=f"archive://{document.file_name}",
+                    title=f"{self._display_document_title(document)} / {entry.name}",
                 )
                 imported_documents.append((imported, entry.data, entry.name))
                 progress = min(80, 10 + int(index / total * 70))
@@ -303,85 +305,34 @@ class DocumentPipeline:
                 .where(Document.id == document_id)
                 .values(status="extracted", error_message=None, updated_at=datetime.now(timezone.utc))
             )
-            await db.commit()
-
-            # 压缩包任务必须等内部文档处理结束后再进入终态，避免批量统计把“刚解压”误认为“已完成”。
-            processed_documents: list[Document] = []
-            for index, (imported, data, _) in enumerate(imported_documents, start=1):
-                progress = min(95, 80 + int(index / total * 15))
-                await self._set_job(db, job_id, "running", progress, f"正在处理内部文档 {index}/{total}")
-                await self.run_full_pipeline(db, str(imported.id), data, job_params)
-                refreshed = await db.scalar(select(Document).where(Document.id == str(imported.id)))
-                if refreshed:
-                    processed_documents.append(refreshed)
-
-            processed_status_by_id = {str(item.id): str(item.status or "") for item in processed_documents}
-            result_payload = {
-                "archive_document_id": str(document.id),
-                "archive_file_name": document.file_name,
-                "archive_source_url": document.source_url,
-                "imported_documents": [
-                    {
-                        "document_id": str(item.id),
-                        "file_name": item.file_name,
-                        "title": item.title,
-                        "file_size": item.file_size,
-                        "preview_url": item.preview_url,
-                        "archive_entry_name": entry_name,
-                        "status": processed_status_by_id.get(str(item.id), item.status),
-                    }
-                    for item, _, entry_name in imported_documents
-                ],
-                "imported_document_ids": [str(item.id) for item, _, _ in imported_documents],
-                "imported_count": len(imported_documents),
-                "skipped": result.skipped,
-            }
-            failed_children = [
-                item
-                for item in processed_documents
-                if str(item.status or "") not in {"indexed", "converted"}
-            ]
-            if failed_children:
-                failed_names = "、".join(item.file_name for item in failed_children[:3])
-                await db.execute(
-                    update(Document)
-                    .where(Document.id == document_id)
-                    .values(
-                        error_message=f"以下内部文档未完成入库：{failed_names}",
-                        updated_at=datetime.now(timezone.utc),
-                    )
-                )
-                await db.commit()
-                await self._set_job(
-                    db,
-                    job_id,
-                    "failed",
-                    100,
-                    "压缩包内部文档未全部处理完成",
-                    f"以下内部文档未完成入库：{failed_names}",
-                    result=result_payload,
-                )
-                return
-
-            await db.execute(
-                update(Document)
-                .where(Document.id == document_id)
-                .values(
-                    status="deleted",
-                    error_message=None,
-                    deleted_at=datetime.now(timezone.utc),
-                    updated_at=datetime.now(timezone.utc),
-                )
-            )
-            await db.commit()
             await self._set_job(
                 db,
                 job_id,
                 "succeeded",
                 100,
-                f"解压导入并处理完成，已入库 {len(processed_documents)} 个内部文档",
-                result=result_payload,
+                f"解压导入完成，已创建 {len(imported_documents)} 个文档",
+                result={
+                    "archive_document_id": str(document.id),
+                    "archive_file_name": document.file_name,
+                    "archive_source_url": document.source_url,
+                    "imported_documents": [
+                        {
+                            "document_id": str(item.id),
+                            "file_name": item.file_name,
+                            "title": item.title,
+                            "file_size": item.file_size,
+                            "preview_url": item.preview_url,
+                            "archive_entry_name": entry_name,
+                        }
+                        for item, _, entry_name in imported_documents
+                    ],
+                    "imported_document_ids": [str(item.id) for item, _, _ in imported_documents],
+                    "imported_count": len(imported_documents),
+                    "skipped": result.skipped,
+                },
             )
+            for imported, data, _ in imported_documents:
+                await self.run_full_pipeline(db, str(imported.id), data)
         except Exception as exc:
             await self._fail(db, document_id, job_id, exc)
 
@@ -667,7 +618,6 @@ class DocumentPipeline:
         file_name: str,
         data: bytes,
         title: str,
-        source_url: str | None = None,
     ) -> Document:
         safe_file_name = await next_available_active_file_name(
             db, normalize_upload_file_name(file_name or "imported.bin")
@@ -689,7 +639,7 @@ class DocumentPipeline:
             file_hash=await asyncio.to_thread(sha256_bytes, data),
             storage_bucket=self.settings.minio_documents_bucket,
             storage_object_key=object_key,
-            source_url=source_url,
+            source_url=None,
             preview_url=public_url,
             download_url=public_url,
             status="uploaded",
@@ -814,4 +764,5 @@ def supported_file(file_name: str) -> bool:
         ".tif",
         ".tiff",
         ".zip",
+        ".rar",
     }

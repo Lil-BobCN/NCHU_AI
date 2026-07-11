@@ -1,3 +1,5 @@
+"""QA 向量服务：为标准问答生成 embedding 并同步到向量表。"""
+
 from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 

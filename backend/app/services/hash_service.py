@@ -1,3 +1,5 @@
+"""哈希工具：为文件去重、chunk 去重和缓存 key 生成 SHA256。"""
+
 import hashlib
 
 
@@ -7,4 +9,3 @@ def sha256_bytes(data: bytes) -> str:
 
 def sha256_text(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
-

@@ -1,3 +1,5 @@
+"""API 依赖：解析 Bearer Token 并加载当前管理员。"""
+
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt

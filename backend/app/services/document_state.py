@@ -1,8 +1,10 @@
+"""文档状态规则：判断解析终态、索引阻断原因和前端可展示提示。"""
+
 from typing import Any
 
 
 LEGACY_OFFICE_EXTENSIONS = {".doc", ".xls"}
-ARCHIVE_EXTENSIONS = {".zip"}
+ARCHIVE_EXTENSIONS = {".zip", ".rar"}
 BLOCKED_INDEX_STATUSES = {
     "needs_conversion",
     "needs_extraction",

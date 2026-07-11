@@ -1,3 +1,5 @@
+"""管理员初始化脚本：根据环境变量创建首个后台管理员账号。"""
+
 import asyncio
 
 from sqlalchemy import select

@@ -1,3 +1,5 @@
+"""健康检查接口：检查 API、数据库、Redis 和 MinIO 是否可用。"""
+
 from fastapi import APIRouter, Depends
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession

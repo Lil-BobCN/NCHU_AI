@@ -1,3 +1,5 @@
+"""认证接口：管理员登录、签发 JWT，并提供当前管理员信息。"""
+
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException

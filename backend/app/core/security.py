@@ -1,3 +1,5 @@
+"""安全工具：处理密码哈希、密码校验和 JWT token 签发。"""
+
 from datetime import datetime, timedelta, timezone
 from jose import jwt
 from passlib.context import CryptContext

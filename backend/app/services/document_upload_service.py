@@ -1,3 +1,5 @@
+"""上传服务：规范文件名、检测重复、保存 MinIO 对象并写入文档记录。"""
+
 from __future__ import annotations
 
 import asyncio
@@ -13,7 +15,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import get_settings
 from app.db.models import Document
-from app.services.document_state import ARCHIVE_EXTENSIONS
 from app.services.hash_service import sha256_bytes
 from app.services.document_lifecycle_service import DocumentLifecycleService
 from app.services.minio_service import MinioService
@@ -85,11 +86,6 @@ def make_copy_file_name(file_name: str, index: int) -> str:
     marker = f" ({index})"
     max_stem_length = max(1, MAX_FILE_NAME_LENGTH - len(marker) - len(suffix))
     return f"{stem[:max_stem_length]}{marker}{suffix}"
-
-
-def initial_document_status(file_name: str) -> str:
-    # 压缩包上传后只进入“待解压”状态，避免被误认为已经完成普通文件上传解析流程。
-    return "needs_extraction" if Path(file_name).suffix.lower() in ARCHIVE_EXTENSIONS else "uploaded"
 
 
 async def next_available_active_file_name(db: AsyncSession, file_name: str) -> str:
@@ -246,7 +242,7 @@ class DocumentUploadService:
                 source_url=source_url,
                 preview_url=None,
                 download_url=None,
-                status=initial_document_status(safe_file_name),
+                status="uploaded",
                 created_by=created_by,
             )
             db.add(document)
@@ -304,7 +300,7 @@ class DocumentUploadService:
             target.source_url = source_url
             target.preview_url = None
             target.download_url = None
-            target.status = initial_document_status(safe_file_name)
+            target.status = "uploaded"
             target.parse_quality_score = None
             target.error_message = None
             target.created_by = created_by

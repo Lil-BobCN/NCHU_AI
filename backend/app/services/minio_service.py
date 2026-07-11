@@ -1,3 +1,5 @@
+"""MinIO 服务：管理 bucket、对象读写、删除和前端可访问 URL。"""
+
 import json
 from datetime import datetime
 from datetime import timedelta

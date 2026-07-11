@@ -1,3 +1,5 @@
+"""任务队列服务：用 Redis list 管理后台任务的入队和出队。"""
+
 import json
 from datetime import datetime, timezone
 from uuid import uuid4

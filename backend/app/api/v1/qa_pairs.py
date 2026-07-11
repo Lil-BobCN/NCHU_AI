@@ -1,7 +1,9 @@
+"""QA 对接口：维护标准问答，并触发 QA embedding 同步。"""
+
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel
 from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -9,7 +11,6 @@ from app.api.deps import get_current_admin
 from app.core.responses import ok
 from app.db.models import Admin, Document, QaPair
 from app.db.session import get_db
-from app.services.qa_tag_service import ensure_qa_tags, list_enabled_qa_tag_names, sync_qa_tags_from_pairs
 from app.services.task_queue_service import TaskQueueService
 
 
@@ -24,32 +25,12 @@ class QaPairCreate(BaseModel):
     source_chunk_ids: list[str] | None = None
     tags: list[str] | None = None
 
-    @field_validator("question", "answer")
-    @classmethod
-    def validate_required_text(cls, value: str, info):
-        value = value.strip()
-        if not value:
-            label = "问题" if info.field_name == "question" else "答案"
-            raise ValueError(f"{label}不能为空")
-        return value
-
 
 class QaPairUpdate(BaseModel):
     question: str | None = None
     answer: str | None = None
     status: str | None = None
     tags: list[str] | None = None
-
-    @field_validator("question", "answer")
-    @classmethod
-    def validate_optional_required_text(cls, value: str | None, info):
-        if value is None:
-            return value
-        value = value.strip()
-        if not value:
-            label = "问题" if info.field_name == "question" else "答案"
-            raise ValueError(f"{label}不能为空")
-        return value
 
 
 class QaStatusUpdate(BaseModel):
@@ -60,29 +41,34 @@ class QaStatusUpdate(BaseModel):
 async def list_qa_pairs(
     keyword: str | None = None,
     status: str | None = None,
-    tag: str | None = None,
     document_id: str | None = None,
     page: int = 1,
     page_size: int = 20,
     db: AsyncSession = Depends(get_db),
     _: Admin = Depends(get_current_admin),
 ):
-    filters = qa_pair_list_filters(keyword=keyword, status=status, tag=tag, document_id=document_id)
-    query = select(QaPair).where(*filters)
-    count_query = select(func.count()).select_from(QaPair).where(*filters)
+    query = select(QaPair).where(QaPair.deleted_at.is_(None))
+    count_query = select(func.count()).select_from(QaPair).where(QaPair.deleted_at.is_(None))
+    if keyword:
+        condition = QaPair.question.ilike(f"%{keyword}%") | QaPair.answer.ilike(f"%{keyword}%")
+        query = query.where(condition)
+        count_query = count_query.where(condition)
+    if status:
+        query = query.where(QaPair.status == status)
+        count_query = count_query.where(QaPair.status == status)
+    if document_id:
+        query = query.where(QaPair.source_document_id == document_id)
+        count_query = count_query.where(QaPair.source_document_id == document_id)
     total = await db.scalar(count_query)
     rows = await db.execute(
-        query.order_by(*qa_pair_list_ordering()).offset((page - 1) * page_size).limit(page_size)
+        query.order_by(QaPair.updated_at.desc()).offset((page - 1) * page_size).limit(page_size)
     )
-    # 标签筛选下拉要覆盖当前查询范围内的全部标签，不能只从当前页聚合，否则分页后会漏选项。
-    available_tags = await list_available_qa_tags(db, keyword=keyword, status=status, document_id=document_id)
     return ok(
         {
             "items": [serialize_qa(item) for item in rows.scalars()],
             "page": page,
             "page_size": page_size,
             "total": total or 0,
-            "available_tags": available_tags,
         }
     )
 
@@ -93,16 +79,11 @@ async def create_qa_pair(
     db: AsyncSession = Depends(get_db),
     admin: Admin = Depends(get_current_admin),
 ):
-    duplicate_id = await db.scalar(select(QaPair.id).where(*qa_pair_duplicate_question_filters(payload.question)))
-    if duplicate_id:
-        # 新增问答只按“问题字符串完全一致”判重，不做模糊匹配，避免把相似但语义不同的问题误拦截。
-        raise HTTPException(status_code=409, detail="当前已经存在该问答")
     source_url = None
     if payload.source_document_id:
         document = await db.scalar(select(Document).where(Document.id == payload.source_document_id))
         if document:
             source_url = document.source_url or document.preview_url or document.download_url
-    tags = await ensure_qa_tags(db, payload.tags, str(admin.id))
     qa = QaPair(
         question=payload.question,
         answer=payload.answer,
@@ -110,7 +91,7 @@ async def create_qa_pair(
         source_document_id=payload.source_document_id,
         source_chunk_ids=payload.source_chunk_ids,
         source_url=source_url,
-        tags=tags,
+        tags=payload.tags,
         created_by=str(admin.id),
         updated_by=str(admin.id),
     )
@@ -130,8 +111,6 @@ async def update_qa_pair(
 ):
     qa = await _get_qa(db, qa_pair_id)
     values = payload.model_dump(exclude_unset=True)
-    if "tags" in payload.model_fields_set:
-        values["tags"] = await ensure_qa_tags(db, payload.tags, str(admin.id))
     values["version"] = qa.version + 1
     values["updated_by"] = str(admin.id)
     values["updated_at"] = datetime.now(timezone.utc)
@@ -183,53 +162,6 @@ async def _get_qa(db: AsyncSession, qa_pair_id: str) -> QaPair:
 
 async def _enqueue_qa_embedding_sync(qa_pair_id: str) -> dict:
     return await TaskQueueService().enqueue("qa_embedding_sync", {"qa_pair_id": qa_pair_id})
-
-
-def qa_pair_list_filters(
-    keyword: str | None = None,
-    status: str | None = None,
-    tag: str | None = None,
-    document_id: str | None = None,
-) -> list:
-    filters = [QaPair.deleted_at.is_(None)]
-    if keyword:
-        condition = QaPair.question.ilike(f"%{keyword}%") | QaPair.answer.ilike(f"%{keyword}%")
-        filters.append(condition)
-    if status:
-        filters.append(QaPair.status == status)
-    if tag:
-        clean_tag = tag.strip()
-        if clean_tag:
-            # 标签筛选使用数组包含，保持按完整标签精确匹配，避免模糊匹配误命中相近分类。
-            filters.append(QaPair.tags.contains([clean_tag]))
-    if document_id:
-        filters.append(QaPair.source_document_id == document_id)
-    return filters
-
-
-def qa_pair_list_ordering() -> list:
-    # 批量启用/停用问答时保持排序稳定。
-    # 自动生成的记录可能拥有相近时间戳，因此用创建时间和主键作为兜底排序，
-    # 避免状态刷新后列表位置跳动。
-    return [QaPair.updated_at.desc(), QaPair.created_at.desc(), QaPair.id.desc()]
-
-
-def qa_pair_duplicate_question_filters(question: str):
-    # 完全一致判重只排除软删除记录；大小写、标点、空格都按入库后的标准字符串精确比较。
-    return [QaPair.deleted_at.is_(None), QaPair.question == question]
-
-
-async def list_available_qa_tags(
-    db: AsyncSession,
-    keyword: str | None = None,
-    status: str | None = None,
-    document_id: str | None = None,
-) -> list[str]:
-    # 这里不仅服务列表筛选下拉，也服务新增/编辑弹窗里的可选标签。
-    # 文档管理页 AI 生成 QA 曾经会绕过标签库写入，因此读取可选标签前先从 qa_pairs.tags 回填一次。
-    await sync_qa_tags_from_pairs(db)
-    await db.commit()
-    return await list_enabled_qa_tag_names(db)
 
 
 def serialize_qa(qa: QaPair) -> dict:

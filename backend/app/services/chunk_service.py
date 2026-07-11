@@ -1,3 +1,5 @@
+"""切片服务：把解析后的文本、标题和表格拆成可检索的 chunk。"""
+
 import json
 import re
 from dataclasses import dataclass, field
