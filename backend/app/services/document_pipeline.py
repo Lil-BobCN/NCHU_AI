@@ -544,16 +544,16 @@ class DocumentPipeline:
             await db.flush()
             # 更新子切片的 parent_chunk_id
             child_ids = [str(item["id"]) for item in items]
-            for child_id in child_ids:
+            if child_ids:
                 await db.execute(
                     text(
                         """
                         UPDATE document_chunks
                         SET parent_chunk_id = :parent_id
-                        WHERE id = :child_id
+                        WHERE id = ANY(CAST(:child_ids AS uuid[]))
                         """
                     ),
-                    {"parent_id": str(parent_chunk.id), "child_id": child_id},
+                    {"parent_id": str(parent_chunk.id), "child_ids": child_ids},
                 )
         await db.flush()
 
@@ -585,8 +585,19 @@ class DocumentPipeline:
         for start in range(0, len(chunks), batch_size):
             batch = chunks[start : start + batch_size]
             embeddings = await self.model_service.embed([item["content"] for item in batch])
+            insert_rows = []
             for item, embedding in zip(batch, embeddings, strict=True):
                 vector_literal = "[" + ",".join(str(value) for value in embedding) + "]"
+                insert_rows.append(
+                    {
+                        "chunk_id": item["id"],
+                        "document_id": document_id,
+                        "embedding": vector_literal,
+                        "embedding_model": self.settings.embedding_model,
+                        "content_hash": item["content_hash"],
+                    }
+                )
+            if insert_rows:
                 await db.execute(
                     text(
                         """
@@ -601,15 +612,9 @@ class DocumentPipeline:
                         ON CONFLICT (chunk_id) DO NOTHING
                         """
                     ),
-                    {
-                        "chunk_id": item["id"],
-                        "document_id": document_id,
-                        "embedding": vector_literal,
-                        "embedding_model": self.settings.embedding_model,
-                        "content_hash": item["content_hash"],
-                    },
+                    insert_rows,
                 )
-                embedded_count += 1
+                embedded_count += len(insert_rows)
             progress_range = max(1, progress_end - progress_start)
             progress = min(
                 progress_end,

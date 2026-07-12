@@ -40,17 +40,25 @@ X-Request-Id: <trace id>
 
 ```text
 GET    /internal/rag/health
+GET    /internal/rag/knowledge-bases
 GET    /internal/rag/documents/{attach_id}
 POST   /internal/rag/documents/process
 POST   /internal/rag/documents/{attach_id}/reparse
 POST   /internal/rag/documents/{attach_id}/rechunk
 DELETE /internal/rag/documents/{attach_id}
+POST   /internal/rag/documents/batch/reparse
+POST   /internal/rag/documents/batch/rechunk
+POST   /internal/rag/documents/batch/knowledge-base
+POST   /internal/rag/documents/batch/delete
+GET    /internal/rag/jobs
 GET    /internal/rag/jobs/{job_id}
 POST   /internal/rag/conversations
 GET    /internal/rag/conversations
 GET    /internal/rag/conversations/{conversation_id}/messages
 PATCH  /internal/rag/conversations/{conversation_id}
 DELETE /internal/rag/conversations/{conversation_id}
+POST   /internal/rag/feedback/answers
+POST   /internal/rag/feedback/answers/{feedback_id}/cancel
 POST   /internal/rag/chat/stream
 POST   /internal/rag/chat
 ```

@@ -4,8 +4,8 @@
 
 import csv
 import io
-from datetime import datetime
-from uuid import UUID
+from datetime import datetime, timezone
+from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, Response, UploadFile
 from pydantic import BaseModel, Field, field_validator
@@ -20,6 +20,11 @@ from app.db.session import get_db
 from app.services.document_state import ARCHIVE_EXTENSIONS, LEGACY_OFFICE_EXTENSIONS, indexing_blocker
 from app.services.document_pipeline import supported_file
 from app.services.document_lifecycle_service import DocumentLifecycleService
+from app.services.knowledge_base_service import (
+    KnowledgeBaseService,
+    normalize_knowledge_base_name,
+    serialize_knowledge_base_option,
+)
 from app.services.minio_service import MinioService
 from app.services.task_queue_service import TaskQueueService
 from app.services.document_upload_service import (
@@ -31,6 +36,12 @@ from app.services.document_upload_service import (
 
 
 router = APIRouter(prefix="/documents", tags=["documents"])
+
+BATCH_ACTIONS = {
+    "batch_reparse": ("BRP", "Batch reparse"),
+    "batch_rechunk": ("BRC", "Batch rechunk"),
+}
+BATCH_JOB_STATUSES = {"pending", "running", "succeeded", "failed", "skipped", "canceled"}
 
 
 class DocumentBatchPayload(BaseModel):
@@ -81,9 +92,8 @@ async def upload_document(
     settings = get_settings()
     if not supported_file(file.filename or ""):
         raise HTTPException(status_code=415, detail="不支持的文件类型")
-    data = await file.read()
-    if len(data) > settings.max_upload_size_mb * 1024 * 1024:
-        raise HTTPException(status_code=413, detail="文件超过 100MB")
+    max_upload_bytes = settings.max_upload_size_mb * 1024 * 1024
+    data = await _read_upload_file_limited(file, max_upload_bytes)
     try:
         result = await DocumentUploadService().save_upload(
             db,
@@ -141,6 +151,8 @@ async def list_documents(
     keyword: str | None = None,
     status: str | None = None,
     knowledge_base: str | None = None,
+    batch_id: str | None = None,
+    batch_status: str | None = None,
     page: int = 1,
     page_size: int = 20,
     db: AsyncSession = Depends(get_db),
@@ -159,6 +171,10 @@ async def list_documents(
     if normalized_knowledge_base:
         query = query.where(Document.knowledge_base == normalized_knowledge_base)
         count_query = count_query.where(Document.knowledge_base == normalized_knowledge_base)
+    batch_document_ids = _batch_document_ids_query(batch_id, batch_status)
+    if batch_document_ids is not None:
+        query = query.where(Document.id.in_(batch_document_ids))
+        count_query = count_query.where(Document.id.in_(batch_document_ids))
     total = await db.scalar(count_query)
     rows = await db.execute(
         query.order_by(Document.created_at.desc()).offset((page - 1) * page_size).limit(page_size)
@@ -178,6 +194,8 @@ async def export_documents(
     keyword: str | None = None,
     status: str | None = None,
     knowledge_base: str | None = None,
+    batch_id: str | None = None,
+    batch_status: str | None = None,
     db: AsyncSession = Depends(get_db),
     _: Admin = Depends(get_current_admin),
 ):
@@ -190,6 +208,9 @@ async def export_documents(
     normalized_knowledge_base = normalize_knowledge_base(knowledge_base)
     if normalized_knowledge_base:
         query = query.where(Document.knowledge_base == normalized_knowledge_base)
+    batch_document_ids = _batch_document_ids_query(batch_id, batch_status)
+    if batch_document_ids is not None:
+        query = query.where(Document.id.in_(batch_document_ids))
     rows = await db.execute(query.order_by(Document.created_at.desc()))
     buffer = io.StringIO(newline="")
     writer = csv.writer(buffer)
@@ -219,13 +240,14 @@ async def list_knowledge_bases(
     db: AsyncSession = Depends(get_db),
     _: Admin = Depends(get_current_admin),
 ):
-    rows = await db.execute(
-        select(Document.knowledge_base)
-        .where(Document.deleted_at.is_(None))
-        .distinct()
-        .order_by(Document.knowledge_base.asc())
+    options = await KnowledgeBaseService().list_options(db)
+    return ok(
+        {
+            "items": [option.value for option in options],
+            "default": "default",
+            "options": [serialize_knowledge_base_option(option) for option in options],
+        }
     )
-    return ok(serialize_knowledge_bases(list(rows.scalars())))
 
 
 def serialize_knowledge_bases(values: list[str | None]) -> dict:
@@ -266,6 +288,8 @@ async def batch_update_knowledge_base(
     db: AsyncSession = Depends(get_db),
     _: Admin = Depends(get_current_admin),
 ):
+    if not await KnowledgeBaseService().exists(db, payload.knowledge_base):
+        raise HTTPException(status_code=400, detail="knowledge_base not found")
     documents = await _get_documents(db, payload.document_ids)
     ids = [str(document.id) for document in documents]
     await db.execute(
@@ -290,11 +314,26 @@ async def batch_reparse_documents(
     _: Admin = Depends(get_current_admin),
 ):
     documents = await _get_documents(db, payload.document_ids)
+    batch = _new_batch("batch_reparse", len(documents))
     jobs = []
-    for document in documents:
-        task = await _enqueue_document_task("document_full_pipeline", str(document.id))
-        jobs.append({"document_id": str(document.id), "status": "queued", "task_id": task["id"]})
-    return ok({"jobs": jobs, "count": len(jobs)})
+    for index, document in enumerate(documents, start=1):
+        job, task = await _enqueue_document_job(
+            db,
+            document,
+            "document_full_pipeline",
+            **_batch_task_params(batch, index),
+        )
+        jobs.append(
+            _batch_job_item(
+                document,
+                batch,
+                index,
+                "queued",
+                job_id=str(job.id),
+                task_id=str(task["id"]),
+            )
+        )
+    return ok({"batch": batch, "jobs": jobs, "count": len(jobs)})
 
 
 @router.post("/batch/rechunk")
@@ -304,16 +343,47 @@ async def batch_rechunk_documents(
     _: Admin = Depends(get_current_admin),
 ):
     documents = await _get_documents(db, payload.document_ids)
+    batch = _new_batch("batch_rechunk", len(documents))
     jobs = []
     skipped = []
-    for document in documents:
+    for index, document in enumerate(documents, start=1):
         skip = await _indexing_skip_payload(db, document, "chunk")
         if skip:
-            skipped.append(skip)
+            job = await _record_skipped_document_job(
+                db,
+                document,
+                "document_rechunk",
+                skip.get("message") or "skipped",
+                **_batch_task_params(batch, index),
+            )
+            skipped.append(
+                _batch_job_item(
+                    document,
+                    batch,
+                    index,
+                    "skipped",
+                    job_id=str(job.id),
+                    message=skip.get("message"),
+                )
+            )
             continue
-        task = await _enqueue_document_task("document_rechunk", str(document.id))
-        jobs.append({"document_id": str(document.id), "status": "queued", "task_id": task["id"]})
-    return ok({"jobs": jobs, "skipped": skipped, "count": len(jobs)})
+        job, task = await _enqueue_document_job(
+            db,
+            document,
+            "document_rechunk",
+            **_batch_task_params(batch, index),
+        )
+        jobs.append(
+            _batch_job_item(
+                document,
+                batch,
+                index,
+                "queued",
+                job_id=str(job.id),
+                task_id=str(task["id"]),
+            )
+        )
+    return ok({"batch": batch, "jobs": jobs, "skipped": skipped, "count": len(jobs)})
 
 
 @router.post("/cleanup-deleted-artifacts")
@@ -559,6 +629,121 @@ async def _enqueue_document_task(task_type: str, document_id: str) -> dict:
     return await TaskQueueService().enqueue(task_type, {"document_id": document_id})
 
 
+async def _enqueue_document_job(
+    db: AsyncSession,
+    document: Document,
+    task_type: str,
+    **params,
+) -> tuple[DocumentJob, dict]:
+    task_payload = {"document_id": str(document.id), **params}
+    job = DocumentJob(
+        document_id=str(document.id),
+        job_type=task_type,
+        status="pending",
+        progress=0,
+        message="queued",
+        params={"source": "documents_api", **task_payload},
+    )
+    db.add(job)
+    await db.commit()
+    await db.refresh(job)
+    task = await TaskQueueService().enqueue(task_type, {**task_payload, "job_id": str(job.id)})
+    return job, task
+
+
+async def _record_skipped_document_job(
+    db: AsyncSession,
+    document: Document,
+    job_type: str,
+    message: str,
+    **params,
+) -> DocumentJob:
+    task_payload = {"document_id": str(document.id), **params}
+    job = DocumentJob(
+        document_id=str(document.id),
+        job_type=job_type,
+        status="skipped",
+        progress=100,
+        message=message,
+        params={"source": "documents_api", **task_payload},
+    )
+    db.add(job)
+    await db.commit()
+    await db.refresh(job)
+    return job
+
+
+def _new_batch(action: str, total: int) -> dict:
+    prefix, label = BATCH_ACTIONS[action]
+    now = datetime.now(timezone.utc)
+    return {
+        "batch_id": f"{prefix}-{now.strftime('%Y%m%d%H%M%S')}-{uuid4().hex[:8]}",
+        "action": action,
+        "label": label,
+        "total": total,
+        "created_at": now.isoformat(),
+    }
+
+
+def _batch_task_params(batch: dict, index: int) -> dict:
+    return {
+        "batch_id": batch["batch_id"],
+        "batch_index": index,
+        "batch_label": batch["label"],
+        "batch_total": batch["total"],
+    }
+
+
+def _batch_job_item(
+    document: Document,
+    batch: dict,
+    index: int,
+    status: str,
+    *,
+    job_id: str | None = None,
+    task_id: str | None = None,
+    message: str | None = None,
+) -> dict:
+    return {
+        "batch_id": batch["batch_id"],
+        "batch_index": index,
+        "batch_label": batch["label"],
+        "document_id": str(document.id),
+        "file_name": document.file_name,
+        "status": status,
+        "job_id": job_id,
+        "task_id": task_id,
+        "message": message,
+    }
+
+
+def _batch_document_ids_query(batch_id: str | None, batch_status: str | None):
+    filters = []
+    normalized_batch_id = normalize_batch_id(batch_id)
+    normalized_batch_status = normalize_batch_status(batch_status)
+    if normalized_batch_id:
+        filters.append(DocumentJob.params["batch_id"].as_string() == normalized_batch_id)
+    if normalized_batch_status:
+        filters.append(DocumentJob.status == normalized_batch_status)
+    if not filters:
+        return None
+    return select(DocumentJob.document_id).where(*filters)
+
+
+async def _read_upload_file_limited(file: UploadFile, max_bytes: int) -> bytes:
+    chunks: list[bytes] = []
+    total = 0
+    while True:
+        chunk = await file.read(1024 * 1024)
+        if not chunk:
+            break
+        total += len(chunk)
+        if total > max_bytes:
+            raise HTTPException(status_code=413, detail=f"文件超过 {max_bytes // 1024 // 1024}MB")
+        chunks.append(chunk)
+    return b"".join(chunks)
+
+
 def _normalize_document_id(document_id: str) -> str:
     try:
         return str(UUID(document_id))
@@ -592,7 +777,18 @@ def serialize_document(document: Document) -> dict:
 
 
 def normalize_knowledge_base(value: str | None) -> str:
+    return normalize_knowledge_base_name(value)
+
+
+def normalize_batch_id(value: str | None) -> str:
     return " ".join(str(value or "").strip().split())[:64]
+
+
+def normalize_batch_status(value: str | None) -> str:
+    normalized = " ".join(str(value or "").strip().split())[:32]
+    if normalized and normalized not in BATCH_JOB_STATUSES:
+        raise HTTPException(status_code=422, detail="batch_status is unsupported")
+    return normalized
 
 
 def serialize_duplicate_check(duplicate_check, message: str | None = None) -> dict:
@@ -625,6 +821,7 @@ def serialize_duplicate_check(duplicate_check, message: str | None = None) -> di
 
 
 def serialize_job(job: DocumentJob) -> dict:
+    params = dict(job.params or {})
     return {
         "id": str(job.id),
         "document_id": str(job.document_id),
@@ -633,6 +830,10 @@ def serialize_job(job: DocumentJob) -> dict:
         "progress": job.progress,
         "message": job.message,
         "error_message": job.error_message,
+        "params": params,
+        "batch_id": params.get("batch_id"),
+        "batch_index": params.get("batch_index"),
+        "batch_label": params.get("batch_label"),
         "result": job.result,
         "created_at": job.created_at.isoformat() if job.created_at else None,
     }

@@ -29,6 +29,7 @@ class InternalApiContractTests(unittest.TestCase):
         job.id = "job-1"
         job.message = "已加入处理队列"
         job.error_message = None
+        job.params = {"batch_id": "BRP-1", "batch_index": 2, "batch_label": "Batch reparse"}
         job.result = {}
         job.created_at = None
         job.updated_at = None
@@ -38,6 +39,8 @@ class InternalApiContractTests(unittest.TestCase):
         self.assertEqual(data["job_id"], "job-1")
         self.assertEqual(data["rag_doc_id"], "doc-1")
         self.assertEqual(data["job_type"], "document_full_pipeline")
+        self.assertEqual(data["batch_id"], "BRP-1")
+        self.assertEqual(data["batch_index"], 2)
 
     def test_assistant_message_feedback_is_nested_for_java_contract(self) -> None:
         message = ConversationMessage(conversation_id="conv-1", role="assistant", content="answer")

@@ -31,6 +31,7 @@ Content-Type: application/json
 - `401`：未登录、token 无效或过期。
 - `403`：权限范围为空或无权访问。
 - `404`：文档、任务、会话不存在。
+- `429`：问答并发槽位已满，需要稍后重试。
 - `415`：不支持的文件类型。
 - `422`：请求字段校验失败。
 - `503`：服务密钥未配置。
@@ -248,6 +249,47 @@ DELETE /internal/rag/documents/{attach_id}
 
 ## 六、任务接口
 
+### 1. 分页查询任务
+
+```http
+GET /internal/rag/jobs?page=1&page_size=20&batch_id=&attach_id=&status=
+```
+
+支持参数：
+
+- `batch_id`：批量重解析或重切片返回的批次 ID。
+- `attach_id`：Java 附件 ID。
+- `status`：`pending`、`running`、`succeeded`、`failed`、`skipped`、`canceled`。
+- `page`：页码，最小 1。
+- `page_size`：每页数量，最大 100。
+
+响应：
+
+```json
+{
+  "code": 0,
+  "message": "ok",
+  "data": {
+    "items": [
+      {
+        "job_id": "uuid",
+        "rag_doc_id": "uuid",
+        "job_type": "document_full_pipeline",
+        "status": "pending",
+        "batch_id": "BRP-20260712120000-xxxxxxxx",
+        "batch_index": 1,
+        "batch_label": "Batch reparse"
+      }
+    ],
+    "page": 1,
+    "page_size": 20,
+    "total": 1
+  }
+}
+```
+
+### 2. 查询单个任务
+
 ```http
 GET /internal/rag/jobs/{job_id}
 ```
@@ -266,6 +308,9 @@ GET /internal/rag/jobs/{job_id}
     "progress": 70,
     "message": "processing",
     "error_message": null,
+    "batch_id": "BRP-20260712120000-xxxxxxxx",
+    "batch_index": 1,
+    "batch_label": "Batch reparse",
     "result": {},
     "created_at": "2026-07-10T10:00:00+00:00",
     "updated_at": "2026-07-10T10:01:00+00:00"
@@ -382,6 +427,8 @@ POST /internal/rag/chat
 - `question` 最大长度由 `CHAT_MAX_QUESTION_CHARS` 控制，默认 2000。
 - `top_k` 最大 50。
 - `rerank_top_k` 最大 20。
+- 接口受聊天并发槽位保护。高峰期如果返回 `429`，Java 侧应提示稍后重试或做短暂退避重试。
+- `access_scope` 会被 Python 转换为 SQL 条件并下推到文档、QA 和上下文扩展召回中。
 
 响应 `data` 通常包含：
 
@@ -458,3 +505,83 @@ POST /internal/rag/chat/retract
 6. 换无权限用户提问，确认不会召回该文档。
 7. `/internal/rag/chat/stream`：确认前端 SSE 解析。
 8. 删除 Java 附件后调用 `DELETE /internal/rag/documents/{attach_id}`。
+
+## 十、新增批量与反馈接口
+
+### 1. 知识库列表
+
+```http
+GET /internal/rag/knowledge-bases
+```
+
+返回 `items`，每项包含 `id`、`code`、`name`、`value`、`source` 等字段。Python 会优先读取共库中的 `public.knowledge_info`，不可用时回退到 RAG 文档表中已有的知识库值。
+
+### 2. 批量文档操作
+
+```http
+POST /internal/rag/documents/batch/reparse
+POST /internal/rag/documents/batch/rechunk
+POST /internal/rag/documents/batch/knowledge-base
+POST /internal/rag/documents/batch/delete
+```
+
+批量重解析和重切片请求：
+
+```json
+{
+  "attach_ids": [1001, 1002]
+}
+```
+
+批量调整知识库请求：
+
+```json
+{
+  "attach_ids": [1001, 1002],
+  "knowledge_id": "default"
+}
+```
+
+重解析和重切片响应会返回 `batch.batch_id` 以及每个附件对应的 `job_id`，Java 可以用任务列表接口分页查询同批次任务：
+
+```http
+GET /internal/rag/jobs?batch_id=BRP-20260712120000-xxxxxxxx&page=1&page_size=20
+GET /internal/rag/jobs?attach_id=1001
+GET /internal/rag/jobs?status=failed
+```
+
+批量删除会软删除 RAG 侧索引并返回删除数量；不代表 Java 业务附件被物理删除。
+
+### 3. 回答反馈
+
+```http
+POST /internal/rag/feedback/answers
+POST /internal/rag/feedback/answers/{feedback_id}/cancel
+```
+
+提交反馈请求：
+
+```json
+{
+  "assistant_message_id": "uuid",
+  "error_type": "answer_wrong",
+  "description": "答案不准确"
+}
+```
+
+`error_type` 支持：`answer_wrong`、`citation_wrong`、`off_topic`、`incomplete`、`other`。接口会校验当前 Sa-Token 用户是否可访问该会话，并同步更新 retrieval log 的回答质量信息。
+
+## 十一、本轮接口冒烟结果
+
+本轮基于 `app.openapi()` 做了全量路由冒烟，覆盖 76 个 HTTP 操作，未出现 500。新增 Java 对接接口在未带鉴权时均返回 `401`，说明路由和 Sa-Token 鉴权链路已命中：
+
+- `GET /internal/rag/knowledge-bases`
+- `POST /internal/rag/documents/batch/reparse`
+- `POST /internal/rag/documents/batch/rechunk`
+- `POST /internal/rag/documents/batch/knowledge-base`
+- `POST /internal/rag/documents/batch/delete`
+- `GET /internal/rag/jobs?batch_id=BRP-smoke`
+- `POST /internal/rag/feedback/answers`
+- `POST /internal/rag/feedback/answers/{feedback_id}/cancel`
+
+真实业务闭环仍需在联调环境带有效 Sa-Token JWT、PostgreSQL、Redis、MinIO 和模型 Key 验证文档入库、批量任务执行、问答检索和反馈取消。

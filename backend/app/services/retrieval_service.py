@@ -4,6 +4,7 @@
 
 import hashlib
 import re
+from contextvars import ContextVar
 
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -16,6 +17,16 @@ from app.services.model_service import ModelService
 from app.services.rag_settings_service import RagSettingsService
 from app.services.redis_service import RedisService
 from app.services.rerank_service import RerankService
+
+
+_embedding_cache_var: ContextVar[dict[str, list[float]] | None] = ContextVar(
+    "retrieval_embedding_cache",
+    default=None,
+)
+_document_filter_var: ContextVar[dict | None] = ContextVar(
+    "retrieval_document_filter",
+    default=None,
+)
 
 
 class RetrievalService:
@@ -49,6 +60,55 @@ class RetrievalService:
         self.minio_service = MinioService()
         self.blacklist_keywords = self._load_blacklist_keywords()
 
+    def begin_request_cache(self):
+        return _embedding_cache_var.set({})
+
+    def end_request_cache(self, token) -> None:
+        if token is not None:
+            _embedding_cache_var.reset(token)
+
+    def _ensure_embedding_cache(self):
+        if _embedding_cache_var.get() is not None:
+            return None
+        return _embedding_cache_var.set({})
+
+    def _reset_embedding_cache(self, token) -> None:
+        if token is not None:
+            _embedding_cache_var.reset(token)
+
+    def _set_document_filter(self, document_filter: dict | None):
+        if document_filter is None:
+            return None
+        return _document_filter_var.set(document_filter)
+
+    def _reset_document_filter(self, token) -> None:
+        if token is not None:
+            _document_filter_var.reset(token)
+
+    async def _query_embedding(self, query: str) -> list[float]:
+        cache = _embedding_cache_var.get()
+        key = f"{self.settings.embedding_model}:{query}"
+        if cache is not None and key in cache:
+            return cache[key]
+        embedding = (await self.model_service.embed([query]))[0]
+        if cache is not None:
+            cache[key] = embedding
+        return embedding
+
+    def _document_filter_sql(self, kind: str) -> str:
+        document_filter = _document_filter_var.get()
+        if not document_filter:
+            return ""
+        sql = str(document_filter.get(f"{kind}_sql") or "").strip()
+        return f" AND ({sql})" if sql else ""
+
+    def _document_filter_params(self) -> dict:
+        document_filter = _document_filter_var.get()
+        if not document_filter:
+            return {}
+        params = document_filter.get("params") or {}
+        return dict(params) if isinstance(params, dict) else {}
+
     async def search(
         self,
         db: AsyncSession,
@@ -60,6 +120,39 @@ class RetrievalService:
         enable_keyword_recall: bool = True,
         enable_qa_recall: bool = True,
         context_constraints: dict | None = None,
+        document_filter: dict | None = None,
+    ) -> dict:
+        cache_token = self._ensure_embedding_cache()
+        filter_token = self._set_document_filter(document_filter)
+        try:
+            return await self._search_impl(
+                db,
+                query,
+                top_k=top_k,
+                rerank_top_k=rerank_top_k,
+                document_ids=document_ids,
+                enable_vector_recall=enable_vector_recall,
+                enable_keyword_recall=enable_keyword_recall,
+                enable_qa_recall=enable_qa_recall,
+                context_constraints=context_constraints,
+                document_filter=document_filter,
+            )
+        finally:
+            self._reset_document_filter(filter_token)
+            self._reset_embedding_cache(cache_token)
+
+    async def _search_impl(
+        self,
+        db: AsyncSession,
+        query: str,
+        top_k: int | None = None,
+        rerank_top_k: int | None = None,
+        document_ids: list[str] | None = None,
+        enable_vector_recall: bool = True,
+        enable_keyword_recall: bool = True,
+        enable_qa_recall: bool = True,
+        context_constraints: dict | None = None,
+        document_filter: dict | None = None,
     ) -> dict:
         constraints = self._normalize_context_constraints(context_constraints)
         vector_top_k = self._limit(
@@ -94,6 +187,7 @@ class RetrievalService:
             "enable_keyword_recall": enable_keyword_recall,
             "enable_qa_recall": enable_qa_recall,
             "context_constraints": constraints or None,
+            "document_filter": (document_filter or {}).get("cache_key") if document_filter else None,
         }
         query_domain = self._classify_query_business_domain(query, constraints)
         options["business_domain"] = query_domain
@@ -199,6 +293,27 @@ class RetrievalService:
         query: str,
         document_ids: list[str] | None = None,
         context_constraints: dict | None = None,
+        document_filter: dict | None = None,
+    ) -> dict | None:
+        cache_token = self._ensure_embedding_cache()
+        filter_token = self._set_document_filter(document_filter)
+        try:
+            return await self._find_direct_qa_answer_impl(
+                db,
+                query,
+                document_ids=document_ids,
+                context_constraints=context_constraints,
+            )
+        finally:
+            self._reset_document_filter(filter_token)
+            self._reset_embedding_cache(cache_token)
+
+    async def _find_direct_qa_answer_impl(
+        self,
+        db: AsyncSession,
+        query: str,
+        document_ids: list[str] | None = None,
+        context_constraints: dict | None = None,
     ) -> dict | None:
         clean_query = query.strip()
         if not clean_query or db is None:
@@ -251,6 +366,7 @@ class RetrievalService:
                     )
                   )
                   AND (:document_ids_is_null OR q.source_document_id = ANY(CAST(:document_ids AS uuid[])))
+                  {self._document_filter_sql("qa")}
                   AND (
                     q.question ILIKE :keyword
                     OR similarity(q.question, :query) >= 0.74
@@ -266,7 +382,8 @@ class RetrievalService:
                 "document_ids_is_null": document_ids is None,
                 "legacy_url_encoded_name_pattern": self.LEGACY_URL_ENCODED_NAME_PATTERN,
                 "blacklist_keywords": self._blacklist_sql_patterns(),
-            },
+            }
+            | self._document_filter_params(),
         )
         normalized_query = self._normalize_direct_qa_text(query)
         best: dict | None = None
@@ -297,7 +414,7 @@ class RetrievalService:
         document_ids: list[str] | None,
     ) -> dict | None:
         try:
-            embedding = (await self.model_service.embed([query]))[0]
+            embedding = await self._query_embedding(query)
         except Exception:
             return None
         vector_literal = "[" + ",".join(str(x) for x in embedding) + "]"
@@ -333,6 +450,7 @@ class RetrievalService:
                     )
                   )
                   AND (:document_ids_is_null OR q.source_document_id = ANY(CAST(:document_ids AS uuid[])))
+                  {self._document_filter_sql("qa")}
                 ORDER BY qe.embedding <=> CAST(:embedding AS vector)
                 LIMIT 8
                 """
@@ -343,7 +461,8 @@ class RetrievalService:
                 "document_ids_is_null": document_ids is None,
                 "legacy_url_encoded_name_pattern": self.LEGACY_URL_ENCODED_NAME_PATTERN,
                 "blacklist_keywords": self._blacklist_sql_patterns(),
-            },
+            }
+            | self._document_filter_params(),
         )
         for row in rows:
             item = self._normalize_qa_direct_row(dict(row._mapping), "semantic")
@@ -406,7 +525,7 @@ class RetrievalService:
         self, db: AsyncSession, query: str, top_k: int, document_ids: list[str] | None = None
     ) -> list[dict]:
         try:
-            embedding = (await self.model_service.embed([query]))[0]
+            embedding = await self._query_embedding(query)
         except Exception:
             return []
         vector_literal = "[" + ",".join(str(x) for x in embedding) + "]"
@@ -429,6 +548,7 @@ class RetrievalService:
                   AND d.file_name !~* :legacy_url_encoded_name_pattern
                   AND NOT ({self._document_blacklist_sql()})
                   AND (:document_ids_is_null OR d.id = ANY(CAST(:document_ids AS uuid[])))
+                  {self._document_filter_sql("document")}
                 ORDER BY e.embedding <=> CAST(:embedding AS vector)
                 LIMIT :top_k
                 """
@@ -440,7 +560,8 @@ class RetrievalService:
                 "document_ids_is_null": document_ids is None,
                 "legacy_url_encoded_name_pattern": self.LEGACY_URL_ENCODED_NAME_PATTERN,
                 "blacklist_keywords": self._blacklist_sql_patterns(),
-            },
+            }
+            | self._document_filter_params(),
         )
         return [self._normalize_result({**dict(row._mapping), "source": "vector"}) for row in rows]
 
@@ -462,6 +583,7 @@ class RetrievalService:
             "legacy_url_encoded_name_pattern": self.LEGACY_URL_ENCODED_NAME_PATTERN,
             "blacklist_keywords": self._blacklist_sql_patterns(),
         }
+        params.update(self._document_filter_params())
         term_conditions = []
         term_scores = []
         haystack = "COALESCE(d.title, '') || ' ' || COALESCE(d.file_name, '') || ' ' || c.content"
@@ -524,7 +646,11 @@ class RetrievalService:
                        d.source_url, d.preview_url, d.download_url,
                        d.storage_bucket, d.storage_object_key,
                        COALESCE(d.source_url, d.preview_url, d.download_url) AS url,
-                       (similarity(c.content, :query) + ({lexical_score})::float) AS score
+                       (
+                         similarity(c.content, :query)
+                         + COALESCE(ts_rank_cd(c.search_vector, plainto_tsquery('simple', :query)), 0) * 5
+                         + ({lexical_score})::float
+                       ) AS score
                 FROM document_chunks c
                 JOIN documents d ON d.id = c.document_id
                 WHERE c.is_active = true
@@ -532,7 +658,12 @@ class RetrievalService:
                   AND d.file_name !~* :legacy_url_encoded_name_pattern
                   AND NOT ({self._document_blacklist_sql()})
                   AND (:document_ids_is_null OR d.id = ANY(CAST(:document_ids AS uuid[])))
-                  AND (({lexical_condition}) OR similarity(c.content, :query) > 0.05)
+                  {self._document_filter_sql("document")}
+                  AND (
+                    c.search_vector @@ plainto_tsquery('simple', :query)
+                    OR ({lexical_condition})
+                    OR similarity(c.content, :query) > 0.05
+                  )
                 ORDER BY score DESC
                 LIMIT :top_k
                 """
@@ -546,7 +677,7 @@ class RetrievalService:
     ) -> list[dict]:
         # 向量召回
         try:
-            embedding = (await self.model_service.embed([query]))[0]
+            embedding = await self._query_embedding(query)
             vector_literal = "[" + ",".join(str(x) for x in embedding) + "]"
             vector_rows = await db.execute(
                 text(
@@ -574,11 +705,12 @@ class RetrievalService:
                           d.deleted_at IS NULL
                           AND d.file_name !~* :legacy_url_encoded_name_pattern
                           AND NOT ({self._document_blacklist_sql()})
-                        )
                       )
-                      AND (:document_ids_is_null OR q.source_document_id = ANY(CAST(:document_ids AS uuid[])))
-                    ORDER BY qe.embedding <=> CAST(:embedding AS vector)
-                    LIMIT :top_k
+                  )
+                  AND (:document_ids_is_null OR q.source_document_id = ANY(CAST(:document_ids AS uuid[])))
+                  {self._document_filter_sql("qa")}
+                ORDER BY qe.embedding <=> CAST(:embedding AS vector)
+                LIMIT :top_k
                     """
                 ),
                 {
@@ -588,7 +720,8 @@ class RetrievalService:
                     "document_ids_is_null": document_ids is None,
                     "legacy_url_encoded_name_pattern": self.LEGACY_URL_ENCODED_NAME_PATTERN,
                     "blacklist_keywords": self._blacklist_sql_patterns(),
-                },
+                }
+                | self._document_filter_params(),
             )
             vector_results = [self._normalize_result({**dict(row._mapping), "source": "qa_vector"}) for row in vector_rows]
         except Exception:
@@ -623,6 +756,7 @@ class RetrievalService:
                     )
                   )
                   AND (:document_ids_is_null OR q.source_document_id = ANY(CAST(:document_ids AS uuid[])))
+                  {self._document_filter_sql("qa")}
                   AND (q.question ILIKE :keyword OR similarity(q.question, :query) > 0.05)
                 ORDER BY score DESC
                 LIMIT :top_k
@@ -636,7 +770,8 @@ class RetrievalService:
                 "document_ids_is_null": document_ids is None,
                 "legacy_url_encoded_name_pattern": self.LEGACY_URL_ENCODED_NAME_PATTERN,
                 "blacklist_keywords": self._blacklist_sql_patterns(),
-            },
+            }
+            | self._document_filter_params(),
         )
         text_results = [self._normalize_result({**dict(row._mapping), "source": "qa_text"}) for row in text_rows]
 
@@ -705,6 +840,7 @@ class RetrievalService:
                   AND d.deleted_at IS NULL
                   AND d.file_name !~* :legacy_url_encoded_name_pattern
                   AND NOT ({self._document_blacklist_sql()})
+                  {self._document_filter_sql("document")}
                 ORDER BY a.chunk_no, c.chunk_no
                 """
             ),
@@ -712,7 +848,8 @@ class RetrievalService:
                 "chunk_ids": anchor_ids,
                 "legacy_url_encoded_name_pattern": self.LEGACY_URL_ENCODED_NAME_PATTERN,
                 "blacklist_keywords": self._blacklist_sql_patterns(),
-            },
+            }
+            | self._document_filter_params(),
         )
         neighbors_by_anchor: dict[str, list[dict]] = {}
         for row in rows:

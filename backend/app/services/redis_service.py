@@ -45,6 +45,33 @@ class RedisService:
             return None
         return json.loads(raw)
 
+    async def mget_json(self, keys: list[str]) -> list[Any | None]:
+        if not keys:
+            return []
+        values = await self.redis.mget(keys)
+        results: list[Any | None] = []
+        for raw in values:
+            if raw is None:
+                results.append(None)
+                continue
+            try:
+                results.append(json.loads(raw))
+            except Exception:
+                results.append(None)
+        return results
+
+    async def mset_json(self, items: dict[str, Any], ttl: int | None = None) -> None:
+        if not items:
+            return
+        async with self.redis.pipeline(transaction=False) as pipe:
+            for key, value in items.items():
+                payload = json.dumps(value, ensure_ascii=False)
+                if ttl:
+                    pipe.setex(key, ttl, payload)
+                else:
+                    pipe.set(key, payload)
+            await pipe.execute()
+
     async def ping(self) -> bool:
         return bool(await self.redis.ping())
 

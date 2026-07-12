@@ -116,24 +116,28 @@ class ModelService:
     async def _get_cached_embeddings(self, texts: list[str]) -> list[list[float] | None]:
         if not self.settings.embedding_cache_enabled:
             return [None] * len(texts)
-        results: list[list[float] | None] = []
-        for text in texts:
-            try:
-                cached = await self.redis_service.get_json(self._embedding_cache_key(text))
-                results.append(cached if isinstance(cached, list) else None)
-            except Exception:
-                results.append(None)
-        return results
+        try:
+            cached_items = await self.redis_service.mget_json(
+                [self._embedding_cache_key(text) for text in texts]
+            )
+        except Exception:
+            return [None] * len(texts)
+        return [item if isinstance(item, list) else None for item in cached_items]
 
     async def _set_cached_embeddings(self, texts: list[str], embeddings: list[list[float]]) -> None:
         if not self.settings.embedding_cache_enabled:
             return
         ttl = max(1, self.settings.embedding_cache_ttl_seconds)
-        for text, embedding in zip(texts, embeddings, strict=True):
-            try:
-                await self.redis_service.set_json(self._embedding_cache_key(text), embedding, ttl=ttl)
-            except Exception:
-                continue
+        try:
+            await self.redis_service.mset_json(
+                {
+                    self._embedding_cache_key(text): embedding
+                    for text, embedding in zip(texts, embeddings, strict=True)
+                },
+                ttl=ttl,
+            )
+        except Exception:
+            return
 
     def _embedding_cache_key(self, text: str) -> str:
         digest = hashlib.sha256(text.encode("utf-8")).hexdigest()

@@ -2,7 +2,7 @@
 MinIO 封装。提供 bucket 初始化、上传、下载、文本写入和文件代理 URL 生成。
 """
 
-import json
+import logging
 from datetime import datetime
 from datetime import timedelta
 from io import BytesIO
@@ -15,34 +15,70 @@ from minio import Minio
 from app.core.config import get_settings
 
 
+logger = logging.getLogger(__name__)
+_minio_clients: dict[tuple, Minio] = {}
+_public_minio_clients: dict[tuple, Minio] = {}
+_initialized_bucket_sets: set[tuple] = set()
+
+
+def _client_for(
+    endpoint: str,
+    access_key: str,
+    secret_key: str,
+    secure: bool,
+    *,
+    region: str | None = None,
+) -> Minio:
+    key = (endpoint, access_key, secret_key, bool(secure), region or "")
+    clients = _public_minio_clients if region else _minio_clients
+    client = clients.get(key)
+    if client is None:
+        client = Minio(
+            endpoint,
+            access_key=access_key,
+            secret_key=secret_key,
+            secure=secure,
+            region=region,
+        )
+        clients[key] = client
+    return client
+
+
 class MinioService:
     def __init__(self) -> None:
         self.settings = get_settings()
-        self.client = Minio(
+        self.client = _client_for(
             self.settings.minio_endpoint,
-            access_key=self.settings.minio_access_key,
-            secret_key=self.settings.minio_secret_key,
-            secure=self.settings.minio_secure,
+            self.settings.minio_access_key,
+            self.settings.minio_secret_key,
+            self.settings.minio_secure,
         )
 
     def ensure_buckets(self) -> None:
-        for bucket in [
+        buckets = (
             self.settings.minio_documents_bucket,
             self.settings.minio_parsed_bucket,
             self.settings.minio_preview_bucket,
-        ]:
+        )
+        cache_key = (
+            self.settings.minio_endpoint,
+            self.settings.minio_access_key,
+            bool(self.settings.minio_secure),
+            buckets,
+        )
+        if cache_key in _initialized_bucket_sets:
+            return
+        for bucket in buckets:
             if not self.client.bucket_exists(bucket):
                 self.client.make_bucket(bucket)
             self._clear_public_read_policy(bucket)
+        _initialized_bucket_sets.add(cache_key)
 
     def _clear_public_read_policy(self, bucket: str) -> None:
         try:
             self.client.delete_bucket_policy(bucket)
         except Exception as exc:
-            import logging
-            logging.getLogger(__name__).warning(
-                "清理 MinIO bucket %s 公开读策略失败: %s", bucket, exc
-            )
+            logger.warning("清理 MinIO bucket %s 公开读策略失败: %s", bucket, exc)
 
     def upload_bytes(
         self,
@@ -93,8 +129,7 @@ class MinioService:
         try:
             self.client.remove_object(bucket, object_key)
         except Exception as exc:
-            import logging
-            logging.getLogger(__name__).warning(
+            logger.warning(
                 "删除 MinIO 对象失败: bucket=%s object=%s error=%s", bucket, object_key, exc
             )
 
@@ -150,10 +185,10 @@ class MinioService:
         target = urlsplit(public_base)
         if not target.scheme or not target.netloc:
             return None
-        return Minio(
+        return _client_for(
             target.netloc,
-            access_key=self.settings.minio_access_key,
-            secret_key=self.settings.minio_secret_key,
-            secure=target.scheme == "https",
+            self.settings.minio_access_key,
+            self.settings.minio_secret_key,
+            target.scheme == "https",
             region="us-east-1",
         )

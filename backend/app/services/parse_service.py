@@ -972,8 +972,6 @@ class ParseService:
         return {}
 
     def _xlrd_rows(self, workbook, sheet) -> tuple[list[tuple[int, list[str]]], list[str]]:
-        import xlrd
-
         merged_values: dict[tuple[int, int], str] = {}
         merged_ranges: list[str] = []
         for row_low, row_high, col_low, col_high in getattr(sheet, "merged_cells", []):

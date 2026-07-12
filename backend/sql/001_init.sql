@@ -47,11 +47,15 @@ CREATE INDEX IF NOT EXISTS idx_documents_status ON documents(status);
 CREATE INDEX IF NOT EXISTS idx_documents_hash ON documents(file_hash);
 CREATE INDEX IF NOT EXISTS idx_documents_created_at ON documents(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_documents_java_attach_id ON documents(java_attach_id);
+CREATE INDEX IF NOT EXISTS idx_documents_knowledge_base ON documents(knowledge_base);
 CREATE INDEX IF NOT EXISTS idx_documents_publish_dept ON documents(publish_dept_id);
 CREATE INDEX IF NOT EXISTS idx_documents_visible_in_chat ON documents(visible_in_chat);
 CREATE INDEX IF NOT EXISTS idx_documents_publish_scope ON documents(publish_scope);
 CREATE INDEX IF NOT EXISTS idx_documents_allowed_dept_ids ON documents USING GIN(allowed_dept_ids);
 CREATE INDEX IF NOT EXISTS idx_documents_allowed_user_ids ON documents USING GIN(allowed_user_ids);
+CREATE INDEX IF NOT EXISTS idx_documents_visible_indexed_scope
+ON documents(knowledge_base, publish_scope, publish_dept_id, created_at DESC)
+WHERE deleted_at IS NULL AND visible_in_chat = true AND status = 'indexed';
 CREATE UNIQUE INDEX IF NOT EXISTS uq_documents_active_file_name_ci
 ON documents (lower(btrim(file_name)))
 WHERE deleted_at IS NULL;
@@ -126,6 +130,11 @@ CREATE INDEX IF NOT EXISTS idx_chunks_content_hash ON document_chunks(content_ha
 CREATE INDEX IF NOT EXISTS idx_chunks_active ON document_chunks(is_active);
 CREATE INDEX IF NOT EXISTS idx_chunks_search_vector ON document_chunks USING GIN(search_vector);
 CREATE INDEX IF NOT EXISTS idx_chunks_metadata ON document_chunks USING GIN(metadata);
+CREATE INDEX IF NOT EXISTS idx_chunks_document_chunk_no_active
+ON document_chunks(document_id, chunk_no)
+WHERE is_active = true;
+CREATE INDEX IF NOT EXISTS idx_chunks_content_trgm
+ON document_chunks USING GIN(content gin_trgm_ops);
 
 CREATE TABLE IF NOT EXISTS chunk_embeddings (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -190,6 +199,11 @@ CREATE TABLE IF NOT EXISTS conversations (
   deleted_at timestamptz NULL
 );
 CREATE INDEX IF NOT EXISTS idx_conversations_updated_at ON conversations(updated_at DESC);
+CREATE INDEX IF NOT EXISTS idx_conversations_active_owner_updated
+ON conversations(created_by, updated_at DESC)
+WHERE deleted_at IS NULL;
+CREATE INDEX IF NOT EXISTS idx_conversations_context_state
+ON conversations USING GIN(context_state);
 
 CREATE TABLE IF NOT EXISTS conversation_messages (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -228,6 +242,7 @@ CREATE TABLE IF NOT EXISTS retrieval_logs (
 );
 CREATE INDEX IF NOT EXISTS idx_retrieval_logs_created_at ON retrieval_logs(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_retrieval_logs_conversation_id ON retrieval_logs(conversation_id);
+CREATE INDEX IF NOT EXISTS idx_retrieval_logs_message_id ON retrieval_logs(message_id);
 
 CREATE TABLE IF NOT EXISTS answer_feedbacks (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -247,6 +262,8 @@ CREATE TABLE IF NOT EXISTS answer_feedbacks (
 );
 CREATE INDEX IF NOT EXISTS idx_answer_feedbacks_conversation_status ON answer_feedbacks(conversation_id, status);
 CREATE INDEX IF NOT EXISTS idx_answer_feedbacks_assistant_message ON answer_feedbacks(assistant_message_id);
+CREATE INDEX IF NOT EXISTS idx_answer_feedbacks_user_message ON answer_feedbacks(user_message_id);
+CREATE INDEX IF NOT EXISTS idx_answer_feedbacks_retrieval_log ON answer_feedbacks(retrieval_log_id);
 CREATE INDEX IF NOT EXISTS idx_answer_feedbacks_created_at ON answer_feedbacks(created_at DESC);
 
 CREATE TABLE IF NOT EXISTS evaluation_cases (

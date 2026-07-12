@@ -12,7 +12,6 @@ if str(BACKEND_ROOT) not in sys.path:
     sys.path.insert(0, str(BACKEND_ROOT))
 
 from app.api.v1.internal import AccessScope, UserContext, _document_access_condition  # noqa: E402
-from app.db.models import Document  # noqa: E402
 
 
 def _compiled_where(scope: AccessScope, user: UserContext, allow_explicit_attach: bool = False) -> str:

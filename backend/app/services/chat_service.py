@@ -8,6 +8,7 @@ import json
 import re
 import time
 from collections.abc import AsyncGenerator
+from contextvars import ContextVar
 from datetime import datetime, timezone
 from uuid import UUID
 
@@ -36,6 +37,10 @@ SMALLTALK_WELCOME = (
     "您好，我是学校 RAG 智能问答助手。您可以直接提问校内政策、办事流程、材料要求、联系方式等问题，"
     "我会根据知识库资料为您查找并回答。"
 )
+_chat_event_sink_var: ContextVar[list[tuple[str, dict]] | None] = ContextVar(
+    "chat_event_sink",
+    default=None,
+)
 
 
 class ChatService:
@@ -57,11 +62,15 @@ class ChatService:
         enable_rewrite: bool = True,
         created_by: str | None = None,
         context_created_by: str | None = None,
+        document_filter: dict | None = None,
     ) -> AsyncGenerator[str, None]:
         started = time.perf_counter()
         conversation: Conversation | None = None
         user_message: ConversationMessage | None = None
         assistant_message: ConversationMessage | None = None
+        begin_cache = getattr(self.retrieval_service, "begin_request_cache", None)
+        end_cache = getattr(self.retrieval_service, "end_request_cache", None)
+        retrieval_cache_token = begin_cache() if callable(begin_cache) else None
         try:
             conversation = await self._get_or_create_conversation(
                 db, conversation_id, question, created_by, context_created_by
@@ -217,11 +226,16 @@ class ChatService:
                 },
             )
             # 直接 QA 命中优先返回人工/自动问答对，避免不必要的大模型生成。
+            direct_qa_kwargs = {
+                "document_ids": document_ids,
+                "context_constraints": retrieval_constraints,
+            }
+            if document_filter is not None:
+                direct_qa_kwargs["document_filter"] = document_filter
             direct_qa_hit = await self.retrieval_service.find_direct_qa_answer(
                 db,
                 resolved_query,
-                document_ids=document_ids,
-                context_constraints=retrieval_constraints,
+                **direct_qa_kwargs,
             )
             if direct_qa_hit:
                 direct_qa_context = [to_jsonable(direct_qa_hit)]
@@ -251,6 +265,7 @@ class ChatService:
                         rerank_top_k=rerank_top_k,
                         document_ids=document_ids,
                         context_constraints=retrieval_constraints,
+                        **({"document_filter": document_filter} if document_filter is not None else {}),
                     )
                 )
                 retrieval["direct_qa_hit"] = False
@@ -409,6 +424,9 @@ class ChatService:
                     str(assistant_message.id) if assistant_message is not None else None,
                 )
             raise
+        finally:
+            if retrieval_cache_token is not None and callable(end_cache):
+                end_cache(retrieval_cache_token)
 
     async def chat_once(
         self,
@@ -422,35 +440,40 @@ class ChatService:
         enable_rewrite: bool = True,
         created_by: str | None = None,
         context_created_by: str | None = None,
+        document_filter: dict | None = None,
     ) -> dict:
-        answer = ""
+        answer_parts: list[str] = []
         citations = []
         suggested = []
         user_message_id: str | None = None
         retrieval_trace: dict | None = None
-        async for event in self.stream_chat(
-            db,
-            question,
-            conversation_id,
-            enable_suggested_questions,
-            top_k,
-            rerank_top_k,
-            document_ids,
-            enable_rewrite,
-            created_by,
-            context_created_by,
-        ):
-            if event.startswith("event: delta"):
-                payload = json.loads(event.split("data: ", 1)[1])
-                answer += payload.get("content", "")
-            elif event.startswith("event: citations"):
-                payload = json.loads(event.split("data: ", 1)[1])
+        captured_events: list[tuple[str, dict]] = []
+        sink_token = _chat_event_sink_var.set(captured_events)
+        try:
+            async for _ in self.stream_chat(
+                db,
+                question,
+                conversation_id,
+                enable_suggested_questions,
+                top_k,
+                rerank_top_k,
+                document_ids,
+                enable_rewrite,
+                created_by,
+                context_created_by,
+                document_filter,
+            ):
+                pass
+        finally:
+            _chat_event_sink_var.reset(sink_token)
+        for event, payload in captured_events:
+            if event == "delta":
+                answer_parts.append(str(payload.get("content", "")))
+            elif event == "citations":
                 citations = payload.get("citations", [])
-            elif event.startswith("event: suggested_questions"):
-                payload = json.loads(event.split("data: ", 1)[1])
+            elif event == "suggested_questions":
                 suggested = payload.get("questions", [])
-            elif event.startswith("event: message_start"):
-                payload = json.loads(event.split("data: ", 1)[1])
+            elif event == "message_start":
                 user_message_id = payload.get("user_message_id")
         if user_message_id:
             log = await db.scalar(
@@ -469,7 +492,7 @@ class ChatService:
                     "latency_ms": log.latency_ms,
                 }
         return {
-            "answer": answer,
+            "answer": "".join(answer_parts),
             "citations": citations,
             "suggested_questions": suggested,
             "retrieval_trace": retrieval_trace or {},
@@ -1704,7 +1727,11 @@ class ChatService:
         return f"answer:{digest}"
 
     def _sse(self, event: str, data: dict) -> str:
-        return f"event: {event}\ndata: {json.dumps(to_jsonable(data), ensure_ascii=False)}\n\n"
+        payload = to_jsonable(data)
+        sink = _chat_event_sink_var.get()
+        if sink is not None:
+            sink.append((event, payload))
+        return f"event: {event}\ndata: {json.dumps(payload, ensure_ascii=False)}\n\n"
 
     async def _stream_delta_text(self, text: str) -> AsyncGenerator[str, None]:
         if not text:
