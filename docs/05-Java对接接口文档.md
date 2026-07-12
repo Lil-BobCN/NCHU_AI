@@ -92,7 +92,7 @@ payload 至少需要：
 
 - `dept`：部门范围，必须传 `allowed_dept_ids`。
 - `all_public`：只查公共文档。
-- `custom`：自定义范围，需传部门、知识库或附件 ID 中至少一个。
+- `custom`：自定义范围，需传部门、知识库或附件 ID 中至少一个；Python 只按这些显式范围检索，不会默认放行 public/private/owner 文档。
 - `admin_all`：管理员全量范围。
 
 ## 四、健康检查

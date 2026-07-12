@@ -261,38 +261,6 @@ async def process_document(payload: DocumentProcessRequest, db: AsyncSession = D
     return ok({"attach_id": payload.attach_id, "rag_doc_id": str(document.id), "status": document.status, "jobs": jobs})
 
 
-@router.post("/documents/{attach_id}/reparse")
-async def reparse_document(attach_id: int, _: ReprocessRequest, db: AsyncSession = Depends(get_db)) -> dict:
-    document = await _get_document_by_attach_id(db, attach_id)
-    job = await _enqueue_document_job(
-        db,
-        document,
-        "document_full_pipeline",
-        {"document_id": str(document.id), "attach_id": attach_id},
-    )
-    return ok({"attach_id": attach_id, "rag_doc_id": str(document.id), "job_id": str(job.id), "status": job.status})
-
-
-@router.post("/documents/{attach_id}/rechunk")
-async def rechunk_document(attach_id: int, _: RechunkRequest, db: AsyncSession = Depends(get_db)) -> dict:
-    document = await _get_document_by_attach_id(db, attach_id)
-    job = await _enqueue_document_job(
-        db,
-        document,
-        "document_rechunk",
-        {"document_id": str(document.id), "attach_id": attach_id},
-    )
-    return ok({"attach_id": attach_id, "rag_doc_id": str(document.id), "job_id": str(job.id), "status": job.status})
-
-
-@router.delete("/documents/{attach_id}")
-async def delete_document_index(attach_id: int, payload: DeleteDocumentRequest, db: AsyncSession = Depends(get_db)) -> dict:
-    document = await _get_document_by_attach_id(db, attach_id)
-    await DocumentLifecycleService().soft_delete_document(db, document, reason=payload.reason)
-    await db.commit()
-    return ok({"attach_id": attach_id, "rag_doc_id": str(document.id), "status": "deleted"})
-
-
 @router.post("/documents/batch/reparse")
 async def batch_reparse_documents(payload: InternalDocumentBatchPayload, db: AsyncSession = Depends(get_db)) -> dict:
     documents = await _get_documents_by_attach_ids(db, payload.attach_ids)
@@ -378,6 +346,38 @@ async def batch_delete_documents(payload: InternalDocumentBatchPayload, db: Asyn
     await db.commit()
     lifecycle.remove_storage_objects(storage_refs)
     return ok({"deleted": deleted, "count": len(deleted)})
+
+
+@router.post("/documents/{attach_id}/reparse")
+async def reparse_document(attach_id: int, _: ReprocessRequest, db: AsyncSession = Depends(get_db)) -> dict:
+    document = await _get_document_by_attach_id(db, attach_id)
+    job = await _enqueue_document_job(
+        db,
+        document,
+        "document_full_pipeline",
+        {"document_id": str(document.id), "attach_id": attach_id},
+    )
+    return ok({"attach_id": attach_id, "rag_doc_id": str(document.id), "job_id": str(job.id), "status": job.status})
+
+
+@router.post("/documents/{attach_id}/rechunk")
+async def rechunk_document(attach_id: int, _: RechunkRequest, db: AsyncSession = Depends(get_db)) -> dict:
+    document = await _get_document_by_attach_id(db, attach_id)
+    job = await _enqueue_document_job(
+        db,
+        document,
+        "document_rechunk",
+        {"document_id": str(document.id), "attach_id": attach_id},
+    )
+    return ok({"attach_id": attach_id, "rag_doc_id": str(document.id), "job_id": str(job.id), "status": job.status})
+
+
+@router.delete("/documents/{attach_id}")
+async def delete_document_index(attach_id: int, payload: DeleteDocumentRequest, db: AsyncSession = Depends(get_db)) -> dict:
+    document = await _get_document_by_attach_id(db, attach_id)
+    await DocumentLifecycleService().soft_delete_document(db, document, reason=payload.reason)
+    await db.commit()
+    return ok({"attach_id": attach_id, "rag_doc_id": str(document.id), "status": "deleted"})
 
 
 @router.get("/jobs")
@@ -863,16 +863,17 @@ def _document_access_sql(scope: AccessScope, user: UserContext) -> tuple[str, di
         if not allowed_dept_ids and not allowed_knowledge_ids and not allowed_attach_ids:
             raise HTTPException(status_code=403, detail="自定义权限范围为空，拒绝检索")
         clauses.append(
-            _document_access_sql_condition(
+            _custom_document_access_sql_condition(
                 dept_conditions,
-                user_id_param="CAST(:user_id AS text)",
                 explicit_attach=bool(allowed_attach_ids),
+                explicit_knowledge=bool(allowed_knowledge_ids),
             )
         )
 
     if allowed_knowledge_ids:
         params["allowed_knowledge_ids"] = allowed_knowledge_ids
-        clauses.append("d.knowledge_base = ANY(CAST(:allowed_knowledge_ids AS text[]))")
+        if scope.scope_mode != "custom":
+            clauses.append("d.knowledge_base = ANY(CAST(:allowed_knowledge_ids AS text[]))")
     if allowed_attach_ids:
         params["allowed_attach_ids"] = allowed_attach_ids
         if scope.scope_mode != "custom":
@@ -915,6 +916,24 @@ def _document_access_sql_condition(
     return "(" + " OR ".join(parts) + ")"
 
 
+def _custom_document_access_sql_condition(
+    dept_conditions: list[str],
+    *,
+    explicit_attach: bool = False,
+    explicit_knowledge: bool = False,
+) -> str:
+    parts: list[str] = []
+    if explicit_attach:
+        parts.append("d.java_attach_id = ANY(CAST(:allowed_attach_ids AS bigint[]))")
+    if explicit_knowledge:
+        parts.append("d.knowledge_base = ANY(CAST(:allowed_knowledge_ids AS text[]))")
+    if dept_conditions:
+        parts.append(f"({' OR '.join(dept_conditions)})")
+    if not parts:
+        raise HTTPException(status_code=403, detail="自定义权限范围为空，拒绝检索")
+    return "(" + " OR ".join(parts) + ")"
+
+
 async def _allowed_document_ids(db: AsyncSession, scope: AccessScope, user: UserContext) -> list[str]:
     # Java 先算业务权限，Python 再做检索前二次过滤，确保无权限文档不会进入模型上下文。
     query = select(Document.id).where(Document.deleted_at.is_(None), Document.visible_in_chat.is_(True), Document.status == "indexed")
@@ -929,9 +948,10 @@ async def _allowed_document_ids(db: AsyncSession, scope: AccessScope, user: User
     elif scope.scope_mode == "custom":
         if not scope.allowed_dept_ids and not scope.allowed_knowledge_ids and not scope.allowed_attach_ids:
             raise HTTPException(status_code=403, detail="自定义权限范围为空，拒绝检索")
-        query = query.where(_document_access_condition(user, scope, allow_explicit_attach=True))
+        query = query.where(_custom_document_access_condition(scope))
     if scope.allowed_knowledge_ids:
-        query = query.where(Document.knowledge_base.in_(scope.allowed_knowledge_ids))
+        if scope.scope_mode != "custom":
+            query = query.where(Document.knowledge_base.in_(scope.allowed_knowledge_ids))
     if scope.allowed_attach_ids and scope.scope_mode != "custom":
         query = query.where(Document.java_attach_id.in_(scope.allowed_attach_ids))
     if scope.deny_attach_ids:
@@ -976,6 +996,23 @@ def _document_access_condition(user: UserContext, scope: AccessScope, allow_expl
             ),
         ),
     )
+
+
+def _custom_document_access_condition(scope: AccessScope):
+    conditions = []
+    allowed_dept_ids = _clean_list(scope.allowed_dept_ids)
+    if scope.allowed_attach_ids:
+        conditions.append(Document.java_attach_id.in_(scope.allowed_attach_ids))
+    if scope.allowed_knowledge_ids:
+        conditions.append(Document.knowledge_base.in_(scope.allowed_knowledge_ids))
+    if allowed_dept_ids:
+        conditions.extend(
+            [
+                Document.publish_dept_id.in_(allowed_dept_ids),
+                Document.allowed_dept_ids.overlap(allowed_dept_ids),
+            ]
+        )
+    return or_(*(conditions or [false()]))
 
 
 def _conversation_filters(

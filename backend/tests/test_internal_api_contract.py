@@ -19,11 +19,20 @@ from app.api.v1.internal import (  # noqa: E402
     _java_session_to_uuid,
     _serialize_job,
     _serialize_message,
+    router as internal_router,
 )
 from app.db.models import AnswerFeedback, Conversation, ConversationMessage, DocumentJob  # noqa: E402
 
 
 class InternalApiContractTests(unittest.TestCase):
+    def test_internal_batch_document_routes_are_registered_before_attach_routes(self) -> None:
+        route_paths = [getattr(route, "path", "") for route in internal_router.routes]
+
+        batch_reparse_index = route_paths.index("/documents/batch/reparse")
+        attach_reparse_index = route_paths.index("/documents/{attach_id}/reparse")
+
+        self.assertLess(batch_reparse_index, attach_reparse_index)
+
     def test_serialize_job_uses_java_polling_job_id_field(self) -> None:
         job = DocumentJob(document_id="doc-1", job_type="document_full_pipeline", status="pending", progress=0)
         job.id = "job-1"
