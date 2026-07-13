@@ -577,6 +577,71 @@ async def delete_conversation(
     return ok({"id": conversation_id, "status": "deleted"})
 
 
+# ============================================================
+# Admin 接口：全量数据，不做用户级隔离，由 Java 后台做权限过滤
+# ============================================================
+
+
+@router.get("/admin/conversations")
+async def list_admin_conversations(
+    page: int = 1,
+    page_size: int = 20,
+    q: str | None = None,
+    feedback_only: bool = False,
+    db: AsyncSession = Depends(get_db),
+    current_user: CurrentUser = Depends(get_current_user_from_sa_token),
+) -> dict:
+    """全量会话列表（admin 专用），不做用户隔离，Java 后台自行做权限过滤。"""
+    page = max(1, int(page or 1))
+    page_size = min(100, max(1, int(page_size or 20)))
+    filters = _conversation_filters(q, feedback_only, created_by=None, owner_id=None)
+    total = await db.scalar(select(func.count()).select_from(Conversation).where(*filters))
+    rows = await db.execute(
+        select(Conversation)
+        .where(*filters)
+        .order_by(Conversation.updated_at.desc())
+        .offset((page - 1) * page_size)
+        .limit(page_size)
+    )
+    conversations = list(rows.scalars())
+    feedback_counts = await _open_feedback_counts(db, [str(item.id) for item in conversations])
+    return ok(
+        {
+            "total": int(total or 0),
+            "page": page,
+            "page_size": page_size,
+            "items": [
+                _serialize_conversation(item, feedback_counts.get(str(item.id), 0))
+                for item in conversations
+            ],
+        }
+    )
+
+
+@router.get("/admin/conversations/{conversation_id}/messages")
+async def list_admin_conversation_messages(
+    conversation_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: CurrentUser = Depends(get_current_user_from_sa_token),
+) -> dict:
+    """全量会话消息列表（admin 专用），不做用户隔离。"""
+    conversation_id = _normalize_uuid(conversation_id, "conversation_id")
+    conversation = await _get_conversation(db, conversation_id)
+    feedback_rows = await db.execute(
+        select(AnswerFeedback).where(
+            _feedback_conversation_id() == str(conversation_id),
+            AnswerFeedback.status == "open",
+        )
+    )
+    feedback_by_message = {str(item.assistant_message_id): item for item in feedback_rows.scalars()}
+    rows = await db.execute(
+        select(ConversationMessage)
+        .where(ConversationMessage.conversation_id == conversation_id)
+        .order_by(ConversationMessage.created_at.asc())
+    )
+    return ok([_serialize_message(item, feedback_by_message.get(str(item.id))) for item in rows.scalars()])
+
+
 @router.post("/chat/stream")
 async def stream_chat(
     payload: InternalChatRequest,
