@@ -17,7 +17,7 @@ from app.api.deps import CurrentUser, get_current_user_from_sa_token
 from app.core.concurrency import release_chat_slot, try_acquire_chat_slot
 from app.core.config import get_settings
 from app.core.responses import ok
-from app.db.models import AnswerFeedback, Conversation, ConversationMessage, Document, DocumentJob, RetrievalLog
+from app.db.models import AnswerFeedback, Conversation, ConversationMessage, Document, DocumentJob, QaPair, RetrievalLog
 from app.db.session import get_db
 from app.services.chat_service import ChatService
 from app.services.conversation_title import normalize_conversation_title, validate_manual_conversation_title
@@ -45,6 +45,7 @@ BATCH_ACTIONS = {
     "batch_rechunk": ("BRC", "Batch rechunk"),
 }
 BATCH_JOB_STATUSES = {"pending", "running", "succeeded", "failed", "skipped", "canceled"}
+ALLOWED_QA_STATUSES = {"enabled", "disabled"}
 
 
 class UserContext(BaseModel):
@@ -170,6 +171,7 @@ class InternalChatRequest(BaseModel):
     session_id: str | None = None
     message_id: str | None = None
     question: str = Field(min_length=1)
+    hot_answer: str | None = None
     user_context: UserContext
     access_scope: AccessScope
     options: ChatOptions = Field(default_factory=ChatOptions)
@@ -208,6 +210,96 @@ class InternalAnswerFeedbackCreate(BaseModel):
     @classmethod
     def normalize_description(cls, value: str) -> str:
         return value.strip()
+
+
+class InternalQaPairCreate(BaseModel):
+    question: str = Field(min_length=1, max_length=2000)
+    answer: str = Field(min_length=1, max_length=10000)
+    status: str = "enabled"
+    tags: list[str] | None = None
+
+    @field_validator("question")
+    @classmethod
+    def normalize_question(cls, value: str) -> str:
+        normalized = " ".join(value.strip().split())
+        if not normalized:
+            raise ValueError("question cannot be blank")
+        return normalized
+
+    @field_validator("answer")
+    @classmethod
+    def normalize_answer(cls, value: str) -> str:
+        normalized = value.strip()
+        if not normalized:
+            raise ValueError("answer cannot be blank")
+        return normalized
+
+    @field_validator("status")
+    @classmethod
+    def validate_status(cls, value: str) -> str:
+        normalized = value.strip()
+        if normalized not in ALLOWED_QA_STATUSES:
+            raise ValueError("unsupported QA status")
+        return normalized
+
+    @field_validator("tags")
+    @classmethod
+    def normalize_qa_tags(cls, value: list[str] | None) -> list[str] | None:
+        return _normalize_qa_tags(value)
+
+
+class InternalQaPairUpdate(BaseModel):
+    question: str | None = Field(default=None, max_length=2000)
+    answer: str | None = Field(default=None, max_length=10000)
+    status: str | None = None
+    tags: list[str] | None = None
+
+    @field_validator("question")
+    @classmethod
+    def normalize_optional_question(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        normalized = " ".join(value.strip().split())
+        if not normalized:
+            raise ValueError("question cannot be blank")
+        return normalized
+
+    @field_validator("answer")
+    @classmethod
+    def normalize_optional_answer(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        normalized = value.strip()
+        if not normalized:
+            raise ValueError("answer cannot be blank")
+        return normalized
+
+    @field_validator("status")
+    @classmethod
+    def validate_status(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        normalized = value.strip()
+        if normalized not in ALLOWED_QA_STATUSES:
+            raise ValueError("unsupported QA status")
+        return normalized
+
+    @field_validator("tags")
+    @classmethod
+    def normalize_qa_tags(cls, value: list[str] | None) -> list[str] | None:
+        return _normalize_qa_tags(value)
+
+
+class InternalQaStatusUpdate(BaseModel):
+    status: str
+
+    @field_validator("status")
+    @classmethod
+    def validate_status(cls, value: str) -> str:
+        normalized = value.strip()
+        if normalized not in ALLOWED_QA_STATUSES:
+            raise ValueError("unsupported QA status")
+        return normalized
 
 
 @router.get("/health")
@@ -511,9 +603,13 @@ async def list_conversation_messages(
     feedback_by_message = {str(item.assistant_message_id): item for item in feedback_rows.scalars()}
     rows = await db.execute(
         select(ConversationMessage)
-        .where(ConversationMessage.conversation_id == conversation_id)
+        .where(
+            ConversationMessage.conversation_id == conversation_id,
+            ConversationMessage.deleted_at.is_(None),
+        )
         .order_by(ConversationMessage.created_at.asc())
     )
+
     return ok([_serialize_message(item, feedback_by_message.get(str(item.id))) for item in rows.scalars()])
 
 
@@ -577,6 +673,47 @@ async def delete_conversation(
     return ok({"id": conversation_id, "status": "deleted"})
 
 
+@router.delete("/conversations/{conversation_id}/messages/{message_id}")
+async def delete_conversation_message(
+    conversation_id: str,
+    message_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: CurrentUser = Depends(get_current_user_from_sa_token),
+) -> dict:
+    """软删除单条消息（Java 后台调用），设置 deleted_at 并扣减会话 message_count。"""
+    conversation_id = _normalize_uuid(conversation_id, "conversation_id")
+    message_id = _normalize_uuid(message_id, "message_id")
+    conversation = await _get_conversation(db, conversation_id, include_deleted=True)
+    if not _can_access_conversation(conversation, current_user):
+        raise HTTPException(status_code=403, detail="无权操作此会话")
+    message = await db.scalar(
+        select(ConversationMessage).where(
+            ConversationMessage.id == message_id,
+            ConversationMessage.conversation_id == conversation_id,
+        )
+    )
+    if message is None:
+        raise HTTPException(status_code=404, detail="消息不存在")
+    if message.deleted_at is not None:
+        raise HTTPException(status_code=400, detail="消息已被删除")
+    now = datetime.now(timezone.utc)
+    await db.execute(
+        update(ConversationMessage)
+        .where(ConversationMessage.id == message_id)
+        .values(deleted_at=now)
+    )
+    await db.execute(
+        update(Conversation)
+        .where(Conversation.id == conversation_id)
+        .values(
+            message_count=func.greatest(Conversation.message_count - 1, 0),
+            updated_at=now,
+        )
+    )
+    await db.commit()
+    return ok({"id": message_id, "conversation_id": str(conversation_id), "status": "deleted"})
+
+
 # ============================================================
 # Admin 接口：全量数据，不做用户级隔离，由 Java 后台做权限过滤
 # ============================================================
@@ -594,7 +731,7 @@ async def list_admin_conversations(
     """全量会话列表（admin 专用），不做用户隔离，Java 后台自行做权限过滤。"""
     page = max(1, int(page or 1))
     page_size = min(100, max(1, int(page_size or 20)))
-    filters = _conversation_filters(q, feedback_only, created_by=None, owner_id=None)
+    filters = _conversation_filters(q, feedback_only, created_by=None, owner_id=None, include_deleted=True)
     total = await db.scalar(select(func.count()).select_from(Conversation).where(*filters))
     rows = await db.execute(
         select(Conversation)
@@ -605,13 +742,14 @@ async def list_admin_conversations(
     )
     conversations = list(rows.scalars())
     feedback_counts = await _open_feedback_counts(db, [str(item.id) for item in conversations])
+    deleted_ids = await _has_deleted_messages_counts(db, [str(item.id) for item in conversations])
     return ok(
         {
             "total": int(total or 0),
             "page": page,
             "page_size": page_size,
             "items": [
-                _serialize_conversation(item, feedback_counts.get(str(item.id), 0))
+                _serialize_conversation(item, feedback_counts.get(str(item.id), 0), str(item.id) in deleted_ids)
                 for item in conversations
             ],
         }
@@ -624,9 +762,9 @@ async def list_admin_conversation_messages(
     db: AsyncSession = Depends(get_db),
     current_user: CurrentUser = Depends(get_current_user_from_sa_token),
 ) -> dict:
-    """全量会话消息列表（admin 专用），不做用户隔离。"""
+    """全量会话消息列表（admin 专用），不做用户隔离，包括已软删除的会话。"""
     conversation_id = _normalize_uuid(conversation_id, "conversation_id")
-    conversation = await _get_conversation(db, conversation_id)
+    conversation = await _get_conversation(db, conversation_id, include_deleted=True)
     feedback_rows = await db.execute(
         select(AnswerFeedback).where(
             _feedback_conversation_id() == str(conversation_id),
@@ -666,6 +804,7 @@ async def stream_chat(
                 created_by=_conversation_owner_id(current_user),
                 context_created_by=current_user.user_id,
                 document_filter=document_filter,
+                hot_answer=payload.hot_answer,
             )
         ),
         media_type="text/event-stream",
@@ -714,6 +853,164 @@ async def retract_chat_turn(payload: InternalChatRetractRequest, db: AsyncSessio
         payload.assistant_message_id,
     )
     return ok(result)
+
+
+# ============================================================
+# QA 问答对管理（Internal API — Java 后台调用）
+# ============================================================
+
+@router.get("/qa-pairs")
+async def internal_list_qa_pairs(
+    keyword: str | None = None,
+    status: str | None = None,
+    document_id: str | None = None,
+    tag: str | None = None,
+    page: int = 1,
+    page_size: int = 20,
+    db: AsyncSession = Depends(get_db),
+    _: CurrentUser = Depends(get_current_user_from_sa_token),
+):
+    query = select(QaPair).where(QaPair.deleted_at.is_(None))
+    count_query = select(func.count()).select_from(QaPair).where(QaPair.deleted_at.is_(None))
+    if keyword:
+        condition = QaPair.question.ilike(f"%{keyword}%") | QaPair.answer.ilike(f"%{keyword}%")
+        query = query.where(condition)
+        count_query = count_query.where(condition)
+    if status:
+        query = query.where(QaPair.status == status)
+        count_query = count_query.where(QaPair.status == status)
+    if document_id:
+        query = query.where(QaPair.source_document_id == document_id)
+        count_query = count_query.where(QaPair.source_document_id == document_id)
+    normalized_tag = _normalize_qa_tag(tag)
+    if normalized_tag:
+        query = query.where(QaPair.tags.any(normalized_tag))
+        count_query = count_query.where(QaPair.tags.any(normalized_tag))
+    total = await db.scalar(count_query)
+    rows = await db.execute(
+        query.order_by(QaPair.updated_at.desc()).offset((page - 1) * page_size).limit(page_size)
+    )
+    return ok(
+        {
+            "items": [_serialize_qa_pair(item) for item in rows.scalars()],
+            "page": page,
+            "page_size": page_size,
+            "total": total or 0,
+        }
+    )
+
+
+@router.post("/qa-pairs")
+async def internal_create_qa_pair(
+    payload: InternalQaPairCreate,
+    db: AsyncSession = Depends(get_db),
+    current_user: CurrentUser = Depends(get_current_user_from_sa_token),
+):
+    qa = QaPair(
+        question=payload.question,
+        answer=payload.answer,
+        status=payload.status,
+        tags=payload.tags,
+        created_by=current_user.user_id or current_user.id,
+        updated_by=current_user.user_id or current_user.id,
+    )
+    db.add(qa)
+    await db.commit()
+    await db.refresh(qa)
+    await TaskQueueService().enqueue("qa_embedding_sync", {"qa_pair_id": str(qa.id)})
+    return ok(_serialize_qa_pair(qa))
+
+
+@router.put("/qa-pairs/{qa_pair_id}")
+async def internal_update_qa_pair(
+    qa_pair_id: str,
+    payload: InternalQaPairUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_user: CurrentUser = Depends(get_current_user_from_sa_token),
+):
+    qa = await _internal_get_qa(db, qa_pair_id)
+    values = payload.model_dump(exclude_unset=True)
+    values["version"] = qa.version + 1
+    values["updated_by"] = current_user.user_id or current_user.id
+    values["updated_at"] = datetime.now(timezone.utc)
+    await db.execute(update(QaPair).where(QaPair.id == qa_pair_id).values(**values))
+    await db.commit()
+    qa = await _internal_get_qa(db, qa_pair_id)
+    await TaskQueueService().enqueue("qa_embedding_sync", {"qa_pair_id": qa_pair_id})
+    return ok(_serialize_qa_pair(qa))
+
+
+@router.delete("/qa-pairs/{qa_pair_id}")
+async def internal_delete_qa_pair(
+    qa_pair_id: str,
+    db: AsyncSession = Depends(get_db),
+    _: CurrentUser = Depends(get_current_user_from_sa_token),
+):
+    await _internal_get_qa(db, qa_pair_id)
+    await db.execute(
+        update(QaPair)
+        .where(QaPair.id == qa_pair_id)
+        .values(deleted_at=datetime.now(timezone.utc), status="disabled")
+    )
+    await db.commit()
+    return ok({"id": qa_pair_id})
+
+
+@router.patch("/qa-pairs/{qa_pair_id}/status")
+async def internal_update_qa_status(
+    qa_pair_id: str,
+    payload: InternalQaStatusUpdate,
+    db: AsyncSession = Depends(get_db),
+    _: CurrentUser = Depends(get_current_user_from_sa_token),
+):
+    await _internal_get_qa(db, qa_pair_id)
+    await db.execute(
+        update(QaPair).where(QaPair.id == qa_pair_id).values(status=payload.status)
+    )
+    await db.commit()
+    qa = await _internal_get_qa(db, qa_pair_id)
+    return ok(_serialize_qa_pair(qa))
+
+
+async def _internal_get_qa(db: AsyncSession, qa_pair_id: str) -> QaPair:
+    qa = await db.scalar(select(QaPair).where(QaPair.id == qa_pair_id, QaPair.deleted_at.is_(None)))
+    if qa is None:
+        raise HTTPException(status_code=404, detail="QA 不存在")
+    return qa
+
+
+def _normalize_qa_tag(value: str | None) -> str:
+    return " ".join(str(value or "").strip().split())[:64]
+
+
+def _normalize_qa_tags(value: list[str] | None) -> list[str] | None:
+    if value is None:
+        return None
+    normalized: list[str] = []
+    seen: set[str] = set()
+    for item in value:
+        tag = _normalize_qa_tag(item)
+        if not tag or tag in seen:
+            continue
+        seen.add(tag)
+        normalized.append(tag)
+    return normalized
+
+
+def _serialize_qa_pair(qa: QaPair) -> dict:
+    return {
+        "id": str(qa.id),
+        "question": qa.question,
+        "answer": qa.answer,
+        "status": qa.status,
+        "source_document_id": str(qa.source_document_id) if qa.source_document_id else None,
+        "source_chunk_ids": [str(item) for item in qa.source_chunk_ids] if qa.source_chunk_ids else [],
+        "source_url": qa.source_url,
+        "tags": qa.tags or [],
+        "version": qa.version,
+        "created_at": qa.created_at.isoformat() if qa.created_at else None,
+        "updated_at": qa.updated_at.isoformat() if qa.updated_at else None,
+    }
 
 
 async def _stream_with_java_boundary(generator: AsyncGenerator[str, None]) -> AsyncGenerator[str, None]:
@@ -868,10 +1165,13 @@ def normalize_batch_status(value: str | None) -> str:
     return normalized
 
 
-async def _get_conversation(db: AsyncSession, conversation_id: str) -> Conversation:
-    conversation = await db.scalar(
-        select(Conversation).where(Conversation.id == conversation_id, Conversation.deleted_at.is_(None))
-    )
+async def _get_conversation(
+    db: AsyncSession, conversation_id: str, include_deleted: bool = False
+) -> Conversation:
+    filters = [Conversation.id == conversation_id]
+    if not include_deleted:
+        filters.append(Conversation.deleted_at.is_(None))
+    conversation = await db.scalar(select(Conversation).where(*filters))
     if conversation is None:
         raise HTTPException(status_code=404, detail="会话不存在")
     return conversation
@@ -1085,8 +1385,9 @@ def _conversation_filters(
     feedback_only: bool = False,
     created_by: str | None = None,
     owner_id: str | None = None,
+    include_deleted: bool = False,
 ) -> list:
-    filters = [Conversation.deleted_at.is_(None)]
+    filters = [] if include_deleted else [Conversation.deleted_at.is_(None)]
     owner_filters = []
     if created_by:
         owner_filters.append(Conversation.context_state["created_by"].as_string() == str(created_by))
@@ -1120,7 +1421,7 @@ def _conversation_filters(
                 Conversation.title.ilike(pattern),
                 Conversation.summary.ilike(pattern),
                 select(ConversationMessage.id)
-                .where(ConversationMessage.conversation_id == Conversation.id, ConversationMessage.content.ilike(pattern))
+                .where(ConversationMessage.conversation_id == Conversation.id, ConversationMessage.content.ilike(pattern), ConversationMessage.deleted_at.is_(None))
                 .exists(),
             )
         )
@@ -1136,6 +1437,21 @@ async def _open_feedback_counts(db: AsyncSession, conversation_ids: list[str]) -
         .group_by(AnswerFeedback.conversation_id)
     )
     return {str(row.conversation_id): int(row.count or 0) for row in rows}
+
+
+async def _has_deleted_messages_counts(db: AsyncSession, conversation_ids: list[str]) -> set[str]:
+    """返回存在已删除消息（单条记录删除）的会话 ID 集合"""
+    if not conversation_ids:
+        return set()
+    rows = await db.execute(
+        select(ConversationMessage.conversation_id)
+        .where(
+            ConversationMessage.conversation_id.in_(conversation_ids),
+            ConversationMessage.deleted_at.isnot(None),
+        )
+        .distinct()
+    )
+    return {str(row[0]) for row in rows}
 
 
 def _feedback_conversation_id():
@@ -1347,7 +1663,7 @@ def _conversation_owner_id(current_user: CurrentUser) -> str:
     return current_user.id
 
 
-def _serialize_conversation(item: Conversation, open_feedback_count: int = 0) -> dict:
+def _serialize_conversation(item: Conversation, open_feedback_count: int = 0, has_deleted_messages: bool = False) -> dict:
     return {
         "id": str(item.id),
         "title": item.title,
@@ -1357,6 +1673,8 @@ def _serialize_conversation(item: Conversation, open_feedback_count: int = 0) ->
         "last_message_at": item.last_message_at.isoformat() if item.last_message_at else None,
         "has_feedback": open_feedback_count > 0,
         "open_feedback_count": open_feedback_count,
+        "deleted_at": item.deleted_at.isoformat() if item.deleted_at else None,
+        "has_deleted_messages": has_deleted_messages,
     }
 
 
@@ -1371,6 +1689,7 @@ def _serialize_message(item: ConversationMessage, feedback: AnswerFeedback | Non
         "citations": item.citations,
         "suggested_questions": item.suggested_questions,
         "created_at": item.created_at.isoformat() if item.created_at else None,
+        "deleted_at": item.deleted_at.isoformat() if item.deleted_at else None,
         "feedback": _serialize_feedback(feedback) if item.role == "assistant" and feedback else None,
     }
 

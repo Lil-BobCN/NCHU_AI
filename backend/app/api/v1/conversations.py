@@ -102,7 +102,10 @@ async def list_messages(
     }
     rows = await db.execute(
         select(ConversationMessage)
-        .where(ConversationMessage.conversation_id == conversation_id)
+        .where(
+            ConversationMessage.conversation_id == conversation_id,
+            ConversationMessage.deleted_at.is_(None),
+        )
         .order_by(ConversationMessage.created_at.asc())
     )
     return ok([serialize_message(item, feedback_by_message.get(str(item.id))) for item in rows.scalars()])
@@ -207,6 +210,7 @@ def conversation_list_filters(search: str | None = None, feedback_only: bool = F
                 select(ConversationMessage.id).where(
                     ConversationMessage.conversation_id == Conversation.id,
                     ConversationMessage.content.ilike(pattern),
+                    ConversationMessage.deleted_at.is_(None),
                 )
             ),
         )
@@ -232,6 +236,7 @@ async def backfill_default_conversation_titles(db: AsyncSession, conversations: 
             .where(
                 ConversationMessage.conversation_id == conversation.id,
                 ConversationMessage.role == "user",
+                ConversationMessage.deleted_at.is_(None),
             )
             .order_by(ConversationMessage.created_at.asc())
             .limit(1)
@@ -261,6 +266,7 @@ def serialize_message(item: ConversationMessage, feedback: dict | None = None) -
         "citations": item.citations,
         "suggested_questions": item.suggested_questions,
         "created_at": item.created_at.isoformat() if item.created_at else None,
+        "deleted_at": item.deleted_at.isoformat() if item.deleted_at else None,
     }
     if feedback:
         data.update(feedback)

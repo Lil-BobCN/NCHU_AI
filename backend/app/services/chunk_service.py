@@ -304,10 +304,22 @@ class ChunkService:
         return tail.strip()
 
     def _window(self, text: str, size: int, overlap: int) -> list[str]:
+        # 电话号码正则：匹配固话（如 0791-83863005）和手机号，避免切分截断
+        phone_re = re.compile(r"0\d{2,3}[-—]?\d{7,8}|1[3-9]\d{9}")
         chunks: list[str] = []
         start = 0
         while start < len(text):
             end = min(start + size, len(text))
+            # 边界保护：如果切分点落在电话号码内，向后调整到号码结束位置
+            if end < len(text):
+                search_start = max(0, end - 30)
+                search_end = min(len(text), end + 30)
+                for m in phone_re.finditer(text[search_start:search_end]):
+                    match_start = search_start + m.start()
+                    match_end = search_start + m.end()
+                    if match_start < end < match_end:
+                        end = match_end
+                        break
             chunks.append(text[start:end])
             if end >= len(text):
                 break

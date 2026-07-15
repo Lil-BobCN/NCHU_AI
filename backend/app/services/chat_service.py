@@ -63,6 +63,7 @@ class ChatService:
         created_by: str | None = None,
         context_created_by: str | None = None,
         document_filter: dict | None = None,
+        hot_answer: str | None = None,
     ) -> AsyncGenerator[str, None]:
         started = time.perf_counter()
         conversation: Conversation | None = None
@@ -152,6 +153,66 @@ class ChatService:
                     "context_resolution": context_resolution,
                 },
             )
+
+            # 高频问题命中：直接返回预设答案，跳过 RAG 检索与大模型生成。
+            if hot_answer and hot_answer.strip():
+                answer = self._sanitize_answer(hot_answer.strip())
+                retrieval = self._empty_retrieval_trace(
+                    question,
+                    resolved_query,
+                    retrieval_query,
+                    retrieval_reinforced,
+                    retrieval_constraints,
+                    history,
+                    conversation_summary,
+                    context_resolution,
+                    context_state,
+                )
+                retrieval["direct_qa_hit"] = True
+                retrieval["direct_qa"] = {"qa_answer": answer, "type": "hot_question"}
+                async for event in self._stream_delta_text(answer):
+                    yield event
+                citations: list[dict] = []
+                suggested_questions: list[dict] = []
+                yield self._sse("citations", {"citations": citations})
+                yield self._sse("suggested_questions", {"questions": suggested_questions})
+                latency_ms = int((time.perf_counter() - started) * 1000)
+                assistant_message.content = answer
+                assistant_message.retrieval_trace = to_jsonable(retrieval)
+                assistant_message.citations = to_jsonable(citations)
+                assistant_message.suggested_questions = to_jsonable(suggested_questions)
+                assistant_message.latency_ms = latency_ms
+                db.add(
+                    RetrievalLog(
+                        conversation_id=conversation.id,
+                        message_id=user_message.id,
+                        raw_query=question,
+                        rewritten_query=retrieval_query,
+                        recall_results=[],
+                        rerank_results=[],
+                        final_context=[],
+                        citations=[],
+                        suggested_questions=[],
+                        answer=answer,
+                        model_name=self.settings.chat_model,
+                        embedding_model=self.settings.embedding_model,
+                        rerank_model=self.settings.rerank_model,
+                        latency_ms=latency_ms,
+                    )
+                )
+                now = datetime.now(timezone.utc)
+                await db.execute(
+                    update(Conversation)
+                    .where(Conversation.id == conversation.id)
+                    .values(
+                        message_count=Conversation.message_count + 2,
+                        last_message_at=now,
+                        updated_at=now,
+                    )
+                )
+                await db.commit()
+                yield self._sse("message_end", {"message_id": str(assistant_message.id), "latency_ms": latency_ms})
+                return
 
             if is_smalltalk:
                 retrieval = self._empty_retrieval_trace(
@@ -538,22 +599,30 @@ class ChatService:
 
         if message_ids:
             await db.execute(
-                delete(ConversationMessage).where(
+                update(ConversationMessage)
+                .where(
                     ConversationMessage.conversation_id == conversation_id,
                     ConversationMessage.id.in_(message_ids),
                 )
+                .values(deleted_at=now)
             )
 
         remaining_count = (
             await db.scalar(
                 select(func.count())
                 .select_from(ConversationMessage)
-                .where(ConversationMessage.conversation_id == conversation_id)
+                .where(
+                    ConversationMessage.conversation_id == conversation_id,
+                    ConversationMessage.deleted_at.is_(None),
+                )
             )
         ) or 0
         latest_message_at = await db.scalar(
             select(ConversationMessage.created_at)
-            .where(ConversationMessage.conversation_id == conversation_id)
+            .where(
+                ConversationMessage.conversation_id == conversation_id,
+                ConversationMessage.deleted_at.is_(None),
+            )
             .order_by(ConversationMessage.created_at.desc())
             .limit(1)
         )
@@ -1265,6 +1334,11 @@ class ChatService:
             "【强制加粗范围】公示天数、截止时间、办理月份、发放日期、线下地址、联系电话、硬性条件、奖项互斥规则、"
             "处罚条款、官方文件全称、归口部门。只对关键内容加粗，不要整段加粗。"
             ""
+            "【关键信息完整性——强制规则】"
+            "检索资料中出现的联系电话、办公地址、金额、日期等关键信息，必须完整输出原样内容，"
+            "严禁对电话号码做星号掩码、严禁拆分多行重复输出、严禁截断省略。"
+            "如果检索资料中的电话号码是完整的（如 0791-83863005），必须原样输出完整号码，不得改成 **0791**、8386300** 等碎片化形式。"
+            ""
             "【结尾温馨提示——每条业务咨询末尾必须以统一模块呈现】"
             "在正文内容之后，必须整合为一个 **温馨提示** 模块（作为最后一个一级模块）："
             "- 提醒材料提交要求、申报时限等风险内容"
@@ -1742,6 +1816,12 @@ class ChatService:
                 sanitized,
                 flags=re.DOTALL,
             )
+        # 5. 修复被星号污染或碎片化的电话号码（兜底）
+        # 清理数字周围孤立的星号，例如 "8386300**" → "8386300"，"*0791" → "0791"
+        sanitized = re.sub(r"(\d)\*+(?!\d)", r"\1", sanitized)
+        sanitized = re.sub(r"(?!\d)\*+(\d)", r"\1", sanitized)
+        # 合并行内被顿号/逗号分隔的区号和号码碎片，例如 "0791、83863005" → "0791-83863005"
+        sanitized = re.sub(r"(0\d{2,3})\s*[、,]\s*(\d{7,8})", r"\1-\2", sanitized)
         sanitized = re.sub(r"[ \t]+\n", "\n", sanitized)
         sanitized = re.sub(r"\n{4,}", "\n\n\n", sanitized)
         return sanitized.strip()
