@@ -43,6 +43,11 @@ _chat_event_sink_var: ContextVar[list[tuple[str, dict]] | None] = ContextVar(
 )
 
 
+# 回答输出兜底脱敏正则（处理 LLM 可能自己编造或检索片段中漏网的敏感信息）
+_SANITIZE_MOBILE_RE = re.compile(r"(?<!\d)1[3-9]\d{9}(?!\d)")
+_SANITIZE_ID_CARD_RE = re.compile(r"(?<!\d)\d{6}(?:19|20)\d{2}(?:0[1-9]|1[0-2])(?:0[1-9]|[12]\d|3[01])\d{3}[\dXx](?!\d)")
+
+
 class ChatService:
     def __init__(self) -> None:
         self.settings = get_settings()
@@ -1790,12 +1795,11 @@ class ChatService:
             text,
         )
         sanitized = sanitized.replace("\ufeff", "").replace("\u200b", "")
-        # 隐私信息正则兜底脱敏：确保 LLM 未能遵守 prompt 指令时，由后处理强制脱敏
-        # 身份证号码（18位）：430102199001011234 → XXXXXXXXXXXXXXXXXX
-        sanitized = re.sub(r"\b\d{6}(?:19|20)\d{2}(?:0[1-9]|1[0-2])(?:0[1-9]|[12]\d|3[01])\d{3}[\dXx]\b", "XXXXXXXXXXXXXXXXXX", sanitized)
-        # 个人手机号（11位 1XX 开头）：13812345678 → 1XXXXXXXXXX
-        # 注意：需排除办公固定电话格式（0XXX-XXXXXXX），只脱敏 1XX 开头的 11 位数字
-        sanitized = re.sub(r"\b1[3-9]\d{9}\b", "1XXXXXXXXXX", sanitized)
+        # 隐私信息正则兜底脱敏：回答输出最后一道防线
+        # 身份证号码（18位）→ XXXXXXXXXXXXXXXXXX
+        sanitized = _SANITIZE_ID_CARD_RE.sub("XXXXXXXXXXXXXXXXXX", sanitized)
+        # 个人手机号（11位 1XX 开头）→ 1XXXXXXXXXX
+        sanitized = _SANITIZE_MOBILE_RE.sub("1XXXXXXXXXX", sanitized)
         # 清理 AI 可能在正文中错误输出的参考来源附录（前端已单独展示 citations）
         sanitized = re.sub(
             r"\n*---\s*\n\s*参考(?:来源|文档)[\s\S]*$",

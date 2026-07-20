@@ -21,6 +21,7 @@ from app.services.hash_service import sha256_bytes, sha256_text
 from app.services.minio_service import MinioService
 from app.services.model_service import ModelService
 from app.services.parse_service import ParseService
+from app.services.privacy_service import PrivacyService
 from app.services.redis_service import RedisService
 from app.services.document_upload_service import (
     next_available_active_file_name,
@@ -38,6 +39,7 @@ class DocumentPipeline:
         self.redis_service = RedisService()
         self.archive_import_service = ArchiveImportService()
         self.lifecycle_service = DocumentLifecycleService()
+        self.privacy_service = PrivacyService()
 
     async def run_full_pipeline_from_storage(
         self, db: AsyncSession, document_id: str, job_id: str | None = None
@@ -69,6 +71,12 @@ class DocumentPipeline:
 
             # 第一阶段：解析原文并把解析产物保存到数据库和 MinIO。
             parsed = await asyncio.to_thread(self.parse_service.parse, document.file_name, file_bytes)
+            # 隐私脱敏：对解析后的文本做正则兜底脱敏，从源头切断敏感信息入库
+            privacy_result = self.privacy_service.mask(parsed.text)
+            if privacy_result.masked_count > 0:
+                parsed.text = privacy_result.text
+                if parsed.markdown:
+                    parsed.markdown = self.privacy_service.mask(parsed.markdown).text
             await self._store_parse_assets(document_id, parsed)
             quality = await asyncio.to_thread(self.parse_service.quality_score, parsed)
             object_key = f"parsed/{document_id}/content.md"
