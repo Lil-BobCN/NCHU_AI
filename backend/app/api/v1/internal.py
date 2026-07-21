@@ -1187,7 +1187,8 @@ async def _allowed_document_filter(db: AsyncSession, scope: AccessScope, user: U
         raise HTTPException(status_code=403, detail="当前用户没有可检索的知识库资料")
     return {
         "document_sql": sql,
-        "qa_sql": f"q.source_document_id IS NOT NULL AND ({sql})",
+        # "qa_sql": f"q.source_document_id IS NOT NULL AND ({sql})",
+        "qa_sql": f"(q.source_document_id IS NULL OR ({sql}))",
         "params": params,
         "cache_key": cache_key,
     }
