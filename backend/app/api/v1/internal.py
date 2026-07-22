@@ -30,8 +30,10 @@ from app.services.knowledge_base_service import (
 )
 from app.services.task_queue_service import TaskQueueService
 
-
+#   TODO 放开权限 如果不需要用户登录用36行注释34行代码
 router = APIRouter(tags=["internal-rag"], dependencies=[Depends(get_current_user_from_sa_token)])
+
+# router = APIRouter(tags=["internal-rag"])
 
 ALLOWED_FEEDBACK_ERROR_TYPES = {
     "answer_wrong",
@@ -779,13 +781,18 @@ async def list_admin_conversation_messages(
     )
     return ok([_serialize_message(item, feedback_by_message.get(str(item.id))) for item in rows.scalars()])
 
-
+# TODO 如果不需要用户登录的话注释789行放开791-795，
 @router.post("/chat/stream")
 async def stream_chat(
     payload: InternalChatRequest,
     db: AsyncSession = Depends(get_db),
     current_user: CurrentUser = Depends(get_current_user_from_sa_token),
 ) -> StreamingResponse:
+    # current_user = CurrentUser(
+    # id = "059d2991-cd21-4419-bcb9-f4ec4295c813",
+    # user_id = "059d2991-cd21-4419-bcb9-f4ec4295c813",
+    # login_id = "admin"
+    # )
     document_filter = await _allowed_document_filter(db, payload.access_scope, payload.user_context)
     if not await try_acquire_chat_slot():
         raise HTTPException(status_code=429, detail="当前问答请求较多，请稍后再试")
