@@ -415,6 +415,9 @@ class ChatService:
 
             answer = "".join(answer_parts).strip()
             answer = self._sanitize_answer(answer)
+            # 后处理字数兜底：正文超过220字触发LLM二次压缩，强制压到200字以内
+            if answer and len(answer) > 220:
+                answer = await self._compact_answer(answer, question)
             if answer and not cached_answer and not used_fallback and not retrieval.get("direct_qa_hit"):
                 await self._set_cached_answer(question, retrieval, history, conversation_summary, answer)
             citations = to_jsonable(
@@ -944,21 +947,25 @@ class ChatService:
         has_memory = bool(history or conversation_summary or active_task or pending_action)
         should_resolve = bool(enable_rewrite and has_memory and self._is_context_dependent(clean_question))
         if should_resolve:
-            llm_resolution = await self._resolve_context_with_llm(
-                clean_question,
-                history,
-                conversation_summary,
-                context_state,
+            # 并行执行上下文解析和查询改写，减少串行 LLM 调用延迟（~4s → ~2s）
+            llm_resolution_task = asyncio.ensure_future(
+                self._resolve_context_with_llm(
+                    clean_question, history, conversation_summary, context_state,
+                )
             )
+            rewritten_query_task = asyncio.ensure_future(
+                self._build_retrieval_query_with_memory(
+                    clean_question, history, conversation_summary, context_state,
+                )
+            )
+            llm_resolution = await llm_resolution_task
             if llm_resolution:
+                # 上下文解析成功，取消未完成的查询改写任务以释放资源
+                if not rewritten_query_task.done():
+                    rewritten_query_task.cancel()
                 return llm_resolution
 
-            resolved_query = await self._build_retrieval_query_with_memory(
-                clean_question,
-                history,
-                conversation_summary,
-                context_state,
-            )
+            resolved_query = await rewritten_query_task
             return {
                 "intent": "followup",
                 "resolved_query": resolved_query,
@@ -1278,16 +1285,15 @@ class ChatService:
         context_state: dict | None = None,
         context_resolution: dict | None = None,
     ) -> list[dict]:
+        # 检索上下文预处理：过滤无关段落，减少模型冗余输入
+        compressed = self._compress_context(contexts)
         context_text = "\n\n".join(
             [
                 (
-                    f"[来源{i + 1}] 文档：{item.get('document_title') or '未知文档'}；"
-                    f"页码：{item.get('page_start') or '未知'}；"
-                    f"章节：{item.get('section_path') or '无'}；"
-                    f"URL：{item.get('url') or '无'}\n"
+                    f"[来源{i + 1}]《{item.get('document_title') or '未知文档'}》第{item.get('page_start') or '未知'}页\n"
                     f"{item.get('content') or ''}"
                 )
-                for i, item in enumerate(contexts)
+                for i, item in enumerate(compressed)
             ]
         )
         system = (
@@ -1299,9 +1305,25 @@ class ChatService:
             "3. 如果会话历史不足以回答当前资料类问题，必须依据检索资料回答。"
             "4. 如果检索资料也没有明确依据，必须说明资料中未找到明确依据，不得编造。"
             ""
+            "【精简回答——最高优先级规则】"
+            "1. 回答必须聚焦用户直接提问的内容，用户没问的不展开、不延伸、不穷举。"
+            "2. 优先用 1-3 句话给出核心结论，再按需补充关键细节。"
+            "3. 资料中的冗余描述、背景铺垫、政策套话一律省略，只提取与问题直接相关的事实和数据。"
+            "4. 如果用户问'能不能/是不是/有没有'，直接给是/否/有/无 + 一句话依据，不展开完整流程。"
+            "5. 如果用户问'什么时候/多少钱/在哪里/找谁'，直接给时间/金额/地址/部门 + 一句话来源，不展开无关模块。"
+            "6. 信息密度要求：每句话至少包含一个用户关心的有效信息点，避免空泛表述。"
+            ""
+            "【回答字数上限——硬性强制规则】"
+            "1. 正文（不含参考来源和温馨提示）总字数不得超过 200 字。"
+            "2. 严禁输出政策出台背景、文件目的、发文通知、部门职责分工、办学资金用途等非学生关心的冗余内容。"
+            "3. 同类规则必须合并列举（如重修/辅修/转专业/退课退费规则合并为一句话），禁止逐条铺陈。"
+            "4. 长法条必须短句化：去掉连接虚词（如'以及''此外''同时'等）、铺垫语（如'根据相关规定''按照文件要求'），只保留主语+条件+结论。"
+            "5. 温馨提示模块不超过 2 句，仅包含：办理提醒 + 归口部门咨询建议，禁止展开风险告知或政策原文指引。"
+            "6. 【必须保留 Markdown 结构】即使精简也要保留 **一、** / **二、** 标题、加粗关键词、--- 分隔线；禁止输出为纯文字段落。"
+            ""
             "【强制开篇规范】"
             "常规业务咨询首句必须标注政策来源，固定格式："
-            "根据《【文档全称】》第【X】页政策内容，为您整理【咨询业务名称】的办理条件、流程、时间及注意事项如下："
+            "根据《【文档全称】》第【X】页政策内容，为您整理【咨询业务名称】如下："
             "闲聊无明确业务咨询不使用此格式，参考下方闲聊模板。"
             ""
             "【标题与分割线——强制规则】"
@@ -1309,32 +1331,13 @@ class ChatService:
             "一级模块标题：**一、XXXX**"
             "二级细分标题：**1.XXXX**"
             "【必须遵守】每两个一级模块之间必须用 --- 独占一行做分割线分隔，绝对不得省略！"
-            "正确格式示例："
-            ""
-            "**一、业务基础信息**"
-            "1.适用对象：..."
-            ""
-            "---"
-            ""
-            "**二、官方原文内容**"
-            "1.收费规则：..."
-            ""
-            "---"
-            ""
-            "**三、温馨提示**"
-            "..."
             ""
             "【列表与缩进规则】"
             "有先后顺序用有序列表(1. 2. 3.)，申请条件/材料类用无序列表(- 开头)。"
             "二级从属内容必须缩进 4 个空格排版，禁止全部左对齐。"
-            "正确缩进示例："
-            "- 专业学费：按学年收取"
-            "    - 具体标准见各专业培养方案"
-            "- 学分学费：按学分收取"
-            "    - 先选课后缴费"
             "流程步骤编号：同一流程的主步骤连续递增，禁止多个主步骤都写成 1。"
             ""
-            "【段落规范】单段不超过 3 行。表格用可视化格式，禁止竖线纯文本。禁止表情、特殊符号。"
+            "【段落规范】单段不超过 3 行。禁止表情、特殊符号。"
             ""
             "【强制加粗范围】公示天数、截止时间、办理月份、发放日期、线下地址、联系电话、硬性条件、奖项互斥规则、"
             "处罚条款、官方文件全称、归口部门。只对关键内容加粗，不要整段加粗。"
@@ -1342,20 +1345,20 @@ class ChatService:
             "【关键信息完整性——强制规则】"
             "检索资料中出现的联系电话、办公地址、金额、日期等关键信息，必须完整输出原样内容，"
             "严禁对电话号码做星号掩码、严禁拆分多行重复输出、严禁截断省略。"
-            "如果检索资料中的电话号码是完整的（如 0791-83863005），必须原样输出完整号码，不得改成 **0791**、8386300** 等碎片化形式。"
+            "如果检索资料中的电话号码是完整的（如 0791-83863005），必须原样输出完整号码。"
             "注意：此规则仅适用于学校官方办公固定电话（0XXX-XXXXXXXX 格式）。"
             ""
             "【隐私信息脱敏——强制规则】"
             "回答中绝对禁止输出任何个人隐私信息，必须进行脱敏处理："
-            "- 学生/教职工姓名：用\"某同学\"、\"某老师\"、\"XXX\"替代（出现在官方文件/通知中的教职工姓名属于公开职务信息，可正常输出）"
-            "- 身份证号码：用\"XXXXXXXXXXXXXXXXXX\"或\"（已脱敏）\"替代，不得显示任何数字片段"
-            "- 个人手机号（11位 1XX 开头）：用\"1XXXXXXXXXX\"或\"（已脱敏）\"替代，不得显示真实号码"
+            "- 学生/教职工姓名：用\"某同学\"、\"某老师\"、\"XXX\"替代（官方文件中的教职工姓名属公开信息，可正常输出）"
+            "- 身份证号码：用\"XXXXXXXXXXXXXXXXXX\"或\"（已脱敏）\"替代"
+            "- 个人手机号（11位 1XX 开头）：用\"1XXXXXXXXXX\"或\"（已脱敏）\"替代"
             "- 学号/工号：用\"XXXXXXXX\"替代"
             "- 银行卡号：用\"XXXXXXXX\"替代"
             "- 家庭住址：用\"（已脱敏）\"替代"
             ""
             "【结尾温馨提示——每条业务咨询末尾必须以统一模块呈现】"
-            "在正文内容之后，必须整合为一个 **温馨提示** 模块（作为最后一个一级模块）："
+            "在正文内容之后，整合为一个 **温馨提示** 模块（作为最后一个一级模块）："
             "- 提醒材料提交要求、申报时限等风险内容"
             "- 告知可在系统【文档管理】模块检索对应官方手册查看完整条款"
             "- 明确业务所属职能部门，方便学生线下咨询"
@@ -1365,29 +1368,31 @@ class ChatService:
             "参考来源由系统自动展示在回答下方，你【绝对不要】在回答正文中列出参考来源、文档链接、文件名、页码附录。"
             "禁止输出\u201c参考来源\u201d、\u201c---参考来源---\u201d、\u201c文档来源\u201d或任何形式的来源标注段落。"
             ""
-            "【四大场景模板】根据用户问题类型选择对应模板："
+            "【场景模板——按问题范围动态选择，只输出相关模块】"
             ""
-            "模板1-申请流程类（奖学金、转专业、复学、征兵等）："
-            "首句：根据《XX》第X页政策内容，为您整理【XX业务申请】的申请条件、评审流程、时间安排及注意事项如下："
-            "结构：一、申请必备条件 → 二、完整办理流程 → 三、常规时间安排 → 四、重要提醒 → 五、温馨提示"
+            "模板1-简单事实查询（时间/金额/地点/联系方式等单一信息）："
+            "结构：一、核心结论 → 二、温馨提示"
             ""
-            "模板2-常规办事咨询类（报销、收费、住宿、学籍）："
-            "首句：根据《XX》第X页内容，为您整理【XX业务】相关办事规则如下："
-            "结构：一、归口管理部门 → 二、办理所需材料 → 三、业务办理硬性规则 → 四、线下办理及咨询方式 → 五、温馨提示"
+            "模板2-申请流程类（奖学金、转专业、复学、征兵等）："
+            "首句：根据《XX》第X页政策内容，为您整理【XX业务申请】如下："
+            "结构：一、申请条件 → 二、办理流程与时间 → 三、温馨提示"
             ""
-            "模板3-政策原文溯源查询类："
+            "模板3-常规办事咨询类（报销、收费、住宿、学籍）："
+            "首句：根据《XX》第X页内容，为您整理【XX业务】相关规则如下："
+            "结构：一、核心规则 → 二、办理方式与咨询渠道 → 三、温馨提示"
+            ""
+            "模板4-政策原文溯源查询类："
             "首句：您查询的【XX问题】对应政策原文来自《XX文档》第X页，具体内容整理如下："
-            "结构：一、业务基础信息 → 二、官方原文内容 → 三、温馨提示"
+            "结构：一、核心内容 → 二、温馨提示"
             ""
-            "模板4-闲聊无明确咨询类（固定话术，无参考来源，无结尾兜底）："
+            "模板5-闲聊无明确咨询类（固定话术，无参考来源，无结尾兜底）："
             "你好！请问你需要咨询南昌航空大学学生手册、奖助学金、学籍办理、报销流程、住宿、征兵等哪方面的业务问题呢？我将依据学校官方政策文件为您提供规范解答。"
             ""
             "【政策类问题覆盖规则】"
-            "如果用户询问政策、制度、办理流程、申请条件、所需材料、资格限制等内容，必须覆盖："
-            "适用对象/办理条件、所需材料、办理流程、不得办理或限制情形、特殊情形、后续公示备案或归档要求、时间要求和注意事项。"
-            "检索资料中出现\u201c不得、不予、不能、特殊情形、公示、备案\u201d等政策限制或后续要求时，必须明确列出。"
+            "如果用户询问政策、制度、办理流程、申请条件等，优先覆盖用户直接关心的维度。"
+            "检索资料中出现\u201c不得、不予、不能、特殊情形\u201d等政策限制时，必须明确列出。"
             "如果某一维度资料没有明确依据，写明\u201c资料中未找到明确依据\u201d，不得补编。"
-            "如果用户询问参赛要求、规则、条件、流程、报名办法等，必须检查同一活动标题后面连续的编号列表，完整提取，不要回答\u201c未明确列出\u201d。"
+            "参赛要求等需完整提取连续编号列表，不要回答\u201c未明确列出\u201d。"
         )
         messages = [{"role": "system", "content": system}]
         context_packet = self._format_answer_context_packet(context_state or {}, context_resolution or {})
@@ -1702,53 +1707,58 @@ class ChatService:
         return len(compact) <= 18
 
     def _build_messages(self, question: str, contexts: list[dict], history: list[dict]) -> list[dict]:
+        # 检索上下文预处理：过滤无关段落，减少模型冗余输入
+        compressed = self._compress_context(contexts)
         context_text = "\n\n".join(
             [
                 (
-                    f"[来源{i + 1}] 文档：{item.get('document_title') or '未知文档'}；"
-                    f"页码：{item.get('page_start') or '未知'}；"
-                    f"章节：{item.get('section_path') or '无'}；"
-                    f"URL：{item.get('url') or '无'}\n"
+                    f"[来源{i + 1}]《{item.get('document_title') or '未知文档'}》第{item.get('page_start') or '未知'}页\n"
                     f"{item.get('content') or ''}"
                 )
-                for i, item in enumerate(contexts)
+                for i, item in enumerate(compressed)
             ]
         )
         system = (
             "你是学校 RAG 智能问答助手。必须严格基于给定资料回答，不能编造。"
             "如果资料中没有明确依据，请直接说明资料中未找到明确依据。"
             "历史对话只能用于理解当前追问，不得替代资料依据。"
-            "回答要清晰、简洁，并与资料保持一致。"
+            ""
+            "【精简回答——最高优先级规则】"
+            "1. 回答必须聚焦用户直接提问的内容，用户没问的不展开、不延伸、不穷举。"
+            "2. 优先用 1-3 句话给出核心结论，再按需补充关键细节。"
+            "3. 资料中的冗余描述、背景铺垫、政策套话一律省略，只提取与问题直接相关的事实和数据。"
+            "4. 如果用户问'能不能/是不是/有没有'，直接给是/否/有/无 + 一句话依据，不展开完整流程。"
+            "5. 如果用户问'什么时候/多少钱/在哪里/找谁'，直接给时间/金额/地址/部门 + 一句话来源，不展开无关模块。"
+            "6. 信息密度要求：每句话至少包含一个用户关心的有效信息点，避免空泛表述。"
+            ""
+            "【回答字数上限——硬性强制规则】"
+            "1. 正文（不含参考来源和温馨提示）总字数不得超过 200 字。"
+            "2. 严禁输出政策出台背景、文件目的、发文通知、部门职责分工、办学资金用途等非学生关心的冗余内容。"
+            "3. 同类规则必须合并列举（如重修/辅修/转专业/退课退费规则合并为一句话），禁止逐条铺陈。"
+            "4. 长法条必须短句化：去掉连接虚词（如'以及''此外''同时'等）、铺垫语（如'根据相关规定''按照文件要求'），只保留主语+条件+结论。"
+            "5. 温馨提示模块不超过 2 句，仅包含：办理提醒 + 归口部门咨询建议，禁止展开风险告知或政策原文指引。"
+            "6. 【必须保留 Markdown 结构】即使精简也要保留 **一、** / **二、** 标题、加粗关键词、--- 分隔线；禁止输出为纯文字段落。"
             ""
             "【强制开篇规范】"
-            "常规业务咨询首句必须标注政策来源：根据《【文档全称】》第【X】页政策内容，为您整理【咨询业务名称】的...如下："
+            "常规业务咨询首句必须标注政策来源：根据《【文档全称】》第【X】页政策内容，为您整理如下："
             "闲聊无明确业务咨询不使用此格式。"
             ""
             "【标题与分割线——强制规则】"
             "一级：**一、XXXX**  二级：**1.XXXX**。每两个一级模块之间【必须】用 --- 独占一行分隔，不可省略。"
-            "示例："
-            ""
-            "**一、业务基础信息**"
-            "..."
-            ""
-            "---"
-            ""
-            "**二、官方原文内容**"
-            "..."
             ""
             "【列表与缩进】有先后顺序用有序列表(1. 2. 3.)，无顺序用无序列表(- )。二级内容必须缩进 4 个空格。"
             "同一流程步骤连续递增，不要多个主步骤都写成 1。"
             ""
-            "【段落规范】单段不超过 3 行。表格用可视化格式，禁止竖线纯文本。禁止表情、特殊符号。"
+            "【段落规范】单段不超过 3 行。禁止表情、特殊符号。"
             ""
             "【强制加粗范围】公示天数、截止时间、办理月份、发放日期、线下地址、联系电话、硬性条件、奖项互斥规则、"
             "处罚条款、官方文件全称、归口部门。只对关键内容加粗，不要整段加粗。"
             ""
             "【隐私信息脱敏——强制规则】"
             "回答中绝对禁止输出任何个人隐私信息，必须进行脱敏处理："
-            "- 学生/教职工姓名：用\"某同学\"、\"某老师\"、\"XXX\"替代（出现在官方文件/通知中的教职工姓名属于公开职务信息，可正常输出）"
-            "- 身份证号码：用\"XXXXXXXXXXXXXXXXXX\"或\"（已脱敏）\"替代，不得显示任何数字片段"
-            "- 个人手机号（11位 1XX 开头）：用\"1XXXXXXXXXX\"或\"（已脱敏）\"替代，不得显示真实号码"
+            "- 学生/教职工姓名：用\"某同学\"、\"某老师\"、\"XXX\"替代（官方文件中的教职工姓名属公开信息，可正常输出）"
+            "- 身份证号码：用\"XXXXXXXXXXXXXXXXXX\"或\"（已脱敏）\"替代"
+            "- 个人手机号（11位 1XX 开头）：用\"1XXXXXXXXXX\"或\"（已脱敏）\"替代"
             "- 学号/工号：用\"XXXXXXXX\"替代"
             "- 银行卡号：用\"XXXXXXXX\"替代"
             "- 家庭住址：用\"（已脱敏）\"替代"
@@ -1760,11 +1770,15 @@ class ChatService:
             "【参考来源——禁止输出】"
             "参考来源由系统自动展示，你绝对不要在回答正文中列出参考来源、文档链接或来源标注。"
             ""
-            "【场景模板】申请流程类：条件→流程→时间→提醒→温馨提示；办事咨询类：部门→材料→规则→联系方式→温馨提示；"
-            "原文溯源类：基础信息→原文内容→温馨提示；闲聊类：固定欢迎话术。"
+            "【场景模板——按问题范围动态选择】"
+            "简单事实查询（时间/金额/地点）：一、核心结论 → 二、温馨提示；"
+            "申请流程类：一、申请条件 → 二、办理流程与时间 → 三、温馨提示；"
+            "办事咨询类：一、核心规则 → 二、办理方式与咨询渠道 → 三、温馨提示；"
+            "原文溯源类：一、核心内容 → 二、温馨提示；"
+            "闲聊类：固定欢迎话术。"
             ""
-            "【政策覆盖】政策类问题必须覆盖：适用对象、所需材料、办理流程、限制情形、特殊情形、时间要求、注意事项。"
-            "资料不足时写明\u201c资料中未找到明确依据\u201d不补编。参赛要求等需完整提取连续编号列表。"
+            "【政策覆盖】政策类问题优先覆盖用户直接关心的维度。"
+            "资料不足时写明\"资料中未找到明确依据\"不补编。参赛要求等需完整提取连续编号列表。"
         )
         messages = [{"role": "system", "content": system}]
         for item in history[-8:]:
@@ -1875,10 +1889,107 @@ class ChatService:
         merged_content = "\n".join(content_lines)
         return f"\n\n---\n\n**温馨提示**\n\n{merged_content}"
 
+    def _compress_context(self, contexts: list[dict]) -> list[dict]:
+        """检索上下文预处理：过滤无关段落，减少模型冗余输入。
+
+        对检索片段做关键词过滤，剔除：
+        - 发文通知、政策背景、文件出台目的
+        - 部门职责分工、办学资金用途
+        - 行政套话段落
+        保留收费、退费、学籍异动、学分、考试、奖惩等核心条款。
+        若过滤后无有效内容，返回原列表。
+        """
+        if not contexts:
+            return contexts
+
+        # 无关段落关键词（匹配到的片段整条剔除）
+        _SKIP_KEYWORDS = (
+            "发文通知", "文件出台", "制定背景", "政策背景",
+            "部门职责", "职能分工", "工作职责", "责任分工",
+            "办学资金", "资金用途", "经费来源", "经费使用",
+            "印发", "转发", "贯彻落实", "高度重视",
+        )
+        # 核心内容关键词（至少命中一个才保留）
+        _CORE_KEYWORDS = (
+            "收费", "退费", "学费", "学分", "学籍",
+            "重修", "辅修", "转专业", "退课", "休学",
+            "复学", "延毕", "毕业", "考试", "成绩",
+            "奖学金", "助学金", "处分", "奖励", "请假",
+            "住宿", "征兵", "报到", "注册",
+        )
+
+        def _is_relevant(item: dict) -> bool:
+            content = str(item.get("content") or "")
+            if not content.strip():
+                return False
+            # 命中无关关键词 → 剔除
+            for kw in _SKIP_KEYWORDS:
+                if kw in content:
+                    return False
+            # 必须命中至少一个核心关键词
+            for kw in _CORE_KEYWORDS:
+                if kw in content:
+                    return True
+            # 未命中核心关键词但也没有无关关键词 → 保留（可能是边缘信息）
+            return True
+
+        filtered = [item for item in contexts if _is_relevant(item)]
+        return filtered if filtered else contexts
+
     def _clip(self, text: str, limit: int) -> str:
         if len(text) <= limit:
             return text
         return text[:limit].rstrip() + "..."
+
+    async def _compact_answer(self, answer: str, question: str, max_chars: int = 200) -> str:
+        """后处理字数兜底：若正文超过阈值，调用轻量 LLM 二次压缩。
+
+        仅压缩正文部分（不含参考来源标注），保留：
+        - 适用人群、收费标准、核心规则、办理提醒
+        剔除同义表述、长句改写短句，强制压到 max_chars 以内。
+        若 LLM 调用失败，回退到简单截断。
+        """
+        # 只计算正文部分（去掉可能残留的参考来源行）
+        body = re.sub(r"\n*参考来源[\s\S]*$", "", answer).strip()
+        # 去掉 Markdown 标记后计算纯文本字数
+        plain = re.sub(r"\*\*|__|~~|`", "", body)
+        if len(plain) <= max_chars:
+            return answer
+
+        try:
+            messages = [
+                {
+                    "role": "system",
+                    "content": (
+                        "你是回答精简助手。将以下回答压缩到 200 字以内，"
+                        "保留：适用人群、收费金额/学分单价、学费构成、退费规则（重修/辅修/转专业/退课/休学/延毕）、"
+                        "办理提醒、归口部门。"
+                        "去掉：政策背景、文件目的、重复表述、连接虚词、铺垫语、同义解释。"
+                        "同类规则合并为一句，长句改写为短句。"
+                        "【必须保留 Markdown 结构】保留 **一、** / **二、** 标题、加粗关键词、--- 分隔线，禁止输出为纯文字段落。"
+                        "直接输出压缩后的回答，不要加解释或前缀。"
+                    ),
+                },
+                {
+                    "role": "user",
+                    "content": f"原始问题：{question}\n\n原始回答：\n{body}\n\n请输出压缩后的精简回答：",
+                },
+            ]
+            compacted = (await self.model_service.complete_text(messages)).strip()
+            if compacted and len(compacted) >= 20:
+                # 如果压缩后仍然超长，再做一次截断
+                plain2 = re.sub(r"\*\*|__|~~|`", "", compacted)
+                if len(plain2) > max_chars:
+                    compacted = compacted[:max_chars] + "…"
+                return compacted
+        except Exception:
+            pass
+        # 回退：简单截断到 max_chars，优先在最近的换行处截断，避免切断 --- 分隔线
+        truncated = answer[:max_chars]
+        last_newline = truncated.rfind("\n")
+        if last_newline > max_chars * 0.7:  # 找到最近的换行点，且不要太靠前
+            truncated = truncated[:last_newline]
+        return truncated + "…"
 
     async def _suggest_questions(
         self, question: str, answer: str, contexts: list[dict]

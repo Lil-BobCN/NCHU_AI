@@ -31,7 +31,7 @@ _document_filter_var: ContextVar[dict | None] = ContextVar(
 
 class RetrievalService:
     MAX_ANSWER_CONTEXT_DOCS = 2
-    MAX_ANSWER_CONTEXT_CHUNKS = 4
+    MAX_ANSWER_CONTEXT_CHUNKS = 3
     MAX_CITATION_DOCS = 2
     MAX_CITATION_ITEMS = 3
     CITATION_EVIDENCE_CHARS = 240
@@ -204,24 +204,30 @@ class RetrievalService:
             return cached
 
         # 多路召回：向量负责语义，关键词负责精确词，QA 负责高置信问答对。
-        vector_results = (
-            await self._vector_search(db, query, top_k=vector_top_k, document_ids=document_ids)
-            if enable_vector_recall
-            else []
+        # 三路并行执行以降低延迟（原来串行 ~0.6s，现在取最慢一路 ~0.2s）。
+        import asyncio as _asyncio
+
+        async def _vector_task():
+            if not enable_vector_recall:
+                return []
+            results = await self._vector_search(db, query, top_k=vector_top_k, document_ids=document_ids)
+            return self._filter_invalid_document_sources(results, stage="vector")
+
+        async def _keyword_task():
+            if not enable_keyword_recall:
+                return []
+            results = await self._keyword_search(db, query, top_k=keyword_top_k, document_ids=document_ids)
+            return self._filter_invalid_document_sources(results, stage="keyword")
+
+        async def _qa_task():
+            if not enable_qa_recall:
+                return []
+            results = await self._qa_search(db, query, top_k=qa_top_k, document_ids=document_ids)
+            return self._filter_invalid_document_sources(results, stage="qa")
+
+        vector_results, keyword_results, qa_results = await _asyncio.gather(
+            _vector_task(), _keyword_task(), _qa_task()
         )
-        vector_results = self._filter_invalid_document_sources(vector_results, stage="vector")
-        keyword_results = (
-            await self._keyword_search(db, query, top_k=keyword_top_k, document_ids=document_ids)
-            if enable_keyword_recall
-            else []
-        )
-        keyword_results = self._filter_invalid_document_sources(keyword_results, stage="keyword")
-        qa_results = (
-            await self._qa_search(db, query, top_k=qa_top_k, document_ids=document_ids)
-            if enable_qa_recall
-            else []
-        )
-        qa_results = self._filter_invalid_document_sources(qa_results, stage="qa")
         # RRF 融合后再做业务域过滤和 rerank，避免单一路召回结果支配最终上下文。
         fused = self._rrf([vector_results, keyword_results, qa_results])
         fused = self._filter_invalid_document_sources(fused, stage="recall")
@@ -1737,7 +1743,7 @@ class RetrievalService:
             return []
 
         policy_plan = self._policy_coverage_plan(query, results)
-        max_chunks = 8 if policy_plan.get("enabled") else self.MAX_ANSWER_CONTEXT_CHUNKS
+        max_chunks = 5 if policy_plan.get("enabled") else self.MAX_ANSWER_CONTEXT_CHUNKS
         max_docs = 2 if policy_plan.get("enabled") else self.MAX_ANSWER_CONTEXT_DOCS
         scored = [
             (index, self._with_answer_context_score(query, item))

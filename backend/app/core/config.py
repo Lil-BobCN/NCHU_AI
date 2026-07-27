@@ -63,7 +63,8 @@ class Settings(BaseSettings):
 
     deepseek_api_key: str | None = None
     deepseek_base_url: str = DEEPSEEK_BASE_URL
-    chat_model: str = "deepseek-v4-flash"
+    chat_model: str = "deepseek-chat"
+    """默认对话模型名称。使用 deepseek-chat 以获得更好的提炼和总结能力。"""
     stream_char_delay_ms: int = 0
     chat_max_question_chars: int = 2000
     chat_max_top_k: int = 30

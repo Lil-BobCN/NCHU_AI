@@ -92,12 +92,16 @@ class ModelService:
             return await self.chat_client.chat.completions.create(
                 model=self.settings.chat_model,
                 messages=messages,
+                temperature=0.5,
+                max_tokens=1536,
                 stream=True,
             )
         async with model_call_slot():
             return await self.chat_client.chat.completions.create(
                 model=self.settings.chat_model,
                 messages=messages,
+                temperature=0.5,
+                max_tokens=1536,
                 stream=False,
             )
 

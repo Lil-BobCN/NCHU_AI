@@ -1030,6 +1030,14 @@ async def _stream_with_java_boundary(generator: AsyncGenerator[str, None]) -> As
 
 async def _upsert_java_document(db: AsyncSession, payload: DocumentProcessRequest) -> Document:
     existing = await db.scalar(select(Document).where(Document.java_attach_id == payload.attach_id))
+    # 若 attach_id 未命中，回退按文件名查找同名活跃文档（避免唯一约束冲突）
+    if existing is None:
+        existing = await db.scalar(
+            select(Document).where(
+                Document.file_name == payload.file_name,
+                Document.deleted_at.is_(None),
+            )
+        )
     ext = (payload.file_ext or Path(payload.file_name).suffix or "").lower()
     status = "uploaded"
     if existing is not None and not payload.auto_process:
